@@ -1,0 +1,133 @@
+import { Router } from 'express';
+import { OrganizerService } from '../services/OrganizerService.js';
+import type { ScanResult } from '../services/OrganizerService.js';
+import fs from 'fs-extra';
+import path from 'path';
+
+const router = Router();
+
+// Types for Requests
+interface ScanRequest {
+    inboxPath: string;
+    libraryPath: string;
+}
+
+interface OrganizeRequest {
+    results: ScanResult[];
+    libraryPath: string;
+}
+
+// Routes
+
+// 1. Scan Inbox
+router.post('/scan', async (req, res): Promise<any> => {
+    try {
+        const { inboxPath, libraryPath } = req.body as ScanRequest;
+
+        if (!inboxPath || !libraryPath) {
+            return res.status(400).json({ error: 'Missing inboxPath or libraryPath' });
+        }
+
+        console.log(`Scanning Inbox: ${inboxPath}`);
+        const results = await OrganizerService.scanInbox(inboxPath, libraryPath);
+        res.json({ success: true, results });
+
+    } catch (error: any) {
+        console.error('Scan Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 2. Organize (Execute Move)
+router.post('/organize', async (req, res): Promise<any> => {
+    try {
+        const { results, libraryPath } = req.body as OrganizeRequest;
+
+        if (!results || !Array.isArray(results) || !libraryPath) {
+            return res.status(400).json({ error: 'Invalid payload' });
+        }
+
+        console.log(`Organizing ${results.length} files...`);
+        await OrganizerService.organize(results, libraryPath);
+        res.json({ success: true, message: 'Organization complete' });
+
+    } catch (error: any) {
+        console.error('Organize Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 3. Get Library
+router.get('/library', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query;
+        if (typeof libraryPath !== 'string') {
+            return res.status(400).json({ error: 'libraryPath query param required' });
+        }
+
+        const dbPath = path.join(libraryPath, 'library_db.json');
+        if (!await fs.pathExists(dbPath)) {
+            return res.json({ inventory: [] });
+        }
+
+        const inventory = await fs.readJson(dbPath);
+        res.json({ inventory });
+
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 4. Create/Append Playlist
+router.post('/playlists', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, name, tracks } = req.body;
+
+        if (!libraryPath || !name || !tracks || !Array.isArray(tracks)) {
+            return res.status(400).json({ error: 'Invalid payload' });
+        }
+
+        console.log(`Adding ${tracks.length} tracks to playlist: ${name}`);
+        await OrganizerService.addToPlaylist(name, tracks, libraryPath);
+
+        res.json({ success: true });
+    } catch (error: any) {
+        console.error('Playlist Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 5. Browse Directories
+router.get('/browse', async (req, res): Promise<any> => {
+    try {
+        const queryPath = req.query.path as string || '/'; // Default to root
+
+        // Security check (basic) - ensure we don't go outside legitimate bounds if needed
+        // For local personal tool, we trust the user needs access to their system
+
+        if (!await fs.pathExists(queryPath)) {
+            return res.status(404).json({ error: 'Path not found' });
+        }
+
+        const entries = await fs.readdir(queryPath, { withFileTypes: true });
+
+        const directories = entries
+            .filter(e => e.isDirectory() && !e.name.startsWith('.')) // Hide hidden folders
+            .map(e => ({
+                name: e.name,
+                path: path.join(queryPath, e.name),
+                type: 'directory'
+            }));
+
+        res.json({
+            currentPath: path.resolve(queryPath),
+            parentPath: path.dirname(path.resolve(queryPath)),
+            directories
+        });
+
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+export default router;
