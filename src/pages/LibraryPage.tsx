@@ -1,5 +1,6 @@
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useEffect, useState } from "react"
+import { MusicTable } from "@/components/MusicTable"
 
 interface SongMetadata {
     title: string
@@ -76,15 +77,15 @@ export function LibraryPage() {
     }, [config.inboxPath, config.libraryPath])
 
     return (
-        <main className="w-full flex flex-col justify-start items-center p-8 gap-20">
-            <h1 className="text-3xl font-bold underline">Library</h1>
+        <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+            <h1 className="text-3xl font-bold">Music Library</h1>
 
             {isScanning && (
                 <p className="text-muted-foreground">Scanning inbox...</p>
             )}
 
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="w-full max-w-6xl p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
                     <p className="text-sm font-medium text-red-900 dark:text-red-100">
                         Error: {error}
                     </p>
@@ -92,10 +93,8 @@ export function LibraryPage() {
             )}
 
             {!isScanning && !error && scanResults.length > 0 && (
-                <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                    <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                        Found {scanResults.length} files ready to organize. Check console for details.
-                    </p>
+                <div className="w-full max-w-6xl">
+                    <MusicTable data={scanResults} />
                 </div>
             )}
 
