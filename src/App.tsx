@@ -4,15 +4,25 @@ import type { ReactNode } from 'react';
 import { SetupPage } from './pages/SetupPage';
 // import { IngestionPage } from './pages/IngestionPage';
 import { LibraryPage } from './pages/LibraryPage';
-// import { useStore } from './store/useStore';
+import { useAppConfig } from './hooks/useAppConfig';
 // import { ToastProvider } from './components/ui/ToastContext';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  // const { config } = useStore();
+  const { config, isLoaded } = useAppConfig();
 
-  // if (!config.inboxPath || !config.libraryPath) {
-  //   return <Navigate to="/setup" replace />;
-  // }
+  // Show loading while checking config
+  if (!isLoaded) {
+    return (
+      <div className="w-full flex flex-col justify-center items-center min-h-screen">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  // Redirect to setup if paths are not configured
+  if (!config.inboxPath || !config.libraryPath) {
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 };
@@ -25,17 +35,18 @@ function App() {
       <Routes>
         <Route path="/" element={<SetupPage />} />
 
-        <Route path="/library" element={<LibraryPage />} />
+        <Route
+          path="/library"
+          element={
+            <ProtectedRoute>
+              <LibraryPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* <Route path="/" element={
           <ProtectedRoute>
             <IngestionPage />
-          </ProtectedRoute>
-        } /> */}
-
-        {/* <Route path="/library" element={
-          <ProtectedRoute>
-            <LibraryPage />
           </ProtectedRoute>
         } /> */}
 
