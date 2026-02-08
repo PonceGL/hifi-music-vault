@@ -130,4 +130,46 @@ router.get('/browse', async (req, res): Promise<any> => {
     }
 });
 
+// 6. Save Configuration
+router.post('/config', async (req, res): Promise<any> => {
+    try {
+        const { inboxPath, libraryPath } = req.body;
+
+        if (!inboxPath || !libraryPath) {
+            return res.status(400).json({ error: 'Both inboxPath and libraryPath are required' });
+        }
+
+        const configPath = path.resolve(process.cwd(), 'config.json');
+        const config = {
+            inboxPath,
+            libraryPath,
+            updatedAt: new Date().toISOString()
+        };
+
+        await fs.writeJson(configPath, config, { spaces: 2 });
+        console.log('Configuration saved:', config);
+
+        res.json({ success: true, message: 'Configuration saved successfully' });
+    } catch (error: any) {
+        console.error('Config Save Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 7. Get Configuration
+router.get('/config', async (_req, res): Promise<any> => {
+    try {
+        const configPath = path.resolve(process.cwd(), 'config.json');
+
+        if (!await fs.pathExists(configPath)) {
+            return res.json({ config: null });
+        }
+
+        const config = await fs.readJson(configPath);
+        res.json({ config });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

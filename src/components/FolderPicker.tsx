@@ -34,8 +34,9 @@ export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps)
         setLoading(true)
         setError(null)
         try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
             const response = await fetch(
-                `http://localhost:3001/api/browse?path=${encodeURIComponent(path)}`
+                `${apiUrl}/api/browse?path=${encodeURIComponent(path)}`
             )
 
             if (!response.ok) {
