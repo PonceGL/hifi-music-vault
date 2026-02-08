@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { SetupPage } from './pages/SetupPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { useAppConfig } from './hooks/useAppConfig';
-import { PlayLists } from './pages/PlayLists';
+import { PlayListsPage } from './pages/PlayListsPage';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { config, isLoaded } = useAppConfig();
@@ -47,7 +47,7 @@ function App() {
           path="/playlists"
           element={
             <ProtectedRoute>
-              <PlayLists />
+              <PlayListsPage />
             </ProtectedRoute>
           }
         />
