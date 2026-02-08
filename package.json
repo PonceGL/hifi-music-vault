@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev:client": "vite",
-    "dev:server": "nodemon --watch src/server --exec ts-node src/server/index.ts",
+    "dev:server": "nodemon --watch src/server --ext ts,json --exec \"tsx src/server/index.ts\"",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -22,16 +22,17 @@
     "path": "^0.12.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.13.0",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/fs-extra": "^11.0.4",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "concurrently": "^9.2.1",
@@ -41,6 +42,7 @@
     "globals": "^16.5.0",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
