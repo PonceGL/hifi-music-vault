@@ -2,86 +2,190 @@ import { useAppConfig } from "@/hooks/useAppConfig"
 import { useEffect, useState } from "react"
 import { MusicTable } from "@/components/MusicTable"
 
-interface SongMetadata {
-    title: string
-    artist: string
-    album: string
-    year?: number
-    trackNo: string
-    genre: string[]
-    format: string
-    absPath: string
-    relPath?: string
-}
-
-interface ScanResult {
-    file: string
-    metadata: SongMetadata
-    proposedPath: string
-    playlists: string[]
-}
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 
 export function LibraryPage() {
     const { config } = useAppConfig()
+
     const [scanResults, setScanResults] = useState<ScanResult[]>([])
+    const [libraryFiles, setLibraryFiles] = useState<ScanResult[]>([])
+    const [viewMode, setViewMode] = useState<'scan' | 'library'>('scan')
+    
+    // Loading states
     const [isScanning, setIsScanning] = useState(false)
+    const [isOrganizing, setIsOrganizing] = useState(false)
+    const [isLoadingLibrary, setIsLoadingLibrary] = useState(false)
+    
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const scanInbox = async () => {
-            if (!config.inboxPath || !config.libraryPath) {
-                console.error("Missing inbox or library path")
-                return
-            }
+    const fetchLibrary = async () => {
+        if (!config.libraryPath) return
 
-            setIsScanning(true)
-            setError(null)
+        setIsLoadingLibrary(true)
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const response = await fetch(`${apiUrl}/api/library?libraryPath=${encodeURIComponent(config.libraryPath)}`)
+            
+            if (!response.ok) throw new Error('Failed to fetch library')
+            
+            const data = await response.json()
+            
+            // Adapt SongMetadata to ScanResult for the table
+            const adapted: ScanResult[] = data.inventory.map((song: SongMetadata) => ({
+                file: song.absPath,
+                metadata: song,
+                proposedPath: song.absPath, // Already present
+                playlists: []
+            }))
+            
+            setLibraryFiles(adapted)
+            setViewMode('library')
+        } catch (err) {
+            console.error('Error fetching library:', err)
+        } finally {
+            setIsLoadingLibrary(false)
+        }
+    }
 
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
-                const response = await fetch(`${apiUrl}/api/scan`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        inboxPath: config.inboxPath,
-                        libraryPath: config.libraryPath,
-                    }),
-                })
-
-                if (!response.ok) {
-                    throw new Error('Failed to scan inbox')
-                }
-
-                const data = await response.json()
-                console.log("============================")
-                console.log("SCAN RESULTS:")
-                console.log("============================")
-                console.log(`Found ${data.results.length} files to organize`)
-                console.log(data.results)
-                console.log("============================")
-
-                setScanResults(data.results)
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-                console.error('Error scanning inbox:', err)
-                setError(errorMessage)
-            } finally {
-                setIsScanning(false)
-            }
+    const scanInbox = async () => {
+        if (!config.inboxPath || !config.libraryPath) {
+            console.error("Missing inbox or library path")
+            return
         }
 
+        setIsScanning(true)
+        setError(null)
+
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const response = await fetch(`${apiUrl}/api/scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    inboxPath: config.inboxPath,
+                    libraryPath: config.libraryPath,
+                }),
+            })
+
+            if (!response.ok) throw new Error('Failed to scan inbox')
+
+            const data = await response.json()
+
+            console.log("============================")
+            console.log("SCAN RESULTS:")
+            console.log("============================")
+            console.log(`Found ${data.results.length} files to organize`)
+            console.log(data.results)
+            console.log("============================")
+            
+            if (data.results.length > 0) {
+                setScanResults(data.results)
+                setViewMode('scan')
+            } else {
+                // If nothing to organize, show library
+                await fetchLibrary()
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+            console.error('Error scanning inbox:', err)
+            setError(errorMessage)
+        } finally {
+            setIsScanning(false)
+        }
+    }
+
+    const handleOrganize = async () => {
+        if (scanResults.length === 0 || !config.libraryPath) return
+
+        setIsOrganizing(true)
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const response = await fetch(`${apiUrl}/api/organize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    results: scanResults,
+                    libraryPath: config.libraryPath,
+                }),
+            })
+
+            if (!response.ok) throw new Error('Organization failed')
+
+            // Success! Refresh library
+            setScanResults([])
+            await fetchLibrary()
+            
+        } catch (err) {
+             const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+             setError(errorMessage)
+        } finally {
+            setIsOrganizing(false)
+        }
+    }
+
+    useEffect(() => {
         // Auto-scan on mount
         scanInbox()
     }, [config.inboxPath, config.libraryPath])
 
     return (
         <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
-            <h1 className="text-3xl font-bold">Music Library</h1>
+            <div className="flex flex-col items-center gap-2">
+                <h1 className="text-3xl font-bold">Music Library</h1>
+                <p className="text-muted-foreground">
+                    {viewMode === 'scan' ? 'Inbox Review' : 'My Collection'}
+                </p>
+            </div>
 
-            {isScanning && (
-                <p className="text-muted-foreground">Scanning inbox...</p>
+            {/* Actions Bar */}
+            <div className="w-full max-w-6xl flex justify-between items-center">
+                <div className="flex gap-2">
+                    <Button 
+                        variant={viewMode === 'scan' ? "default" : "outline"}
+                        onClick={() => {
+                            setViewMode('scan')
+                            if(scanResults.length === 0) scanInbox()
+                        }}
+                    >
+                        Inbox ({scanResults.length})
+                    </Button>
+                    <Button 
+                         variant={viewMode === 'library' ? "default" : "outline"}
+                         onClick={() => {
+                             fetchLibrary()
+                         }}
+                    >
+                        Library ({libraryFiles.length})
+                    </Button>
+                </div>
+
+                {viewMode === 'scan' && scanResults.length > 0 && (
+                    <Button 
+                        onClick={handleOrganize} 
+                        disabled={isOrganizing}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                        {isOrganizing ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Organizing...
+                            </>
+                        ) : (
+                            "Organize Files"
+                        )}
+                    </Button>
+                )}
+            </div>
+
+            {(isScanning || isLoadingLibrary) && (
+                <div className="flex flex-col items-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-muted-foreground mt-2">
+                        {isScanning ? "Scanning inbox..." : "Loading library..."}
+                    </p>
+                </div>
             )}
 
             {error && (
@@ -92,14 +196,27 @@ export function LibraryPage() {
                 </div>
             )}
 
-            {!isScanning && !error && scanResults.length > 0 && (
+            {!isScanning && !isLoadingLibrary && !error && (
                 <div className="w-full max-w-6xl">
-                    <MusicTable data={scanResults} />
+                    {viewMode === 'scan' ? (
+                        scanResults.length > 0 ? (
+                            <MusicTable data={scanResults} />
+                        ) : (
+                            <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
+                                <p className="text-muted-foreground">Inbox is empty.</p>
+                                <Button variant="link" onClick={scanInbox}>Refresh</Button>
+                            </div>
+                        )
+                    ) : (
+                        libraryFiles.length > 0 ? (
+                            <MusicTable data={libraryFiles} />
+                        ) : (
+                            <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
+                                <p className="text-muted-foreground">Library is empty.</p>
+                            </div>
+                        )
+                    )}
                 </div>
-            )}
-
-            {!isScanning && !error && scanResults.length === 0 && (
-                <p className="text-muted-foreground">No files found in inbox</p>
             )}
         </main>
     )
