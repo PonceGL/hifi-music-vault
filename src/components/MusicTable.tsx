@@ -61,7 +61,6 @@ export function MusicTable({ data }: MusicTableProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[50px]">#</TableHead>
                             <TableHead>
                                 <Button
                                     variant="ghost"
@@ -116,9 +115,6 @@ export function MusicTable({ data }: MusicTableProps) {
                         ) : (
                             sortedData.map((item) => (
                                 <TableRow key={item.file}>
-                                    <TableCell className="font-medium text-muted-foreground">
-                                        {item.metadata.trackNo}
-                                    </TableCell>
                                     <TableCell className="font-medium">
                                         {item.metadata.title}
                                     </TableCell>
