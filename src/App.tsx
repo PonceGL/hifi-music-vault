@@ -2,10 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 // import { Layout } from './components/Layout';
 import { SetupPage } from './pages/SetupPage';
-// import { IngestionPage } from './pages/IngestionPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { useAppConfig } from './hooks/useAppConfig';
-// import { ToastProvider } from './components/ui/ToastContext';
+import { PlayLists } from './pages/PlayLists';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { config, isLoaded } = useAppConfig();
@@ -29,7 +28,6 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
 function App() {
   return (
-    // <ToastProvider>
     <BrowserRouter>
       {/* <Layout> */}
       <Routes>
@@ -43,19 +41,22 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* <Route path="/" element={
-          <ProtectedRoute>
-            <IngestionPage />
-          </ProtectedRoute>
-        } /> */}
+        
+        
+        <Route
+          path="/playlists"
+          element={
+            <ProtectedRoute>
+              <PlayLists />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Redirect unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {/* </Layout> */}
     </BrowserRouter>
-    // </ToastProvider>
   );
 }
 
