@@ -133,6 +133,86 @@ export class OrganizerService {
         await fs.outputFile(filePath, content);
     }
 
+    static async listPlaylists(libraryPath: string): Promise<{name: string, count: number, path: string}[]> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        if (!await fs.pathExists(playlistDir)) return [];
+
+        const files = await fs.readdir(playlistDir);
+        const playlists = [];
+
+        for (const file of files) {
+            if (file.endsWith('.m3u8') || file.endsWith('.m3u')) {
+                const filePath = path.join(playlistDir, file);
+                const content = await fs.readFile(filePath, 'utf-8');
+                const lineCount = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#')).length;
+                
+                playlists.push({
+                    name: path.parse(file).name,
+                    count: lineCount,
+                    path: filePath
+                });
+            }
+        }
+        return playlists;
+    }
+
+    static async getPlaylistDetails(name: string, libraryPath: string): Promise<SongMetadata[]> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const dbPath = path.join(libraryPath, 'library_db.json');
+        
+        // Find existing file (check .m3u8 and .m3u)
+        let filePath = path.join(playlistDir, `${name}.m3u8`);
+        if (!await fs.pathExists(filePath)) {
+            filePath = path.join(playlistDir, `${name}.m3u`);
+            if (!await fs.pathExists(filePath)) {
+                throw new Error(`Playlist ${name} not found`);
+            }
+        }
+
+        // Load Inventory for Metadata Lookup
+        let inventory: SongMetadata[] = [];
+        if (await fs.pathExists(dbPath)) {
+            inventory = await fs.readJson(dbPath);
+        }
+        
+        // Create lookup map directly by absolute path for O(1) access
+        // Normalize paths to handle potential OS differences or inconsistencies
+        const inventoryMap = new Map<string, SongMetadata>();
+        inventory.forEach(song => {
+             inventoryMap.set(path.resolve(song.absPath), song);
+        });
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        const lines = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#'));
+
+        const playlistTracks: SongMetadata[] = [];
+
+        for (const line of lines) {
+            // Lines are relative to playlistDir
+            const absPath = path.resolve(playlistDir, line.trim());
+            
+            // Try to find metadata in inventory
+            const metadata = inventoryMap.get(absPath);
+            
+            if (metadata) {
+                playlistTracks.push(metadata);
+            } else {
+                // If not in inventory, construct basic metadata from file path
+                playlistTracks.push({
+                    title: path.parse(absPath).name,
+                    artist: 'Unknown',
+                    album: 'Unknown',
+                    trackNo: '00',
+                    genre: [],
+                    format: path.extname(absPath),
+                    absPath: absPath
+                });
+            }
+        }
+
+        return playlistTracks;
+    }
+
     // --- Helpers ---
 
     private static extractTags(folderName: string): string[] {

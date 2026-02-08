@@ -97,7 +97,40 @@ router.post('/playlists', async (req, res): Promise<any> => {
     }
 });
 
-// 5. Browse Directories
+// 5. List Playlists
+router.get('/playlists', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query;
+        if (typeof libraryPath !== 'string') {
+            return res.status(400).json({ error: 'libraryPath query param required' });
+        }
+
+        const playlists = await OrganizerService.listPlaylists(libraryPath);
+        res.json({ playlists });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 6. Get Playlist Details
+router.get('/playlists/:name', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query;
+        const { name } = req.params;
+
+        if (typeof libraryPath !== 'string' || !name) {
+            return res.status(400).json({ error: 'libraryPath and name required' });
+        }
+
+        const tracks = await OrganizerService.getPlaylistDetails(name, libraryPath);
+        res.json({ tracks });
+
+    } catch (error: any) {
+        res.status(404).json({ error: error.message });
+    }
+});
+
+// 7. Browse Directories
 router.get('/browse', async (req, res): Promise<any> => {
     try {
         const queryPath = req.query.path as string || '/'; // Default to root
@@ -130,7 +163,7 @@ router.get('/browse', async (req, res): Promise<any> => {
     }
 });
 
-// 6. Save Configuration
+// 8. Save Configuration
 router.post('/config', async (req, res): Promise<any> => {
     try {
         const { inboxPath, libraryPath } = req.body;
@@ -156,7 +189,7 @@ router.post('/config', async (req, res): Promise<any> => {
     }
 });
 
-// 7. Get Configuration
+// 9. Get Configuration
 router.get('/config', async (_req, res): Promise<any> => {
     try {
         const configPath = path.resolve(process.cwd(), 'config.json');

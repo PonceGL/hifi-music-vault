@@ -51,6 +51,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/playlists/:name"
+          element={
+            <ProtectedRoute>
+              <PlayListsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Redirect unknown routes */}
         <Route path="*" element={<Navigate to="/" replace />} />

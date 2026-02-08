@@ -1,5 +1,6 @@
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 
 export function LibraryPage() {
     const { config } = useAppConfig()
+    const navigate = useNavigate()
 
     const [scanResults, setScanResults] = useState<ScanResult[]>([])
     const [libraryFiles, setLibraryFiles] = useState<ScanResult[]>([])
@@ -158,6 +160,12 @@ export function LibraryPage() {
                          }}
                     >
                         Library ({libraryFiles.length})
+                    </Button>
+                    <Button 
+                         variant="outline"
+                         onClick={() => navigate('/playlists')}
+                    >
+                        View Playlists
                     </Button>
                 </div>
 
