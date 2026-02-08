@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface DropzoneContextType {
-  src?: File[]
+  src?: File[] | string
   accept?: DropzoneOptions["accept"]
   maxSize?: DropzoneOptions["maxSize"]
   minSize?: DropzoneOptions["minSize"]
   maxFiles?: DropzoneOptions["maxFiles"]
+  dropDirectory?: boolean
 }
 
 const renderBytes = (bytes: number) => {
@@ -31,10 +32,12 @@ const DropzoneContext = createContext<DropzoneContextType | undefined>(undefined
 
 export type DropzoneProps = Omit<DropzoneOptions, "onDrop"> &
   Omit<React.HTMLAttributes<HTMLButtonElement>, "onDrop"> & {
-    src?: File[]
+    src?: File[] | string
     className?: string
     onDrop?: (acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => void
     children?: ReactNode
+    dropDirectory?: boolean
+    onDirectoryDrop?: (directory: string) => void
   }
 
 export const Dropzone = ({
@@ -48,6 +51,8 @@ export const Dropzone = ({
   src,
   className,
   children,
+  onDirectoryDrop,
+  dropDirectory,
   ...props
 }: DropzoneProps) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -64,6 +69,21 @@ export const Dropzone = ({
         return
       }
 
+      if (dropDirectory && acceptedFiles.length > 0) {
+        // Try to get the folder name from the first file's path
+        // standard webkitRelativePath is "Folder/File.ext"
+        const firstFile = acceptedFiles[0]
+        const path = firstFile.webkitRelativePath
+          ? firstFile.webkitRelativePath.split("/")[0]
+          : (firstFile as any).path
+            ? (firstFile as any).path.split("/")[0]
+            : firstFile.name
+
+        onDirectoryDrop?.(path)
+        // We also call onDrop in case the user wants the files too, 
+        // but typically onDirectoryDrop supercedes if they only want path.
+      }
+
       onDrop?.(acceptedFiles, fileRejections, event)
     },
     ...props,
@@ -72,7 +92,7 @@ export const Dropzone = ({
   return (
     <DropzoneContext.Provider
       key={JSON.stringify(src)}
-      value={{ src, accept, maxSize, minSize, maxFiles }}
+      value={{ src, accept, maxSize, minSize, maxFiles, dropDirectory }}
     >
       <Button
         className={cn(
@@ -85,7 +105,11 @@ export const Dropzone = ({
         variant="outline"
         {...getRootProps(props as any)}
       >
-        <input {...getInputProps()} disabled={disabled} />
+        <input
+          {...getInputProps()}
+          disabled={disabled}
+          {...(dropDirectory ? { webkitdirectory: "true", directory: "true" } as any : {})}
+        />
         {children}
       </Button>
     </DropzoneContext.Provider>
@@ -120,20 +144,26 @@ export const DropzoneContent = ({ children, className }: DropzoneContentProps) =
     return children
   }
 
+  const isFolder = typeof src === "string"
+
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
         <UploadIcon size={16} />
       </div>
       <p className="my-2 w-full truncate font-medium text-sm">
-        {src.length > maxLabelItems
-          ? `${new Intl.ListFormat("en").format(
-            src.slice(0, maxLabelItems).map(file => file.name),
-          )} and ${src.length - maxLabelItems} more`
-          : new Intl.ListFormat("en").format(src.map(file => file.name))}
+        {isFolder ? (
+          src
+        ) : (
+          (src as File[]).length > maxLabelItems
+            ? `${new Intl.ListFormat("en").format(
+              (src as File[]).slice(0, maxLabelItems).map(file => file.name),
+            )} and ${(src as File[]).length - maxLabelItems} more`
+            : new Intl.ListFormat("en").format((src as File[]).map(file => file.name))
+        )}
       </p>
       <p className="w-full text-wrap text-muted-foreground text-xs">
-        Drag and drop or click to replace
+        {isFolder ? "Folder selected" : "Drag and drop or click to replace"}
       </p>
     </div>
   )
@@ -145,7 +175,7 @@ export interface DropzoneEmptyStateProps {
 }
 
 export const DropzoneEmptyState = ({ children, className }: DropzoneEmptyStateProps) => {
-  const { src, accept, maxSize, minSize, maxFiles } = useDropzoneContext()
+  const { src, accept, maxSize, minSize, maxFiles, dropDirectory } = useDropzoneContext()
 
   if (src) {
     return null
@@ -176,7 +206,7 @@ export const DropzoneEmptyState = ({ children, className }: DropzoneEmptyStatePr
         <UploadIcon size={16} />
       </div>
       <p className="my-2 w-full truncate text-wrap font-medium text-sm">
-        Upload {maxFiles === 1 ? "a file" : "files"}
+        {dropDirectory ? "Upload a folder" : `Upload ${maxFiles === 1 ? "a file" : "files"}`}
       </p>
       <p className="w-full truncate text-wrap text-muted-foreground text-xs">
         Drag and drop or click to upload
