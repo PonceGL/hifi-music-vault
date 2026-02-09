@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, MoreVertical, Trash2, ListPlus, MinusCircle, HardDriveDownload, FolderSearch } from "lucide-react"
-import type { ScanResult } from "@/hooks/useMusicTable"
+import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,12 +64,14 @@ export function PlaylistDetailPage() {
                 const data = await response.json()
                 
                 // Adapt to ScanResult
-                 const adapted: ScanResult[] = data.tracks.map((song: any) => ({
-                    file: song.absPath,
-                    metadata: song,
-                    proposedPath: song.absPath,
-                    playlists: []
-                }))
+                 const adapted: ScanResult[] = data.tracks.map(
+                   (song: SongMetadata) => ({
+                     file: song.absPath,
+                     metadata: song,
+                     proposedPath: song.absPath,
+                     playlists: [],
+                   }),
+                 );
 
                 setPlaylistTracks(adapted)
              } catch (err) {
