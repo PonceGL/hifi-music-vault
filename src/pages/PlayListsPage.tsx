@@ -126,10 +126,18 @@ export function PlayListsPage() {
     // --- List View ---
     return (
         <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
-             <div className="flex flex-col items-center gap-2">
-                <h1 className="text-3xl font-bold">Playlists</h1>
+
+            <div className="w-full max-w-6xl flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => navigate('/library')}>
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <div className="flex flex-col">
+                            <h1 className="text-3xl font-bold">Playlists</h1>
                 <p className="text-muted-foreground">Your curated collections</p>
-            </div>
+                        </div>
+                    </div>
+                </div>
 
              <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {playlists.map(pl => (
