@@ -6,6 +6,7 @@ import { MusicTable } from "@/components/MusicTable"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
+import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 
 export function LibraryPage() {
@@ -22,6 +23,12 @@ export function LibraryPage() {
     const [isLoadingLibrary, setIsLoadingLibrary] = useState(false)
     
     const [error, setError] = useState<string | null>(null)
+
+    // Add to Playlist State
+    const [trackToAdd, setTrackToAdd] = useState<ScanResult | null>(null)
+    const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false)
+    const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false)
+    const [initialTracksForCreate, setInitialTracksForCreate] = useState<string[]>([])
 
     const fetchLibrary = async () => {
         if (!config.libraryPath) return
@@ -133,6 +140,19 @@ export function LibraryPage() {
         scanInbox()
     }, [config.inboxPath, config.libraryPath])
 
+    const handleTrackAction = (track: ScanResult) => {
+        setTrackToAdd(track)
+        setIsAddToPlaylistOpen(true)
+    }
+
+    const openCreatePlaylistWithTrack = () => {
+        if (trackToAdd) {
+            setInitialTracksForCreate([trackToAdd.file])
+            setIsAddToPlaylistOpen(false)
+            setIsCreatePlaylistOpen(true)
+        }
+    }
+
     return (
         <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
             <div className="flex flex-col items-center gap-2">
@@ -146,7 +166,7 @@ export function LibraryPage() {
             <div className="w-full max-w-6xl flex justify-between items-center">
                 <div className="flex gap-2">
                     <Button 
-                        variant={viewMode === 'scan' ? "default" : "outline"}
+                        variant={viewMode === 'scan' ? "outline" : "default"}
                         onClick={() => {
                             setViewMode('scan')
                             if(scanResults.length === 0) scanInbox()
@@ -155,7 +175,7 @@ export function LibraryPage() {
                         Inbox ({scanResults.length})
                     </Button>
                     <Button 
-                         variant={viewMode === 'library' ? "default" : "outline"}
+                         variant={viewMode === 'library' ? "outline" : "default"}
                          onClick={() => {
                              fetchLibrary()
                          }}
@@ -172,7 +192,6 @@ export function LibraryPage() {
                     <CreatePlaylistDialog 
                         libraryData={libraryFiles}
                         onSuccess={() => {
-                            // Optional: Refresh library or show toast
                             console.log("Playlist created")
                             navigate('/playlists')
                         }}
@@ -216,6 +235,35 @@ export function LibraryPage() {
 
             {!isScanning && !isLoadingLibrary && !error && (
                 <div className="w-full max-w-6xl">
+                    {/* Add to Playlist Dialogs */}
+                    <AddToPlaylistDialog 
+                        track={trackToAdd}
+                        open={isAddToPlaylistOpen}
+                        onOpenChange={setIsAddToPlaylistOpen}
+                        onCreateNew={openCreatePlaylistWithTrack}
+                        onSuccess={() => {
+                            setTrackToAdd(null)
+                            // toast success?
+                        }}
+                    />
+
+                    <CreatePlaylistDialog 
+                        libraryData={libraryFiles}
+                        open={isCreatePlaylistOpen}
+                        onOpenChange={setIsCreatePlaylistOpen}
+                        initialSelectedTracks={initialTracksForCreate}
+                        onSuccess={() => {
+                            console.log("Playlist created")
+                            navigate('/playlists')
+                        }}
+                        // No trigger needed here as it's controlled
+                    />
+
+                    {/* Standard Create Button Trigger */}
+                    <div className="hidden">
+                         {/* We keep the button in header, but this component instance handles the controlled flow */}
+                    </div>
+
                     {viewMode === 'scan' ? (
                         scanResults.length > 0 ? (
                             <MusicTable data={scanResults} />
@@ -227,7 +275,10 @@ export function LibraryPage() {
                         )
                     ) : (
                         libraryFiles.length > 0 ? (
-                            <MusicTable data={libraryFiles} />
+                            <MusicTable 
+                                data={libraryFiles} 
+                                onTrackAction={handleTrackAction}
+                            />
                         ) : (
                             <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
                                 <p className="text-muted-foreground">Library is empty.</p>

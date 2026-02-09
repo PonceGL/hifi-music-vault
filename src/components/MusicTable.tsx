@@ -1,4 +1,4 @@
-import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, ListPlus } from "lucide-react"
 import {
     Table,
     TableBody,
@@ -17,13 +17,15 @@ interface MusicTableProps {
     enableSelection?: boolean
     selectedTracks?: Set<string> // Set of absolute file paths
     onSelectionChange?: (selected: Set<string>) => void
+    onTrackAction?: (track: ScanResult) => void
 }
 
 export function MusicTable({ 
     data, 
     enableSelection = false, 
     selectedTracks = new Set(), 
-    onSelectionChange 
+    onSelectionChange,
+    onTrackAction
 }: MusicTableProps) {
     const {
         data: sortedData,
@@ -150,6 +152,7 @@ export function MusicTable({
                                 </Button>
                             </TableHead>
                             <TableHead className="w-[80px]">Format</TableHead>
+                            {onTrackAction && <TableHead className="w-[50px]"></TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -193,6 +196,22 @@ export function MusicTable({
                                     <TableCell className="text-muted-foreground uppercase">
                                         {item.metadata.format.replace(".", "")}
                                     </TableCell>
+                                    {onTrackAction && (
+                                        <TableCell>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    onTrackAction(item)
+                                                }}
+                                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                                title="Add to Playlist"
+                                            >
+                                                <ListPlus className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))
                         )}

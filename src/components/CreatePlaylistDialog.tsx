@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,13 +20,37 @@ import { useAppConfig } from "@/hooks/useAppConfig"
 interface CreatePlaylistDialogProps {
   libraryData: ScanResult[]
   onSuccess: () => void
+  initialSelectedTracks?: string[]
+  trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function CreatePlaylistDialog({ libraryData, onSuccess }: CreatePlaylistDialogProps) {
+export function CreatePlaylistDialog({ 
+    libraryData, 
+    onSuccess, 
+    initialSelectedTracks = [],
+    trigger,
+    open: controlledOpen, 
+    onOpenChange 
+}: CreatePlaylistDialogProps) {
   const { config } = useAppConfig()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen
+
   const [name, setName] = useState("")
-  const [selectedTracks, setSelectedTracks] = useState<Set<string>>(new Set())
+  const [selectedTracks, setSelectedTracks] = useState<Set<string>>(new Set(initialSelectedTracks))
+  
+  // Reset or update state when dialog opens or initial selection changes
+  useEffect(() => {
+      if (open) {
+          setSelectedTracks(new Set(initialSelectedTracks))
+          setName("")
+          setError(null)
+      }
+  }, [open, initialSelectedTracks])
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -72,12 +96,18 @@ export function CreatePlaylistDialog({ libraryData, onSuccess }: CreatePlaylistD
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Plus className="mr-2 h-4 w-4" />
-          Create Playlist
-        </Button>
-      </DialogTrigger>
+      {trigger ? (
+          <DialogTrigger asChild>
+              {trigger}
+          </DialogTrigger>
+      ) : (
+        <DialogTrigger asChild>
+            <Button variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Playlist
+            </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Create New Playlist</DialogTitle>
