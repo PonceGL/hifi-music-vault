@@ -318,4 +318,22 @@ router.get('/tracks/cover', async (req, res): Promise<any> => {
     }
 });
 
+// 12. Export/Move Entire Library
+router.post('/library/export', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, destination, mode, preserveStructure } = req.body;
+
+        if (!libraryPath || !destination || !mode) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = await OrganizerService.exportLibrary(destination, mode, preserveStructure, libraryPath);
+        res.json({ success: true, ...result });
+
+    } catch (error: any) {
+        console.error('Export Library Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

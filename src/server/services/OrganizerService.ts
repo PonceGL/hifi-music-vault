@@ -648,8 +648,8 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<string[]> {
-    const playlistDir = path.join(libraryPath, 'Playlists');
-    if (!await fs.pathExists(playlistDir)) return [];
+    const playlistDir = path.join(libraryPath, "Playlists");
+    if (!(await fs.pathExists(playlistDir))) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlistsContainingTrack: string[] = [];
@@ -691,19 +691,21 @@ export class OrganizerService {
     return playlistsContainingTrack;
   }
 
-  static async getAlbumCover(trackPath: string): Promise<{ data: Buffer; mimeType: string } | null> {
+  static async getAlbumCover(
+    trackPath: string,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
     try {
-      if (!await fs.pathExists(trackPath)) {
+      if (!(await fs.pathExists(trackPath))) {
         return null;
       }
 
       const metadata = await mm.parseFile(trackPath);
-      
+
       if (metadata.common.picture && metadata.common.picture.length > 0) {
         const picture = metadata.common.picture[0];
         return {
           data: Buffer.from(picture.data),
-          mimeType: picture.format || 'image/jpeg'
+          mimeType: picture.format || "image/jpeg",
         };
       }
 
@@ -712,5 +714,95 @@ export class OrganizerService {
       console.error(`Failed to extract album cover from ${trackPath}`, err);
       return null;
     }
+  }
+
+  static async exportLibrary(
+    destination: string,
+    mode: "copy" | "move",
+    preserveStructure: boolean,
+    libraryPath: string,
+  ): Promise<{ SuccessCount: number; FailCount: number }> {
+    const dbPath = path.join(libraryPath, "library_db.json");
+
+    if (!(await fs.pathExists(dbPath))) {
+      throw new Error("Library database not found");
+    }
+
+    const inventory: SongMetadata[] = await fs.readJson(dbPath);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    await fs.ensureDir(destination);
+
+    const tracksToRemove: Set<string> = new Set();
+
+    for (const track of inventory) {
+      try {
+        if (!(await fs.pathExists(track.absPath))) {
+          console.warn(`File not found: ${track.absPath}`);
+          failCount++;
+          continue;
+        }
+
+        let destPath = "";
+        if (preserveStructure && track.relPath) {
+          destPath = path.join(destination, track.relPath);
+        } else {
+          destPath = path.join(destination, path.basename(track.absPath));
+        }
+
+        await fs.ensureDir(path.dirname(destPath));
+
+        if (mode === "copy") {
+          await fs.copy(track.absPath, destPath, { overwrite: false });
+        } else {
+          await fs.move(track.absPath, destPath, { overwrite: false });
+          tracksToRemove.add(track.absPath);
+        }
+
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to ${mode} ${track.absPath}`, err);
+        failCount++;
+      }
+    }
+
+    if (mode === "move" && tracksToRemove.size > 0) {
+      const updatedInventory = inventory.filter(
+        (song) => !tracksToRemove.has(song.absPath),
+      );
+
+      await fs.outputJson(dbPath, updatedInventory, { spaces: 2 });
+
+      await this.generateMasterPlaylist(updatedInventory, libraryPath);
+      await this.generateGenrePlaylists(updatedInventory, libraryPath);
+
+      const playlistDir = path.join(libraryPath, "Playlists");
+      if (await fs.pathExists(playlistDir)) {
+        const files = await fs.readdir(playlistDir);
+        for (const file of files) {
+          if (
+            (file.endsWith(".m3u8") || file.endsWith(".m3u")) &&
+            !file.startsWith("00_Master") &&
+            !file.startsWith("Genre_")
+          ) {
+            const playlistPath = path.join(playlistDir, file);
+            const content = await fs.readFile(playlistPath, "utf-8");
+            const lines = content.split("\n");
+
+            const updatedLines = lines.filter((line) => {
+              if (line.startsWith("#") || line.trim().length === 0) return true;
+              const absPath = path.join(playlistDir, line.trim());
+              return !tracksToRemove.has(absPath);
+            });
+
+            await fs.writeFile(playlistPath, updatedLines.join("\n"));
+          }
+        }
+      }
+    }
+
+    return { SuccessCount: successCount, FailCount: failCount };
   }
 }
