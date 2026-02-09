@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useMusicTable, type ScanResult, type SortField } from "@/hooks/useMusicTable"
 import { TrackPlaylistsCell } from "@/components/TrackPlaylistsCell";
+import { AlbumCover } from "@/components/AlbumCover";
 
 interface MusicTableProps {
   data: ScanResult[];
@@ -205,8 +206,11 @@ export function MusicTable({
                       />
                     </TableCell>
                   )}
-                  <TableCell className="font-medium">
-                    {item.metadata.title}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <AlbumCover trackPath={item.file} size="sm" />
+                      <span className="font-medium">{item.metadata.title}</span>
+                    </div>
                   </TableCell>
                   <TableCell>{item.metadata.artist}</TableCell>
                   <TableCell>{item.metadata.album}</TableCell>

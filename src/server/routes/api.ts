@@ -294,4 +294,28 @@ router.get('/tracks/playlists', async (req, res): Promise<any> => {
     }
 });
 
+// 11. Get Album Cover for a Track
+router.get('/tracks/cover', async (req, res): Promise<any> => {
+    try {
+        const { trackPath } = req.query;
+        
+        if (typeof trackPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath query param required' });
+        }
+
+        const cover = await OrganizerService.getAlbumCover(trackPath);
+        
+        if (!cover) {
+            return res.status(404).json({ error: 'No album cover found' });
+        }
+
+        res.setHeader('Content-Type', cover.mimeType);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.send(cover.data);
+    } catch (error: any) {
+        console.error('Error getting album cover:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

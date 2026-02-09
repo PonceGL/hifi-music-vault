@@ -648,8 +648,8 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<string[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
-    if (!(await fs.pathExists(playlistDir))) return [];
+    const playlistDir = path.join(libraryPath, 'Playlists');
+    if (!await fs.pathExists(playlistDir)) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlistsContainingTrack: string[] = [];
@@ -689,5 +689,28 @@ export class OrganizerService {
     }
 
     return playlistsContainingTrack;
+  }
+
+  static async getAlbumCover(trackPath: string): Promise<{ data: Buffer; mimeType: string } | null> {
+    try {
+      if (!await fs.pathExists(trackPath)) {
+        return null;
+      }
+
+      const metadata = await mm.parseFile(trackPath);
+      
+      if (metadata.common.picture && metadata.common.picture.length > 0) {
+        const picture = metadata.common.picture[0];
+        return {
+          data: Buffer.from(picture.data),
+          mimeType: picture.format || 'image/jpeg'
+        };
+      }
+
+      return null;
+    } catch (err) {
+      console.error(`Failed to extract album cover from ${trackPath}`, err);
+      return null;
+    }
   }
 }
