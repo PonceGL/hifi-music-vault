@@ -127,6 +127,7 @@ export function useMusicTable(data: ScanResult[]) {
         sortDirection,
         handleSort,
         totalCount: data.length,
-        filteredCount: sortedData.length,
+        filteredCount: filteredData.length,
+        filteredData // Expose this
     }
 }

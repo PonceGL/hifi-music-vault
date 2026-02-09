@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import * as mm from 'music-metadata';
+import { exec } from 'child_process';
 
 export interface SongMetadata {
     title: string;
@@ -133,6 +134,169 @@ export class OrganizerService {
         await fs.outputFile(filePath, content);
     }
 
+    static async removeFromPlaylist(name: string, trackPath: string, libraryPath: string): Promise<void> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot modify the Master Library playlist');
+        }
+
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const filePath = path.join(playlistDir, `${name}.m3u8`);
+        
+        console.log(`[OrganizerService] Removing ${trackPath} from ${name}`);
+
+        // Handle .m3u fallback if needed, though we primarily write .m3u8
+        if (!await fs.pathExists(filePath)) {
+            // Check for .m3u
+             const legacyPath = path.join(playlistDir, `${name}.m3u`);
+             if (await fs.pathExists(legacyPath)) {
+                 // Convert/Use legacy path? For now just throw or support. 
+                 // Let's support deletion from legacy too if we find it.
+                 // But simpler to just error if main one missing for now or check both.
+                 throw new Error(`Playlist ${name} not found`);
+             }
+             throw new Error(`Playlist ${name} not found`);
+        }
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        const lines = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#'));
+
+        // Calculate relative path of the track to remove
+        // Normalize:
+        // 1. Get relative path
+        // 2. Replace backslashes with forward slashes
+        const relPathToRemove = path.relative(playlistDir, trackPath).split(path.sep).join('/');
+        
+        console.log(`[OrganizerService] Relative path to remove: ${relPathToRemove}`);
+
+        // Filter out the track
+        // We compare normalized paths
+        // We also try to match partials if strictly relative doesn't work? 
+        // No, strict relative should work if written correctly.
+        // Let's also check if the line in file uses backslashes for some reason.
+        
+        const newLines = lines.filter(line => {
+             const cleanLine = line.trim().replace(/\\/g, '/'); // Force forward slashes for comparison
+             const cleanTarget = relPathToRemove.replace(/\\/g, '/');
+             
+             if (cleanLine === cleanTarget) {
+                 console.log(`[OrganizerService] Matched and removed: ${line}`);
+                 return false;
+             }
+             return true;
+        });
+
+        if (newLines.length === lines.length) {
+            console.warn(`[OrganizerService] No track matched for removal. Target: ${relPathToRemove}`);
+            // Log first few lines to debug
+            console.log('Sample lines from file:', lines.slice(0, 3));
+        }
+
+        const newContent = this.CONFIG.PLAYLIST_HEADER + newLines.join('\n');
+        await fs.outputFile(filePath, newContent);
+    }
+
+    static async deletePlaylist(name: string, libraryPath: string): Promise<void> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot delete the Master Library playlist');
+        }
+
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const filePath = path.join(playlistDir, `${name}.m3u8`);
+        
+        if (await fs.pathExists(filePath)) {
+            await fs.remove(filePath);
+        } else {
+             const legacyPath = path.join(playlistDir, `${name}.m3u`);
+             if (await fs.pathExists(legacyPath)) {
+                 await fs.remove(legacyPath);
+             } else {
+                 throw new Error(`Playlist ${name} not found`);
+             }
+        }
+    }
+
+    static async listPlaylists(libraryPath: string): Promise<{name: string, count: number, path: string}[]> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        if (!await fs.pathExists(playlistDir)) return [];
+
+        const files = await fs.readdir(playlistDir);
+        const playlists = [];
+
+        for (const file of files) {
+            if (file.includes('00_Master_Library')) continue; 
+
+            if (file.endsWith('.m3u8') || file.endsWith('.m3u')) {
+                const filePath = path.join(playlistDir, file);
+                const content = await fs.readFile(filePath, 'utf-8');
+                const lineCount = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#')).length;
+                
+                playlists.push({
+                    name: path.parse(file).name,
+                    count: lineCount,
+                    path: filePath
+                });
+            }
+        }
+        return playlists;
+    }
+
+    static async getPlaylistDetails(name: string, libraryPath: string): Promise<SongMetadata[]> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const dbPath = path.join(libraryPath, 'library_db.json');
+        
+        // Find existing file (check .m3u8 and .m3u)
+        let filePath = path.join(playlistDir, `${name}.m3u8`);
+        if (!await fs.pathExists(filePath)) {
+            filePath = path.join(playlistDir, `${name}.m3u`);
+            if (!await fs.pathExists(filePath)) {
+                throw new Error(`Playlist ${name} not found`);
+            }
+        }
+
+        // Load Inventory for Metadata Lookup
+        let inventory: SongMetadata[] = [];
+        if (await fs.pathExists(dbPath)) {
+            inventory = await fs.readJson(dbPath);
+        }
+        
+        // Create lookup map directly by absolute path for O(1) access
+        // Normalize paths to handle potential OS differences or inconsistencies
+        const inventoryMap = new Map<string, SongMetadata>();
+        inventory.forEach(song => {
+             inventoryMap.set(path.resolve(song.absPath), song);
+        });
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        const lines = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#'));
+
+        const playlistTracks: SongMetadata[] = [];
+
+        for (const line of lines) {
+            // Lines are relative to playlistDir
+            const absPath = path.resolve(playlistDir, line.trim());
+            
+            // Try to find metadata in inventory
+            const metadata = inventoryMap.get(absPath);
+            
+            if (metadata) {
+                playlistTracks.push(metadata);
+            } else {
+                // If not in inventory, construct basic metadata from file path
+                playlistTracks.push({
+                    title: path.parse(absPath).name,
+                    artist: 'Unknown',
+                    album: 'Unknown',
+                    trackNo: '00',
+                    genre: [],
+                    format: path.extname(absPath),
+                    absPath: absPath
+                });
+            }
+        }
+
+        return playlistTracks;
+    }
+
     // --- Helpers ---
 
     private static extractTags(folderName: string): string[] {
@@ -254,5 +418,151 @@ export class OrganizerService {
             const content = this.CONFIG.PLAYLIST_HEADER + Array.from(allTracks).join('\n');
             await fs.outputFile(filePath, content);
         }
+    }
+
+
+
+    private static async cleanupEmptyDirs(startDir: string) {
+        if (!await fs.pathExists(startDir)) return;
+        
+        // Read directory contents
+        const files = await fs.readdir(startDir);
+        
+        if (files.length > 0) {
+            // Recurse into subdirectories
+            for (const file of files) {
+                const fullPath = path.join(startDir, file);
+                const stat = await fs.stat(fullPath);
+                if (stat.isDirectory()) {
+                    await this.cleanupEmptyDirs(fullPath);
+                }
+            }
+        }
+
+        // Re-read after potential subdirectory deletion
+        const remainingFiles = await fs.readdir(startDir);
+        if (remainingFiles.length === 0) {
+            await fs.rmdir(startDir);
+        }
+    }
+
+    static async exportPlaylist(
+        name: string, 
+        destination: string, 
+        mode: 'copy' | 'move', 
+        preserveStructure: boolean, 
+        libraryPath: string
+    ): Promise<{ SuccessCount: number, FailCount: number }> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot export/move the Master Library playlist');
+        }
+
+
+        const dbPath = path.join(libraryPath, 'library_db.json');
+
+        // 1. Get Tracks
+        // We use getPlaylistDetails to ensure we have paths and metadata
+        const tracks = await this.getPlaylistDetails(name, libraryPath);
+        
+        let successCount = 0;
+        let failCount = 0;
+
+        await fs.ensureDir(destination);
+
+        const tracksToRemove: Set<string> = new Set();
+
+        // 2. Process Files
+        for (const track of tracks) {
+            try {
+                if (!await fs.pathExists(track.absPath)) {
+                    console.warn(`File not found: ${track.absPath}`);
+                    failCount++;
+                    continue;
+                }
+
+                let destPath = "";
+                if (preserveStructure && track.relPath) {
+                    // Use relative path structure (Artist/Album/Song.mp3)
+                    destPath = path.join(destination, track.relPath);
+                } else {
+                    // Flat structure (Song.mp3)
+                    // Handling duplicates in flat structure? 
+                    // If multiple songs have same name, we might overwrite or need unique naming.
+                    // For now, let's just use filename.
+                    destPath = path.join(destination, path.basename(track.absPath));
+                }
+
+                await fs.ensureDir(path.dirname(destPath));
+
+                if (mode === 'copy') {
+                    await fs.copy(track.absPath, destPath, { overwrite: false });
+                } else {
+                    await fs.move(track.absPath, destPath, { overwrite: false });
+                    tracksToRemove.add(track.absPath);
+                }
+
+                successCount++;
+            } catch (err) {
+                console.error(`Failed to ${mode} ${track.absPath}`, err);
+                failCount++;
+            }
+        }
+
+        // 3. Cleanup logic for MOVE
+        if (mode === 'move' && tracksToRemove.size > 0) {
+            // Remove from DB
+             if (await fs.pathExists(dbPath)) {
+                let inventory: SongMetadata[] = await fs.readJson(dbPath);
+                const initialLen = inventory.length;
+                
+                // Filter out moved tracks
+                inventory = inventory.filter(song => !tracksToRemove.has(song.absPath));
+                
+                if (inventory.length !== initialLen) {
+                    await fs.outputJson(dbPath, inventory, { spaces: 2 });
+                    
+                    // Regenerate System Playlists to reflect changes
+                    await this.generateMasterPlaylist(inventory, libraryPath);
+                    await this.generateGenrePlaylists(inventory, libraryPath);
+                    
+                    // Note: Custom playlists might still reference these moved files.
+                    // Ideally we should scan all playlists and remove these entries to avoid "missing file" errors.
+                    // But for now, we just handle the current playlist deletion below.
+                }
+            }
+
+            // DELETE the source playlist
+            await this.deletePlaylist(name, libraryPath);
+
+            // Clean up empty directories in the library if we moved files out
+            // We can try to clean up from the "Artists" or root level, 
+            // but effectively we just need to sweep the library.
+            // However, sweeping the WHOLE library might be expensive.
+            // A targeted approach based on `tracksToRemove` might be better, 
+            // but `cleanupEmptyDirs` on the whole library is safer ensuring we catch everything.
+            // Let's sweep the library path.
+            await this.cleanupEmptyDirs(libraryPath);
+        }
+
+        return { SuccessCount: successCount, FailCount: failCount };
+    }
+
+    static async revealInFileExplorer(filePath: string): Promise<void> {
+        if (!await fs.pathExists(filePath)) {
+            throw new Error(`File not found: ${filePath}`);
+        }
+
+        // macOS specific for now, as requested
+        // 'open -R' reveals the file in Finder
+        return new Promise((resolve, reject) => {
+            exec(`open -R "${filePath}"`, (error) => {
+                if (error) {
+                    console.error(`Failed to reveal file: ${error}`);
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 }

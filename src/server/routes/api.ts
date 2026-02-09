@@ -97,7 +97,98 @@ router.post('/playlists', async (req, res): Promise<any> => {
     }
 });
 
-// 5. Browse Directories
+// 5. List Playlists
+router.get('/playlists', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query;
+        if (typeof libraryPath !== 'string') {
+            return res.status(400).json({ error: 'libraryPath query param required' });
+        }
+
+        const playlists = await OrganizerService.listPlaylists(libraryPath);
+        res.json({ playlists });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 6. Get Playlist Details
+router.get('/playlists/:name', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query;
+        const { name } = req.params;
+
+        if (typeof libraryPath !== 'string' || !name) {
+            return res.status(400).json({ error: 'libraryPath and name required' });
+        }
+
+        const tracks = await OrganizerService.getPlaylistDetails(name, libraryPath);
+        res.json({ tracks });
+
+    } catch (error: any) {
+        res.status(404).json({ error: error.message });
+    }
+});
+
+// 6.1 Remove Track from Playlist
+router.delete('/playlists/:name/tracks', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, trackPath } = req.body;
+        const { name } = req.params;
+
+        if (!libraryPath || !name || !trackPath) {
+            return res.status(400).json({ error: 'libraryPath, name and trackPath required' });
+        }
+
+        await OrganizerService.removeFromPlaylist(name, trackPath, libraryPath);
+        res.json({ success: true });
+
+    } catch (error: any) {
+        console.error('Remove Track Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 6.2 Delete Playlist
+router.delete('/playlists/:name', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query; // Use query for DELETE usually, or body. 
+        // Standard is often params+query for meta.
+        const { name } = req.params;
+
+        if (typeof libraryPath !== 'string' || !name) {
+            return res.status(400).json({ error: 'libraryPath and name required' });
+        }
+
+        await OrganizerService.deletePlaylist(name, libraryPath);
+        res.json({ success: true });
+
+    } catch (error: any) {
+        console.error('Delete Playlist Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 6.3 Export/Move Playlist
+router.post('/playlists/:name/export', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, destination, mode, preserveStructure } = req.body;
+        const { name } = req.params;
+
+        if (!libraryPath || !name || !destination || !mode) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = await OrganizerService.exportPlaylist(name, destination, mode, preserveStructure, libraryPath);
+        res.json({ success: true, ...result });
+
+    } catch (error: any) {
+        console.error('Export Playlist Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 7. Browse Directories
 router.get('/browse', async (req, res): Promise<any> => {
     try {
         const queryPath = req.query.path as string || '/'; // Default to root
@@ -130,7 +221,7 @@ router.get('/browse', async (req, res): Promise<any> => {
     }
 });
 
-// 6. Save Configuration
+// 8. Save Configuration
 router.post('/config', async (req, res): Promise<any> => {
     try {
         const { inboxPath, libraryPath } = req.body;
@@ -156,7 +247,7 @@ router.post('/config', async (req, res): Promise<any> => {
     }
 });
 
-// 7. Get Configuration
+// 9. Get Configuration
 router.get('/config', async (_req, res): Promise<any> => {
     try {
         const configPath = path.resolve(process.cwd(), 'config.json');
@@ -168,6 +259,20 @@ router.get('/config', async (_req, res): Promise<any> => {
         const config = await fs.readJson(configPath);
         res.json({ config });
     } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/reveal', async (req, res): Promise<any> => {
+    try {
+        const { path: filePath } = req.body;
+        if (!filePath) {
+            return res.status(400).json({ error: 'Path is required' });
+        }
+        await OrganizerService.revealInFileExplorer(filePath);
+        res.json({ success: true });
+    } catch (error: any) {
+        console.error('Error revealing file:', error);
         res.status(500).json({ error: error.message });
     }
 });
