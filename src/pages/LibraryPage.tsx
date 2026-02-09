@@ -247,18 +247,6 @@ export function LibraryPage() {
                         }}
                     />
 
-                    <CreatePlaylistDialog 
-                        libraryData={libraryFiles}
-                        open={isCreatePlaylistOpen}
-                        onOpenChange={setIsCreatePlaylistOpen}
-                        initialSelectedTracks={initialTracksForCreate}
-                        onSuccess={() => {
-                            console.log("Playlist created")
-                            navigate('/playlists')
-                        }}
-                        // No trigger needed here as it's controlled
-                    />
-
                     {/* Standard Create Button Trigger */}
                     <div className="hidden">
                          {/* We keep the button in header, but this component instance handles the controlled flow */}
