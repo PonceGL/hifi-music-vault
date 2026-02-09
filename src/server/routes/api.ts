@@ -169,6 +169,25 @@ router.delete('/playlists/:name', async (req, res): Promise<any> => {
     }
 });
 
+// 6.3 Export/Move Playlist
+router.post('/playlists/:name/export', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, destination, mode, preserveStructure } = req.body;
+        const { name } = req.params;
+
+        if (!libraryPath || !name || !destination || !mode) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = await OrganizerService.exportPlaylist(name, destination, mode, preserveStructure, libraryPath);
+        res.json({ success: true, ...result });
+
+    } catch (error: any) {
+        console.error('Export Playlist Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // 7. Browse Directories
 router.get('/browse', async (req, res): Promise<any> => {
     try {

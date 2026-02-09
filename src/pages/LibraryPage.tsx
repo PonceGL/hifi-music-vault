@@ -248,9 +248,18 @@ export function LibraryPage() {
                     />
 
                     {/* Standard Create Button Trigger */}
-                    <div className="hidden">
-                         {/* We keep the button in header, but this component instance handles the controlled flow */}
-                    </div>
+                    {/* Controlled Create Playlist Dialog for "Add to New" flow */}
+                    <CreatePlaylistDialog 
+                        libraryData={libraryFiles}
+                        open={isCreatePlaylistOpen}
+                        onOpenChange={setIsCreatePlaylistOpen}
+                        initialSelectedTracks={initialTracksForCreate}
+                        onSuccess={() => {
+                            console.log("Playlist created")
+                            navigate('/playlists')
+                        }}
+                        trigger={null}
+                    />
 
                     {viewMode === 'scan' ? (
                         scanResults.length > 0 ? (

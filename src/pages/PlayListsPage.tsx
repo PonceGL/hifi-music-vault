@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, MoreVertical, Trash2, ListPlus, MinusCircle, Disc, Music } from "lucide-react"
+import { ArrowLeft, Loader2, MoreVertical, Trash2, ListPlus, MinusCircle, Disc, Music, HardDriveDownload } from "lucide-react"
 import type { ScanResult } from "@/hooks/useMusicTable"
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
+import { ExportPlaylistDialog } from "@/components/ExportPlaylistDialog"
 
 interface Playlist {
     name: string
@@ -52,6 +53,9 @@ export function PlayListsPage() {
     // Delete Playlist State
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+
+    // Export Playlist State
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
 
     // Fetch List of Playlists
     useEffect(() => {
@@ -155,6 +159,36 @@ export function PlayListsPage() {
         }
     }
 
+    const handleExport = async (destination: string, mode: 'copy' | 'move', preserveStructure: boolean) => {
+        if (!name || !config.libraryPath) return
+
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+        const response = await fetch(`${apiUrl}/api/playlists/${encodeURIComponent(name)}/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                libraryPath: config.libraryPath,
+                destination,
+                mode,
+                preserveStructure
+            }),
+        })
+        
+        if (!response.ok) throw new Error('Failed to export playlist')
+        
+        const result = await response.json()
+        console.log("Export Result:", result)
+
+        if (mode === 'move') {
+            // Playlist is deleted, navigate away
+            navigate('/playlists')
+        } else {
+            // Just copy, maybe show success toast?
+            // For now, simple logging/alert mechanism
+            // alert(`Exported ${result.SuccessCount} tracks.`)
+        }
+    }
+
     const openCreatePlaylistWithTrack = () => {
         if (trackToAdd) {
             setInitialTracksForCreate([trackToAdd.file])
@@ -212,6 +246,14 @@ export function PlayListsPage() {
                     trigger={null}
                 />
 
+                <ExportPlaylistDialog 
+                    open={isExportDialogOpen}
+                    onOpenChange={setIsExportDialogOpen}
+                    playlistName={name}
+                    trackCount={playlistTracks.length}
+                    onConfirm={handleExport}
+                />
+
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
@@ -243,17 +285,26 @@ export function PlayListsPage() {
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div className="flex flex-col gap-1">
-                            <h1 className="text-3xl font-bold">{name}</h1>
+                            <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
                             <p className="text-muted-foreground">{playlistTracks.length} tracks</p>
                         </div>
                     </div>
-                     <Button 
-                        variant="destructive" 
-                        onClick={() => setIsDeleteDialogOpen(true)}
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Playlist
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button 
+                            variant="secondary"
+                            onClick={() => setIsExportDialogOpen(true)}
+                        >
+                            <HardDriveDownload className="mr-2 h-4 w-4" />
+                            Export / Move
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Playlist
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="w-full max-w-6xl">

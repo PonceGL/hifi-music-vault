@@ -418,4 +418,96 @@ export class OrganizerService {
             await fs.outputFile(filePath, content);
         }
     }
+
+    static async exportPlaylist(
+        name: string, 
+        destination: string, 
+        mode: 'copy' | 'move', 
+        preserveStructure: boolean, 
+        libraryPath: string
+    ): Promise<{ SuccessCount: number, FailCount: number }> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot export/move the Master Library playlist');
+        }
+
+
+        const dbPath = path.join(libraryPath, 'library_db.json');
+
+        // 1. Get Tracks
+        // We use getPlaylistDetails to ensure we have paths and metadata
+        const tracks = await this.getPlaylistDetails(name, libraryPath);
+        
+        let successCount = 0;
+        let failCount = 0;
+
+        await fs.ensureDir(destination);
+
+        const tracksToRemove: Set<string> = new Set();
+
+        // 2. Process Files
+        for (const track of tracks) {
+            try {
+                if (!await fs.pathExists(track.absPath)) {
+                    console.warn(`File not found: ${track.absPath}`);
+                    failCount++;
+                    continue;
+                }
+
+                let destPath = "";
+                if (preserveStructure && track.relPath) {
+                    // Use relative path structure (Artist/Album/Song.mp3)
+                    destPath = path.join(destination, track.relPath);
+                } else {
+                    // Flat structure (Song.mp3)
+                    // Handling duplicates in flat structure? 
+                    // If multiple songs have same name, we might overwrite or need unique naming.
+                    // For now, let's just use filename.
+                    destPath = path.join(destination, path.basename(track.absPath));
+                }
+
+                await fs.ensureDir(path.dirname(destPath));
+
+                if (mode === 'copy') {
+                    await fs.copy(track.absPath, destPath, { overwrite: false });
+                } else {
+                    await fs.move(track.absPath, destPath, { overwrite: false });
+                    tracksToRemove.add(track.absPath);
+                }
+
+                successCount++;
+            } catch (err) {
+                console.error(`Failed to ${mode} ${track.absPath}`, err);
+                failCount++;
+            }
+        }
+
+        // 3. Cleanup logic for MOVE
+        if (mode === 'move' && tracksToRemove.size > 0) {
+            // Remove from DB
+             if (await fs.pathExists(dbPath)) {
+                let inventory: SongMetadata[] = await fs.readJson(dbPath);
+                const initialLen = inventory.length;
+                
+                // Filter out moved tracks
+                inventory = inventory.filter(song => !tracksToRemove.has(song.absPath));
+                
+                if (inventory.length !== initialLen) {
+                    await fs.outputJson(dbPath, inventory, { spaces: 2 });
+                    
+                    // Regenerate System Playlists to reflect changes
+                    await this.generateMasterPlaylist(inventory, libraryPath);
+                    await this.generateGenrePlaylists(inventory, libraryPath);
+                    
+                    // Note: Custom playlists might still reference these moved files.
+                    // Ideally we should scan all playlists and remove these entries to avoid "missing file" errors.
+                    // But for now, we just handle the current playlist deletion below.
+                }
+            }
+
+            // DELETE the source playlist
+            await this.deletePlaylist(name, libraryPath);
+        }
+
+        return { SuccessCount: successCount, FailCount: failCount };
+    }
 }
