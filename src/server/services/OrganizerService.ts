@@ -134,6 +134,10 @@ export class OrganizerService {
     }
 
     static async removeFromPlaylist(name: string, trackPath: string, libraryPath: string): Promise<void> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot modify the Master Library playlist');
+        }
+
         const playlistDir = path.join(libraryPath, 'Playlists');
         const filePath = path.join(playlistDir, `${name}.m3u8`);
         
@@ -191,6 +195,10 @@ export class OrganizerService {
     }
 
     static async deletePlaylist(name: string, libraryPath: string): Promise<void> {
+        if (name.includes('00_Master_Library')) {
+            throw new Error('Cannot delete the Master Library playlist');
+        }
+
         const playlistDir = path.join(libraryPath, 'Playlists');
         const filePath = path.join(playlistDir, `${name}.m3u8`);
         
@@ -214,6 +222,8 @@ export class OrganizerService {
         const playlists = [];
 
         for (const file of files) {
+            if (file.includes('00_Master_Library')) continue; 
+
             if (file.endsWith('.m3u8') || file.endsWith('.m3u')) {
                 const filePath = path.join(playlistDir, file);
                 const content = await fs.readFile(filePath, 'utf-8');
