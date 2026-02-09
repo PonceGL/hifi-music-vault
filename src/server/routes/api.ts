@@ -336,4 +336,27 @@ router.post('/library/export', async (req, res): Promise<any> => {
     }
 });
 
+// 13. Get Complete Track Metadata
+router.get('/tracks/metadata', async (req, res): Promise<any> => {
+    try {
+        const { trackPath } = req.query;
+        
+        if (typeof trackPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath query param required' });
+        }
+
+        const metadata = await OrganizerService.getTrackMetadata(trackPath);
+        
+        if (!metadata) {
+            return res.status(404).json({ error: 'Track not found or metadata unavailable' });
+        }
+
+        res.json({ metadata });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error getting track metadata:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
 export default router;

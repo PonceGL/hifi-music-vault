@@ -716,6 +716,22 @@ export class OrganizerService {
     }
   }
 
+  static async getTrackMetadata(
+    trackPath: string,
+  ): Promise<mm.IAudioMetadata | null> {
+    try {
+      if (!(await fs.pathExists(trackPath))) {
+        return null;
+      }
+
+      const metadata = await mm.parseFile(trackPath, { duration: true });
+      return metadata;
+    } catch (err) {
+      console.error(`Failed to extract metadata from ${trackPath}`, err);
+      return null;
+    }
+  }
+
   static async exportLibrary(
     destination: string,
     mode: "copy" | "move",

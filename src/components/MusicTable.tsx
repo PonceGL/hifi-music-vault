@@ -1,4 +1,5 @@
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react"
+import { useNavigate } from "react-router-dom";
 import {
     Table,
     TableBody,
@@ -31,6 +32,7 @@ export function MusicTable({
   renderRowAction,
   showPlaylistsColumn = false,
 }: MusicTableProps) {
+  const navigate = useNavigate();
   const {
     data: sortedData,
     searchQuery,
@@ -194,6 +196,10 @@ export function MusicTable({
                   key={item.file}
                   data-state={
                     selectedTracks.has(item.file) ? "selected" : undefined
+                  }
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() =>
+                    navigate(`/track/${encodeURIComponent(item.file)}`)
                   }
                 >
                   {enableSelection && (

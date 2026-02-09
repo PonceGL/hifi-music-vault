@@ -6,6 +6,7 @@ import { LibraryPage } from './pages/LibraryPage';
 import { useAppConfig } from './hooks/useAppConfig';
 import { PlayListsPage } from './pages/PlayListsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
+import { TrackDetailPage } from "./pages/TrackDetailPage";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { config, isLoaded } = useAppConfig();
@@ -42,8 +43,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
-        
+
         <Route
           path="/playlists"
           element={
@@ -57,6 +57,15 @@ function App() {
           element={
             <ProtectedRoute>
               <PlaylistDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/track/:trackPath"
+          element={
+            <ProtectedRoute>
+              <TrackDetailPage />
             </ProtectedRoute>
           }
         />
