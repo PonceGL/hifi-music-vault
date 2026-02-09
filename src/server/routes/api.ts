@@ -277,4 +277,21 @@ router.post('/reveal', async (req, res): Promise<any> => {
     }
 });
 
+// 10. Get Playlists for a Track
+router.get('/tracks/playlists', async (req, res): Promise<any> => {
+    try {
+        const { trackPath, libraryPath } = req.query;
+        
+        if (typeof trackPath !== 'string' || typeof libraryPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath and libraryPath query params required' });
+        }
+
+        const playlists = await OrganizerService.getPlaylistsForTrack(trackPath, libraryPath);
+        res.json({ playlists });
+    } catch (error: any) {
+        console.error('Error getting playlists for track:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
