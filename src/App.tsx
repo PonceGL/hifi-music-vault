@@ -7,6 +7,7 @@ import { useAppConfig } from './hooks/useAppConfig';
 import { PlayListsPage } from './pages/PlayListsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { TrackDetailPage } from "./pages/TrackDetailPage";
+import { PlaylistRefreshProvider } from "./components/PlaylistRefreshProvider";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { config, isLoaded } = useAppConfig();
@@ -31,49 +32,51 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
-      {/* <Layout> */}
-      <Routes>
-        <Route path="/" element={<SetupPage />} />
+      <PlaylistRefreshProvider>
+        {/* <Layout> */}
+        <Routes>
+          <Route path="/" element={<SetupPage />} />
 
-        <Route
-          path="/library"
-          element={
-            <ProtectedRoute>
-              <LibraryPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/library"
+            element={
+              <ProtectedRoute>
+                <LibraryPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/playlists"
-          element={
-            <ProtectedRoute>
-              <PlayListsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/playlists/:name"
-          element={
-            <ProtectedRoute>
-              <PlaylistDetailPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/playlists"
+            element={
+              <ProtectedRoute>
+                <PlayListsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/playlists/:name"
+            element={
+              <ProtectedRoute>
+                <PlaylistDetailPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/track/:trackPath"
-          element={
-            <ProtectedRoute>
-              <TrackDetailPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/track/:trackPath"
+            element={
+              <ProtectedRoute>
+                <TrackDetailPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Redirect unknown routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      {/* </Layout> */}
+          {/* Redirect unknown routes */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        {/* </Layout> */}
+      </PlaylistRefreshProvider>
     </BrowserRouter>
   );
 }

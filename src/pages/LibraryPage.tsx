@@ -2,6 +2,7 @@ import { useAppConfig } from "@/hooks/useAppConfig"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +27,7 @@ import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 export function LibraryPage() {
   const { config } = useAppConfig();
   const navigate = useNavigate();
+  const { triggerRefresh } = usePlaylistRefresh();
 
   const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [libraryFiles, setLibraryFiles] = useState<ScanResult[]>([]);
@@ -316,7 +318,7 @@ export function LibraryPage() {
             onCreateNew={openCreatePlaylistWithTrack}
             onSuccess={() => {
               setTrackToAdd(null);
-              // toast success?
+              triggerRefresh();
             }}
           />
 
