@@ -3,8 +3,28 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, Music, Disc } from "lucide-react"
+import { ArrowLeft, Loader2, MoreVertical, Trash2, ListPlus, MinusCircle, Disc, Music } from "lucide-react"
 import type { ScanResult } from "@/hooks/useMusicTable"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
+import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 
 interface Playlist {
     name: string
@@ -22,6 +42,16 @@ export function PlayListsPage() {
     
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    
+    // Add to Playlist State (reused logic)
+    const [trackToAdd, setTrackToAdd] = useState<ScanResult | null>(null)
+    const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false)
+    const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false)
+    const [initialTracksForCreate, setInitialTracksForCreate] = useState<string[]>([])
+
+    // Delete Playlist State
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     // Fetch List of Playlists
     useEffect(() => {
@@ -80,6 +110,58 @@ export function PlayListsPage() {
         fetchDetails()
     }, [config.libraryPath, name])
 
+    const handleRemoveTrack = async (trackPath: string) => {
+        if (!name || !config.libraryPath) return
+
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const response = await fetch(`${apiUrl}/api/playlists/${encodeURIComponent(name)}/tracks`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    libraryPath: config.libraryPath,
+                    trackPath: trackPath
+                }),
+            })
+            
+            if (!response.ok) throw new Error('Failed to remove track')
+            
+            // Optimistic update
+            setPlaylistTracks(prev => prev.filter(t => t.file !== trackPath))
+        } catch (err) {
+            console.error(err)
+            // Re-fetch to be safe?
+        }
+    }
+
+    const handleDeletePlaylist = async () => {
+        if (!name || !config.libraryPath) return
+        setIsDeleting(true)
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const response = await fetch(`${apiUrl}/api/playlists/${encodeURIComponent(name)}?libraryPath=${encodeURIComponent(config.libraryPath)}`, {
+                method: 'DELETE'
+            })
+            
+            if (!response.ok) throw new Error('Failed to delete playlist')
+            
+            navigate('/playlists')
+        } catch (err) {
+            console.error(err)
+            setError("Failed to delete playlist")
+        } finally {
+            setIsDeleting(false)
+            setIsDeleteDialogOpen(false)
+        }
+    }
+
+    const openCreatePlaylistWithTrack = () => {
+        if (trackToAdd) {
+            setInitialTracksForCreate([trackToAdd.file])
+            setIsAddToPlaylistOpen(false)
+            setIsCreatePlaylistOpen(true)
+        }
+    }
 
     if (isLoading) {
         return (
@@ -104,20 +186,115 @@ export function PlayListsPage() {
     if (name) {
         return (
             <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+                
+                {/* Dialogs */}
+                <AddToPlaylistDialog 
+                    track={trackToAdd}
+                    open={isAddToPlaylistOpen}
+                    onOpenChange={setIsAddToPlaylistOpen}
+                    onCreateNew={openCreatePlaylistWithTrack}
+                    onSuccess={() => {
+                        setTrackToAdd(null)
+                    }}
+                />
+
+                <CreatePlaylistDialog 
+                    libraryData={[]} // Not needed for this flow
+                    open={isCreatePlaylistOpen}
+                    onOpenChange={setIsCreatePlaylistOpen}
+                    initialSelectedTracks={initialTracksForCreate}
+                    onSuccess={() => {
+                        console.log("Playlist created")
+                        // Usually redirects, but we are in a playlist detail. 
+                        // Maybe stay here? Navigate?
+                        navigate('/playlists')
+                    }}
+                    trigger={null}
+                />
+
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Playlist</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to delete "{name}"? 
+                                {playlistTracks.length > 0 && ` It contains ${playlistTracks.length} tracks.`}
+                                <br/>This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    handleDeletePlaylist()
+                                }}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
                 <div className="w-full max-w-6xl flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" onClick={() => navigate('/playlists')}>
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col gap-1">
                             <h1 className="text-3xl font-bold">{name}</h1>
                             <p className="text-muted-foreground">{playlistTracks.length} tracks</p>
                         </div>
                     </div>
+                     <Button 
+                        variant="destructive" 
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Playlist
+                    </Button>
                 </div>
 
                 <div className="w-full max-w-6xl">
-                    <MusicTable data={playlistTracks} />
+                    {isLoading ? (
+                        <div className="flex flex-col items-center py-10">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-muted-foreground mt-2">Loading playlist...</p>
+                        </div>
+                    ) : (
+                        <MusicTable 
+                            data={playlistTracks} 
+                            renderRowAction={(track) => (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                            <span className="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem onClick={() => {
+                                            setTrackToAdd(track)
+                                            setIsAddToPlaylistOpen(true)
+                                        }}>
+                                            <ListPlus className="mr-2 h-4 w-4" />
+                                            Add to another playlist
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem 
+                                            className="text-red-600 focus:text-red-600"
+                                            onClick={() => handleRemoveTrack(track.file)}
+                                        >
+                                            <MinusCircle className="mr-2 h-4 w-4" />
+                                            Remove from playlist
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                        />
+                    )}
                 </div>
             </main>
         )

@@ -133,6 +133,79 @@ export class OrganizerService {
         await fs.outputFile(filePath, content);
     }
 
+    static async removeFromPlaylist(name: string, trackPath: string, libraryPath: string): Promise<void> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const filePath = path.join(playlistDir, `${name}.m3u8`);
+        
+        console.log(`[OrganizerService] Removing ${trackPath} from ${name}`);
+
+        // Handle .m3u fallback if needed, though we primarily write .m3u8
+        if (!await fs.pathExists(filePath)) {
+            // Check for .m3u
+             const legacyPath = path.join(playlistDir, `${name}.m3u`);
+             if (await fs.pathExists(legacyPath)) {
+                 // Convert/Use legacy path? For now just throw or support. 
+                 // Let's support deletion from legacy too if we find it.
+                 // But simpler to just error if main one missing for now or check both.
+                 throw new Error(`Playlist ${name} not found`);
+             }
+             throw new Error(`Playlist ${name} not found`);
+        }
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        const lines = content.split('\n').filter(l => l.trim().length > 0 && !l.startsWith('#'));
+
+        // Calculate relative path of the track to remove
+        // Normalize:
+        // 1. Get relative path
+        // 2. Replace backslashes with forward slashes
+        const relPathToRemove = path.relative(playlistDir, trackPath).split(path.sep).join('/');
+        
+        console.log(`[OrganizerService] Relative path to remove: ${relPathToRemove}`);
+
+        // Filter out the track
+        // We compare normalized paths
+        // We also try to match partials if strictly relative doesn't work? 
+        // No, strict relative should work if written correctly.
+        // Let's also check if the line in file uses backslashes for some reason.
+        
+        const newLines = lines.filter(line => {
+             const cleanLine = line.trim().replace(/\\/g, '/'); // Force forward slashes for comparison
+             const cleanTarget = relPathToRemove.replace(/\\/g, '/');
+             
+             if (cleanLine === cleanTarget) {
+                 console.log(`[OrganizerService] Matched and removed: ${line}`);
+                 return false;
+             }
+             return true;
+        });
+
+        if (newLines.length === lines.length) {
+            console.warn(`[OrganizerService] No track matched for removal. Target: ${relPathToRemove}`);
+            // Log first few lines to debug
+            console.log('Sample lines from file:', lines.slice(0, 3));
+        }
+
+        const newContent = this.CONFIG.PLAYLIST_HEADER + newLines.join('\n');
+        await fs.outputFile(filePath, newContent);
+    }
+
+    static async deletePlaylist(name: string, libraryPath: string): Promise<void> {
+        const playlistDir = path.join(libraryPath, 'Playlists');
+        const filePath = path.join(playlistDir, `${name}.m3u8`);
+        
+        if (await fs.pathExists(filePath)) {
+            await fs.remove(filePath);
+        } else {
+             const legacyPath = path.join(playlistDir, `${name}.m3u`);
+             if (await fs.pathExists(legacyPath)) {
+                 await fs.remove(legacyPath);
+             } else {
+                 throw new Error(`Playlist ${name} not found`);
+             }
+        }
+    }
+
     static async listPlaylists(libraryPath: string): Promise<{name: string, count: number, path: string}[]> {
         const playlistDir = path.join(libraryPath, 'Playlists');
         if (!await fs.pathExists(playlistDir)) return [];

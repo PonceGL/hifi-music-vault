@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Loader2, ListPlus } from "lucide-react"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
@@ -277,7 +277,17 @@ export function LibraryPage() {
                         libraryFiles.length > 0 ? (
                             <MusicTable 
                                 data={libraryFiles} 
-                                onTrackAction={handleTrackAction}
+                                renderRowAction={(track) => (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleTrackAction(track)}
+                                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                        title="Add to Playlist"
+                                    >
+                                        <ListPlus className="h-4 w-4" />
+                                    </Button>
+                                )}
                             />
                         ) : (
                             <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">

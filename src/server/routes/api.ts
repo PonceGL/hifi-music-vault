@@ -130,6 +130,45 @@ router.get('/playlists/:name', async (req, res): Promise<any> => {
     }
 });
 
+// 6.1 Remove Track from Playlist
+router.delete('/playlists/:name/tracks', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, trackPath } = req.body;
+        const { name } = req.params;
+
+        if (!libraryPath || !name || !trackPath) {
+            return res.status(400).json({ error: 'libraryPath, name and trackPath required' });
+        }
+
+        await OrganizerService.removeFromPlaylist(name, trackPath, libraryPath);
+        res.json({ success: true });
+
+    } catch (error: any) {
+        console.error('Remove Track Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 6.2 Delete Playlist
+router.delete('/playlists/:name', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath } = req.query; // Use query for DELETE usually, or body. 
+        // Standard is often params+query for meta.
+        const { name } = req.params;
+
+        if (typeof libraryPath !== 'string' || !name) {
+            return res.status(400).json({ error: 'libraryPath and name required' });
+        }
+
+        await OrganizerService.deletePlaylist(name, libraryPath);
+        res.json({ success: true });
+
+    } catch (error: any) {
+        console.error('Delete Playlist Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // 7. Browse Directories
 router.get('/browse', async (req, res): Promise<any> => {
     try {

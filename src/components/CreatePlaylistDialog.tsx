@@ -21,15 +21,17 @@ interface CreatePlaylistDialogProps {
   libraryData: ScanResult[]
   onSuccess: () => void
   initialSelectedTracks?: string[]
-  trigger?: React.ReactNode
+  trigger?: React.ReactNode | null // null to hide default trigger
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
+const EMPTY_ARRAY: string[] = []
+
 export function CreatePlaylistDialog({ 
     libraryData, 
     onSuccess, 
-    initialSelectedTracks = [],
+    initialSelectedTracks = EMPTY_ARRAY,
     trigger,
     open: controlledOpen, 
     onOpenChange 
@@ -96,17 +98,19 @@ export function CreatePlaylistDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-          <DialogTrigger asChild>
-              {trigger}
-          </DialogTrigger>
-      ) : (
-        <DialogTrigger asChild>
-            <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Playlist
-            </Button>
-        </DialogTrigger>
+      {trigger === null ? null : (
+          trigger ? (
+            <DialogTrigger asChild>
+                {trigger}
+            </DialogTrigger>
+          ) : (
+            <DialogTrigger asChild>
+                <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Playlist
+                </Button>
+            </DialogTrigger>
+          )
       )}
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>

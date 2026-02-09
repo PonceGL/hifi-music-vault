@@ -1,4 +1,4 @@
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, ListPlus } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react"
 import {
     Table,
     TableBody,
@@ -17,7 +17,7 @@ interface MusicTableProps {
     enableSelection?: boolean
     selectedTracks?: Set<string> // Set of absolute file paths
     onSelectionChange?: (selected: Set<string>) => void
-    onTrackAction?: (track: ScanResult) => void
+    renderRowAction?: (track: ScanResult) => React.ReactNode
 }
 
 export function MusicTable({ 
@@ -25,7 +25,7 @@ export function MusicTable({
     enableSelection = false, 
     selectedTracks = new Set(), 
     onSelectionChange,
-    onTrackAction
+    renderRowAction
 }: MusicTableProps) {
     const {
         data: sortedData,
@@ -152,7 +152,7 @@ export function MusicTable({
                                 </Button>
                             </TableHead>
                             <TableHead className="w-[80px]">Format</TableHead>
-                            {onTrackAction && <TableHead className="w-[50px]"></TableHead>}
+                            {renderRowAction && <TableHead className="w-[50px]"></TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -196,20 +196,11 @@ export function MusicTable({
                                     <TableCell className="text-muted-foreground uppercase">
                                         {item.metadata.format.replace(".", "")}
                                     </TableCell>
-                                    {onTrackAction && (
+                                    {renderRowAction && (
                                         <TableCell>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    onTrackAction(item)
-                                                }}
-                                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                                title="Add to Playlist"
-                                            >
-                                                <ListPlus className="h-4 w-4" />
-                                            </Button>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                {renderRowAction(item)}
+                                            </div>
                                         </TableCell>
                                     )}
                                 </TableRow>
