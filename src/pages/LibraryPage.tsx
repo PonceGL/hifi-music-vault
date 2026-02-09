@@ -174,156 +174,158 @@ export function LibraryPage() {
     }
 
     return (
-        <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
-            <div className="flex flex-col items-center gap-2">
-                <h1 className="text-3xl font-bold">Music Library</h1>
-                <p className="text-muted-foreground">
-                    {viewMode === 'scan' ? 'Inbox Review' : 'My Collection'}
-                </p>
-            </div>
+      <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-3xl font-bold">Music Library</h1>
+          <p className="text-muted-foreground">
+            {viewMode === "scan" ? "Inbox Review" : "My Collection"}
+          </p>
+        </div>
 
-            {/* Actions Bar */}
-            <div className="w-full max-w-6xl flex justify-between items-center">
-                <div className="flex gap-2">
-                    <Button 
-                        variant={viewMode === 'scan' ? "outline" : "default"}
-                        onClick={() => {
-                            setViewMode('scan')
-                            if(scanResults.length === 0) scanInbox()
-                        }}
-                    >
-                        Inbox ({scanResults.length})
-                    </Button>
-                    <Button 
-                         variant={viewMode === 'library' ? "outline" : "default"}
-                         onClick={() => {
-                             fetchLibrary()
-                         }}
-                    >
-                        Library ({libraryFiles.length})
-                    </Button>
-                    <Button 
-                         variant="outline"
-                         onClick={() => navigate('/playlists')}
-                    >
-                        View Playlists
-                    </Button>
-                    
-                    <CreatePlaylistDialog 
-                        libraryData={libraryFiles}
-                        onSuccess={() => {
-                            console.log("Playlist created")
-                            navigate('/playlists')
-                        }}
-                    />
+        {/* Actions Bar */}
+        <div className="w-full max-w-6xl flex justify-between items-center">
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "scan" ? "outline" : "default"}
+              onClick={() => {
+                setViewMode("scan");
+                if (scanResults.length === 0) scanInbox();
+              }}
+            >
+              Inbox ({scanResults.length})
+            </Button>
+            <Button
+              variant={viewMode === "library" ? "outline" : "default"}
+              onClick={() => {
+                fetchLibrary();
+              }}
+            >
+              Library ({libraryFiles.length})
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/playlists")}>
+              View Playlists
+            </Button>
+
+            <CreatePlaylistDialog
+              libraryData={libraryFiles}
+              onSuccess={() => {
+                console.log("Playlist created");
+                navigate("/playlists");
+              }}
+            />
+          </div>
+
+          {viewMode === "scan" && scanResults.length > 0 && (
+            <Button
+              onClick={handleOrganize}
+              disabled={isOrganizing}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isOrganizing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Organizing...
+                </>
+              ) : (
+                "Organize Files"
+              )}
+            </Button>
+          )}
+        </div>
+
+        {(isScanning || isLoadingLibrary) && (
+          <div className="flex flex-col items-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground mt-2">
+              {isScanning ? "Scanning inbox..." : "Loading library..."}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="w-full max-w-6xl p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-sm font-medium text-red-900 dark:text-red-100">
+              Error: {error}
+            </p>
+          </div>
+        )}
+
+        {!isScanning && !isLoadingLibrary && !error && (
+          <div className="w-full max-w-6xl">
+            {/* Add to Playlist Dialogs */}
+            <AddToPlaylistDialog
+              track={trackToAdd}
+              open={isAddToPlaylistOpen}
+              onOpenChange={setIsAddToPlaylistOpen}
+              onCreateNew={openCreatePlaylistWithTrack}
+              onSuccess={() => {
+                setTrackToAdd(null);
+                // toast success?
+              }}
+            />
+
+            {/* Standard Create Button Trigger */}
+            {/* Controlled Create Playlist Dialog for "Add to New" flow */}
+            <CreatePlaylistDialog
+              libraryData={libraryFiles}
+              open={isCreatePlaylistOpen}
+              onOpenChange={setIsCreatePlaylistOpen}
+              initialSelectedTracks={initialTracksForCreate}
+              onSuccess={() => {
+                console.log("Playlist created");
+                navigate("/playlists");
+              }}
+              trigger={null}
+            />
+
+            {viewMode === "scan" ? (
+              scanResults.length > 0 ? (
+                <MusicTable data={scanResults} />
+              ) : (
+                <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
+                  <p className="text-muted-foreground">Inbox is empty.</p>
+                  <Button variant="link" onClick={scanInbox}>
+                    Refresh
+                  </Button>
                 </div>
-
-                {viewMode === 'scan' && scanResults.length > 0 && (
-                    <Button 
-                        onClick={handleOrganize} 
-                        disabled={isOrganizing}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                        {isOrganizing ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Organizing...
-                            </>
-                        ) : (
-                            "Organize Files"
-                        )}
-                    </Button>
+              )
+            ) : libraryFiles.length > 0 ? (
+              <MusicTable
+                data={libraryFiles}
+                showPlaylistsColumn={true}
+                renderRowAction={(track) => (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => handleTrackAction(track)}
+                      >
+                        <ListPlus className="mr-2 h-4 w-4" />
+                        Add to Playlist
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleReveal(track.file)}
+                      >
+                        <FolderSearch className="mr-2 h-4 w-4" />
+                        Show in Finder
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
-            </div>
-
-            {(isScanning || isLoadingLibrary) && (
-                <div className="flex flex-col items-center py-10">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground mt-2">
-                        {isScanning ? "Scanning inbox..." : "Loading library..."}
-                    </p>
-                </div>
+              />
+            ) : (
+              <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
+                <p className="text-muted-foreground">Library is empty.</p>
+              </div>
             )}
-
-            {error && (
-                <div className="w-full max-w-6xl p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
-                    <p className="text-sm font-medium text-red-900 dark:text-red-100">
-                        Error: {error}
-                    </p>
-                </div>
-            )}
-
-            {!isScanning && !isLoadingLibrary && !error && (
-                <div className="w-full max-w-6xl">
-                    {/* Add to Playlist Dialogs */}
-                    <AddToPlaylistDialog 
-                        track={trackToAdd}
-                        open={isAddToPlaylistOpen}
-                        onOpenChange={setIsAddToPlaylistOpen}
-                        onCreateNew={openCreatePlaylistWithTrack}
-                        onSuccess={() => {
-                            setTrackToAdd(null)
-                            // toast success?
-                        }}
-                    />
-
-                    {/* Standard Create Button Trigger */}
-                    {/* Controlled Create Playlist Dialog for "Add to New" flow */}
-                    <CreatePlaylistDialog 
-                        libraryData={libraryFiles}
-                        open={isCreatePlaylistOpen}
-                        onOpenChange={setIsCreatePlaylistOpen}
-                        initialSelectedTracks={initialTracksForCreate}
-                        onSuccess={() => {
-                            console.log("Playlist created")
-                            navigate('/playlists')
-                        }}
-                        trigger={null}
-                    />
-
-                    {viewMode === 'scan' ? (
-                        scanResults.length > 0 ? (
-                            <MusicTable data={scanResults} />
-                        ) : (
-                            <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
-                                <p className="text-muted-foreground">Inbox is empty.</p>
-                                <Button variant="link" onClick={scanInbox}>Refresh</Button>
-                            </div>
-                        )
-                    ) : (
-                        libraryFiles.length > 0 ? (
-                            <MusicTable 
-                                data={libraryFiles} 
-                                renderRowAction={(track) => (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreVertical className="h-4 w-4" />
-                                                <span className="sr-only">Open menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => handleTrackAction(track)}>
-                                                <ListPlus className="mr-2 h-4 w-4" />
-                                                Add to Playlist
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleReveal(track.file)}>
-                                                <FolderSearch className="mr-2 h-4 w-4" />
-                                                Show in Finder
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                )}
-                            />
-                        ) : (
-                            <div className="text-center py-10 border rounded-md bg-slate-50 dark:bg-slate-900 border-dashed">
-                                <p className="text-muted-foreground">Library is empty.</p>
-                            </div>
-                        )
-                    )}
-                </div>
-            )}
-        </main>
-    )
+          </div>
+        )}
+      </main>
+    );
 }
