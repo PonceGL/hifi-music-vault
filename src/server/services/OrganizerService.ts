@@ -419,6 +419,32 @@ export class OrganizerService {
         }
     }
 
+
+
+    private static async cleanupEmptyDirs(startDir: string) {
+        if (!await fs.pathExists(startDir)) return;
+        
+        // Read directory contents
+        const files = await fs.readdir(startDir);
+        
+        if (files.length > 0) {
+            // Recurse into subdirectories
+            for (const file of files) {
+                const fullPath = path.join(startDir, file);
+                const stat = await fs.stat(fullPath);
+                if (stat.isDirectory()) {
+                    await this.cleanupEmptyDirs(fullPath);
+                }
+            }
+        }
+
+        // Re-read after potential subdirectory deletion
+        const remainingFiles = await fs.readdir(startDir);
+        if (remainingFiles.length === 0) {
+            await fs.rmdir(startDir);
+        }
+    }
+
     static async exportPlaylist(
         name: string, 
         destination: string, 
@@ -506,6 +532,15 @@ export class OrganizerService {
 
             // DELETE the source playlist
             await this.deletePlaylist(name, libraryPath);
+
+            // Clean up empty directories in the library if we moved files out
+            // We can try to clean up from the "Artists" or root level, 
+            // but effectively we just need to sweep the library.
+            // However, sweeping the WHOLE library might be expensive.
+            // A targeted approach based on `tracksToRemove` might be better, 
+            // but `cleanupEmptyDirs` on the whole library is safer ensuring we catch everything.
+            // Let's sweep the library path.
+            await this.cleanupEmptyDirs(libraryPath);
         }
 
         return { SuccessCount: successCount, FailCount: failCount };
