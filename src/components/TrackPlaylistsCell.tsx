@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAppConfig } from "@/hooks/useAppConfig"
+import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
 import { Badge } from "@/components/ui/badge"
 import {
   Popover,
@@ -17,34 +18,35 @@ interface TrackPlaylistsCellProps {
 export function TrackPlaylistsCell({ trackPath }: TrackPlaylistsCellProps) {
   const { config } = useAppConfig()
   const navigate = useNavigate()
+  const { refreshKey } = usePlaylistRefresh();
   const [playlists, setPlaylists] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchPlaylists = async () => {
-      if (!config.libraryPath) return
+      if (!config.libraryPath) return;
 
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
         const response = await fetch(
-          `${apiUrl}/api/tracks/playlists?trackPath=${encodeURIComponent(trackPath)}&libraryPath=${encodeURIComponent(config.libraryPath)}`
-        )
-        
-        if (!response.ok) throw new Error('Failed to fetch playlists')
-        
-        const data = await response.json()
-        setPlaylists(data.playlists || [])
-      } catch (err) {
-        console.error('Error fetching playlists for track:', err)
-        setPlaylists([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
+          `${apiUrl}/api/tracks/playlists?trackPath=${encodeURIComponent(trackPath)}&libraryPath=${encodeURIComponent(config.libraryPath)}`,
+        );
 
-    fetchPlaylists()
-  }, [trackPath, config.libraryPath])
+        if (!response.ok) throw new Error("Failed to fetch playlists");
+
+        const data = await response.json();
+        setPlaylists(data.playlists || []);
+      } catch (err) {
+        console.error("Error fetching playlists for track:", err);
+        setPlaylists([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlaylists();
+  }, [trackPath, config.libraryPath, refreshKey]);
 
   const handlePlaylistClick = (playlistName: string) => {
     navigate(`/playlists/${encodeURIComponent(playlistName)}`)
