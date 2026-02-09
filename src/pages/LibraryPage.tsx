@@ -5,6 +5,7 @@ import { MusicTable } from "@/components/MusicTable"
 
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 
 export function LibraryPage() {
@@ -167,6 +168,15 @@ export function LibraryPage() {
                     >
                         View Playlists
                     </Button>
+                    
+                    <CreatePlaylistDialog 
+                        libraryData={libraryFiles}
+                        onSuccess={() => {
+                            // Optional: Refresh library or show toast
+                            console.log("Playlist created")
+                            navigate('/playlists')
+                        }}
+                    />
                 </div>
 
                 {viewMode === 'scan' && scanResults.length > 0 && (

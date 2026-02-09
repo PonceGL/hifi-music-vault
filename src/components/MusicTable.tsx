@@ -9,13 +9,22 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useMusicTable, type ScanResult, type SortField } from "@/hooks/useMusicTable"
 
 interface MusicTableProps {
     data: ScanResult[]
+    enableSelection?: boolean
+    selectedTracks?: Set<string> // Set of absolute file paths
+    onSelectionChange?: (selected: Set<string>) => void
 }
 
-export function MusicTable({ data }: MusicTableProps) {
+export function MusicTable({ 
+    data, 
+    enableSelection = false, 
+    selectedTracks = new Set(), 
+    onSelectionChange 
+}: MusicTableProps) {
     const {
         data: sortedData,
         searchQuery,
@@ -25,6 +34,7 @@ export function MusicTable({ data }: MusicTableProps) {
         handleSort,
         totalCount,
         filteredCount,
+        filteredData,
     } = useMusicTable(data)
 
     const getSortIcon = (field: SortField) => {
@@ -37,6 +47,32 @@ export function MusicTable({ data }: MusicTableProps) {
             <ArrowDown className="ml-2 h-4 w-4" />
         )
     }
+
+    const handleSelectAll = (checked: boolean) => {
+        if (!onSelectionChange) return
+        
+        if (checked) {
+            const allFiles = new Set(filteredData.map(item => item.file))
+            onSelectionChange(allFiles)
+        } else {
+            onSelectionChange(new Set())
+        }
+    }
+
+    const handleSelectRow = (file: string, checked: boolean) => {
+        if (!onSelectionChange) return
+        
+        const newSelection = new Set(selectedTracks)
+        if (checked) {
+            newSelection.add(file)
+        } else {
+            newSelection.delete(file)
+        }
+        onSelectionChange(newSelection)
+    }
+
+    const allSelected = filteredData.length > 0 && filteredData.every(item => selectedTracks.has(item.file))
+    const isIndeterminate = filteredData.some(item => selectedTracks.has(item.file)) && !allSelected
 
     return (
         <div className="w-full space-y-4">
@@ -52,7 +88,10 @@ export function MusicTable({ data }: MusicTableProps) {
                     />
                 </div>
                 <div className="text-sm text-muted-foreground">
-                    Showing {filteredCount} of {totalCount} tracks
+                    {enableSelection && selectedTracks.size > 0 
+                        ? `${selectedTracks.size} selected`
+                        : `Showing ${filteredCount} of ${totalCount} tracks`
+                    }
                 </div>
             </div>
 
@@ -61,6 +100,14 @@ export function MusicTable({ data }: MusicTableProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            {enableSelection && (
+                                <TableHead className="w-[40px]">
+                                    <Checkbox 
+                                        checked={allSelected || (isIndeterminate ? "indeterminate" : false)}
+                                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                    />
+                                </TableHead>
+                            )}
                             <TableHead>
                                 <Button
                                     variant="ghost"
@@ -114,7 +161,15 @@ export function MusicTable({ data }: MusicTableProps) {
                             </TableRow>
                         ) : (
                             sortedData.map((item) => (
-                                <TableRow key={item.file}>
+                                <TableRow key={item.file} data-state={selectedTracks.has(item.file) ? "selected" : undefined}>
+                                    {enableSelection && (
+                                        <TableCell>
+                                            <Checkbox 
+                                                checked={selectedTracks.has(item.file)}
+                                                onCheckedChange={(checked) => handleSelectRow(item.file, !!checked)}
+                                            />
+                                        </TableCell>
+                                    )}
                                     <TableCell className="font-medium">
                                         {item.metadata.title}
                                     </TableCell>
