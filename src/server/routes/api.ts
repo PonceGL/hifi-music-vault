@@ -277,4 +277,86 @@ router.post('/reveal', async (req, res): Promise<any> => {
     }
 });
 
+// 10. Get Playlists for a Track
+router.get('/tracks/playlists', async (req, res): Promise<any> => {
+    try {
+        const { trackPath, libraryPath } = req.query;
+        
+        if (typeof trackPath !== 'string' || typeof libraryPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath and libraryPath query params required' });
+        }
+
+        const playlists = await OrganizerService.getPlaylistsForTrack(trackPath, libraryPath);
+        res.json({ playlists });
+    } catch (error: any) {
+        console.error('Error getting playlists for track:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 11. Get Album Cover for a Track
+router.get('/tracks/cover', async (req, res): Promise<any> => {
+    try {
+        const { trackPath } = req.query;
+        
+        if (typeof trackPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath query param required' });
+        }
+
+        const cover = await OrganizerService.getAlbumCover(trackPath);
+        
+        if (!cover) {
+            return res.status(404).json({ error: 'No album cover found' });
+        }
+
+        res.setHeader('Content-Type', cover.mimeType);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.send(cover.data);
+    } catch (error: any) {
+        console.error('Error getting album cover:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 12. Export/Move Entire Library
+router.post('/library/export', async (req, res): Promise<any> => {
+    try {
+        const { libraryPath, destination, mode, preserveStructure } = req.body;
+
+        if (!libraryPath || !destination || !mode) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = await OrganizerService.exportLibrary(destination, mode, preserveStructure, libraryPath);
+        res.json({ success: true, ...result });
+
+    } catch (error: any) {
+        console.error('Export Library Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 13. Get Complete Track Metadata
+router.get('/tracks/metadata', async (req, res): Promise<any> => {
+    try {
+        const { trackPath } = req.query;
+        
+        if (typeof trackPath !== 'string') {
+            return res.status(400).json({ error: 'trackPath query param required' });
+        }
+
+        const metadata = await OrganizerService.getTrackMetadata(trackPath);
+        
+        if (!metadata) {
+            return res.status(404).json({ error: 'Track not found or metadata unavailable' });
+        }
+
+        res.json({ metadata });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error getting track metadata:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
 export default router;
