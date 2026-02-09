@@ -4,7 +4,14 @@ import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 
 import { Button } from "@/components/ui/button"
-import { Loader2, ListPlus } from "lucide-react"
+import { Loader2, ListPlus, FolderSearch, MoreVertical } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
@@ -153,6 +160,19 @@ export function LibraryPage() {
         }
     }
 
+    const handleReveal = async (filePath: string) => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            await fetch(`${apiUrl}/api/reveal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: filePath }),
+            })
+        } catch (err) {
+            console.error("Failed to reveal file", err)
+        }
+    }
+
     return (
         <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
             <div className="flex flex-col items-center gap-2">
@@ -275,15 +295,25 @@ export function LibraryPage() {
                             <MusicTable 
                                 data={libraryFiles} 
                                 renderRowAction={(track) => (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleTrackAction(track)}
-                                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                        title="Add to Playlist"
-                                    >
-                                        <ListPlus className="h-4 w-4" />
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                                <span className="sr-only">Open menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem onClick={() => handleTrackAction(track)}>
+                                                <ListPlus className="mr-2 h-4 w-4" />
+                                                Add to Playlist
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleReveal(track.file)}>
+                                                <FolderSearch className="mr-2 h-4 w-4" />
+                                                Show in Finder
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 )}
                             />
                         ) : (

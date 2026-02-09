@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import * as mm from 'music-metadata';
+import { exec } from 'child_process';
 
 export interface SongMetadata {
     title: string;
@@ -544,5 +545,24 @@ export class OrganizerService {
         }
 
         return { SuccessCount: successCount, FailCount: failCount };
+    }
+
+    static async revealInFileExplorer(filePath: string): Promise<void> {
+        if (!await fs.pathExists(filePath)) {
+            throw new Error(`File not found: ${filePath}`);
+        }
+
+        // macOS specific for now, as requested
+        // 'open -R' reveals the file in Finder
+        return new Promise((resolve, reject) => {
+            exec(`open -R "${filePath}"`, (error) => {
+                if (error) {
+                    console.error(`Failed to reveal file: ${error}`);
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 }

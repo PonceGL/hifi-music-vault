@@ -263,4 +263,18 @@ router.get('/config', async (_req, res): Promise<any> => {
     }
 });
 
+router.post('/reveal', async (req, res): Promise<any> => {
+    try {
+        const { path: filePath } = req.body;
+        if (!filePath) {
+            return res.status(400).json({ error: 'Path is required' });
+        }
+        await OrganizerService.revealInFileExplorer(filePath);
+        res.json({ success: true });
+    } catch (error: any) {
+        console.error('Error revealing file:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;
