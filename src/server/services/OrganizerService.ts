@@ -260,6 +260,9 @@ export class OrganizerService {
 
     const newContent = this.CONFIG.PLAYLIST_HEADER + newLines.join("\n");
     await fs.outputFile(filePath, newContent);
+
+    // Sync playlists field in database for removed track
+    await this.updateTrackPlaylistsInDatabase([trackPath], libraryPath);
   }
 
   static async deletePlaylist(
