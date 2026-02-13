@@ -37,6 +37,7 @@ export function LibraryPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [isOrganizing, setIsOrganizing] = useState(false);
   const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -216,6 +217,38 @@ export function LibraryPage() {
 
     if (mode === "move") {
       await fetchLibrary();
+    }
+  };
+
+  const handleRegenerateDatabase = async () => {
+    if (!config.libraryPath) return;
+
+    setIsRegenerating(true);
+    setError(null);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${apiUrl}/api/library/regenerate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          libraryPath: config.libraryPath,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to regenerate database");
+
+      const result = await response.json();
+      console.log("Regenerate Result:", result);
+
+      // Refresh library view after regeneration
+      await fetchLibrary();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error("Error regenerating database:", err);
+      setError(errorMessage);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
