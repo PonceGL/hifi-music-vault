@@ -789,6 +789,46 @@ export class OrganizerService {
     }
   }
 
+  /**
+   * Extracts complete metadata from an audio file for database regeneration.
+   * Returns SongMetadata with all available fields populated.
+   */
+  private static async extractCompleteMetadata(
+    trackPath: string,
+    libraryPath: string,
+  ): Promise<SongMetadata | null> {
+    try {
+      if (!(await fs.pathExists(trackPath))) {
+        return null;
+      }
+
+      const metadata = await mm.parseFile(trackPath, { duration: true });
+      const common = metadata.common;
+      const format = metadata.format;
+
+      const song: SongMetadata = {
+        title: common.title || path.parse(trackPath).name,
+        artist: common.artist || this.CONSTANTS.UNKNOWN_ARTIST,
+        album: common.album || this.CONSTANTS.UNKNOWN_ALBUM,
+        year: common.year,
+        trackNo: common.track.no?.toString().padStart(2, "0") || this.CONSTANTS.DEFAULT_TRACK_NO,
+        genre: common.genre || [this.CONFIG.DEFAULT_GENRE],
+        format: path.extname(trackPath).toLowerCase(),
+        absPath: trackPath,
+        relPath: path.relative(libraryPath, trackPath).split(path.sep).join("/"),
+        bitrate: format.bitrate ? Math.round(format.bitrate / 1000) : undefined,
+        duration: format.duration,
+        codec: format.codec,
+        sampleRate: format.sampleRate,
+      };
+
+      return song;
+    } catch (err) {
+      console.error(`Failed to extract complete metadata from ${trackPath}`, err);
+      return null;
+    }
+  }
+
   static async exportLibrary(
     destination: string,
     mode: "copy" | "move",
