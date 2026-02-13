@@ -829,6 +829,72 @@ export class OrganizerService {
     }
   }
 
+  /**
+   * Regenerates the library database by scanning all audio files in libraryPath.
+   * Extracts complete metadata (bitrate, duration, codec, etc.) and cross-references with playlists.
+   * Overwrites library_db.json with fresh, complete information.
+   */
+  static async regenerateDatabase(
+    libraryPath: string,
+  ): Promise<{ totalFiles: number; successCount: number; failCount: number }> {
+    console.log(`[OrganizerService] Starting database regeneration for: ${libraryPath}`);
+    
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
+
+    // 1. Scan all audio files in libraryPath (excluding Playlists directory)
+    const allFiles = await this.getFilesRecursive(libraryPath);
+    const audioFiles = allFiles.filter(
+      (file) => !file.includes(playlistDir) && this.SUPPORTED_FORMATS.test(file)
+    );
+
+    console.log(`[OrganizerService] Found ${audioFiles.length} audio files to process`);
+
+    let successCount = 0;
+    let failCount = 0;
+    const inventory: SongMetadata[] = [];
+
+    // 2. Extract complete metadata for each file
+    for (const filePath of audioFiles) {
+      try {
+        const metadata = await this.extractCompleteMetadata(filePath, libraryPath);
+        if (metadata) {
+          inventory.push(metadata);
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error(`[OrganizerService] Failed to process ${filePath}`, err);
+        failCount++;
+      }
+    }
+
+    console.log(`[OrganizerService] Extracted metadata for ${successCount} files`);
+
+    // 3. Cross-reference with playlists
+    console.log(`[OrganizerService] Cross-referencing with playlists...`);
+    for (const song of inventory) {
+      try {
+        const playlists = await this.getPlaylistsForTrack(song.absPath, libraryPath);
+        song.playlists = playlists.length > 0 ? playlists : undefined;
+      } catch (err) {
+        console.error(`[OrganizerService] Failed to get playlists for ${song.absPath}`, err);
+        song.playlists = undefined;
+      }
+    }
+
+    // 4. Save to database
+    await fs.outputJson(dbPath, inventory, { spaces: 2 });
+    console.log(`[OrganizerService] Database regenerated successfully. Total tracks: ${inventory.length}`);
+
+    return {
+      totalFiles: audioFiles.length,
+      successCount,
+      failCount,
+    };
+  }
+
   static async exportLibrary(
     destination: string,
     mode: "copy" | "move",
