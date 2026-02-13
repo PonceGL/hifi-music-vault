@@ -142,7 +142,7 @@ describe('API Routes', () => {
     });
 
     it('should return empty inventory if database does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app)
         .get('/api/library')
@@ -165,7 +165,7 @@ describe('API Routes', () => {
         },
       ];
 
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readJson).mockResolvedValue(mockInventory);
 
       const response = await request(app)
@@ -453,7 +453,7 @@ describe('API Routes', () => {
 
   describe('GET /api/browse', () => {
     it('should return 404 if path does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app)
         .get('/api/browse')
@@ -464,7 +464,7 @@ describe('API Routes', () => {
     });
 
     it('should browse directories successfully', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'folder1', isDirectory: () => true, isFile: () => false },
         { name: '.hidden', isDirectory: () => true, isFile: () => false },
@@ -481,7 +481,7 @@ describe('API Routes', () => {
     });
 
     it('should use root path as default', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([] as never);
 
       const response = await request(app).get('/api/browse');
@@ -547,7 +547,7 @@ describe('API Routes', () => {
 
   describe('GET /api/config', () => {
     it('should return null if config does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app).get('/api/config');
 
@@ -562,7 +562,7 @@ describe('API Routes', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readJson).mockResolvedValue(mockConfig);
 
       const response = await request(app).get('/api/config');
