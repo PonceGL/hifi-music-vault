@@ -29,6 +29,20 @@ export class OrganizerService {
     DEFAULT_GENRE: "Otros",
   };
 
+  private static CONSTANTS = {
+    PLAYLISTS_DIR: "Playlists",
+    LIBRARY_DB_FILE: "library_db.json",
+    MASTER_PLAYLIST_NAME: "00_Master_Library",
+    MASTER_PLAYLIST_PREFIX: "00_Master",
+    GENRE_PLAYLIST_PREFIX: "Genre_",
+    PLAYLIST_EXT_PRIMARY: ".m3u8",
+    PLAYLIST_EXT_LEGACY: ".m3u",
+    UNKNOWN_ARTIST: "Unknown Artist",
+    UNKNOWN_ALBUM: "Unknown Album",
+    UNKNOWN: "Unknown",
+    DEFAULT_TRACK_NO: "00",
+  };
+
   /**
    * Scans the Inbox directory and returns a preview of what would happen.
    * Does NOT move files.
@@ -72,9 +86,9 @@ export class OrganizerService {
     libraryPath: string,
   ): Promise<void> {
     await fs.ensureDir(libraryPath);
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
 
     // 1. Load existing inventory
     let inventory: SongMetadata[] = [];
@@ -129,9 +143,12 @@ export class OrganizerService {
     tracks: string[],
     libraryPath: string,
   ): Promise<void> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
-    const filePath = path.join(playlistDir, `${name.trim()}.m3u8`);
+    const filePath = path.join(
+      playlistDir,
+      `${name.trim()}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+    );
 
     let existingLines: string[] = [];
     if (await fs.pathExists(filePath)) {
@@ -158,19 +175,25 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<void> {
-    if (name.includes("00_Master_Library")) {
+    if (name.includes(this.CONSTANTS.MASTER_PLAYLIST_NAME)) {
       throw new Error("Cannot modify the Master Library playlist");
     }
 
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const filePath = path.join(playlistDir, `${name}.m3u8`);
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
+    const filePath = path.join(
+      playlistDir,
+      `${name}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+    );
 
     console.log(`[OrganizerService] Removing ${trackPath} from ${name}`);
 
     // Handle .m3u fallback if needed, though we primarily write .m3u8
     if (!(await fs.pathExists(filePath))) {
       // Check for .m3u
-      const legacyPath = path.join(playlistDir, `${name}.m3u`);
+      const legacyPath = path.join(
+        playlistDir,
+        `${name}${this.CONSTANTS.PLAYLIST_EXT_LEGACY}`,
+      );
       if (await fs.pathExists(legacyPath)) {
         // Convert/Use legacy path? For now just throw or support.
         // Let's support deletion from legacy too if we find it.
@@ -231,17 +254,23 @@ export class OrganizerService {
     name: string,
     libraryPath: string,
   ): Promise<void> {
-    if (name.includes("00_Master_Library")) {
+    if (name.includes(this.CONSTANTS.MASTER_PLAYLIST_NAME)) {
       throw new Error("Cannot delete the Master Library playlist");
     }
 
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const filePath = path.join(playlistDir, `${name}.m3u8`);
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
+    const filePath = path.join(
+      playlistDir,
+      `${name}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+    );
 
     if (await fs.pathExists(filePath)) {
       await fs.remove(filePath);
     } else {
-      const legacyPath = path.join(playlistDir, `${name}.m3u`);
+      const legacyPath = path.join(
+        playlistDir,
+        `${name}${this.CONSTANTS.PLAYLIST_EXT_LEGACY}`,
+      );
       if (await fs.pathExists(legacyPath)) {
         await fs.remove(legacyPath);
       } else {
@@ -253,16 +282,19 @@ export class OrganizerService {
   static async listPlaylists(
     libraryPath: string,
   ): Promise<{ name: string; count: number; path: string }[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     if (!(await fs.pathExists(playlistDir))) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlists = [];
 
     for (const file of files) {
-      if (file.includes("00_Master_Library")) continue;
+      if (file.includes(this.CONSTANTS.MASTER_PLAYLIST_NAME)) continue;
 
-      if (file.endsWith(".m3u8") || file.endsWith(".m3u")) {
+      if (
+        file.endsWith(this.CONSTANTS.PLAYLIST_EXT_PRIMARY) ||
+        file.endsWith(this.CONSTANTS.PLAYLIST_EXT_LEGACY)
+      ) {
         const filePath = path.join(playlistDir, file);
         const content = await fs.readFile(filePath, "utf-8");
         const lineCount = content
@@ -283,13 +315,19 @@ export class OrganizerService {
     name: string,
     libraryPath: string,
   ): Promise<SongMetadata[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
 
     // Find existing file (check .m3u8 and .m3u)
-    let filePath = path.join(playlistDir, `${name}.m3u8`);
+    let filePath = path.join(
+      playlistDir,
+      `${name}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+    );
     if (!(await fs.pathExists(filePath))) {
-      filePath = path.join(playlistDir, `${name}.m3u`);
+      filePath = path.join(
+        playlistDir,
+        `${name}${this.CONSTANTS.PLAYLIST_EXT_LEGACY}`,
+      );
       if (!(await fs.pathExists(filePath))) {
         throw new Error(`Playlist ${name} not found`);
       }
@@ -328,9 +366,9 @@ export class OrganizerService {
         // If not in inventory, construct basic metadata from file path
         playlistTracks.push({
           title: path.parse(absPath).name,
-          artist: "Unknown",
-          album: "Unknown",
-          trackNo: "00",
+          artist: this.CONSTANTS.UNKNOWN,
+          album: this.CONSTANTS.UNKNOWN,
+          trackNo: this.CONSTANTS.DEFAULT_TRACK_NO,
           genre: [],
           format: path.extname(absPath),
           absPath: absPath,
@@ -377,11 +415,13 @@ export class OrganizerService {
 
       const song: SongMetadata = {
         title: common.title || path.parse(sourcePath).name,
-        artist: common.artist || "Unknown Artist",
-        album: common.album || "Unknown Album",
+        artist: common.artist || this.CONSTANTS.UNKNOWN_ARTIST,
+        album: common.album || this.CONSTANTS.UNKNOWN_ALBUM,
         year: common.year,
-        trackNo: common.track.no?.toString().padStart(2, "0") || "00",
-        genre: common.genre || ["Otros"],
+        trackNo:
+          common.track.no?.toString().padStart(2, "0") ||
+          this.CONSTANTS.DEFAULT_TRACK_NO,
+        genre: common.genre || [this.CONFIG.DEFAULT_GENRE],
         format: path.extname(sourcePath).toLowerCase(),
         absPath: sourcePath,
       };
@@ -428,7 +468,7 @@ export class OrganizerService {
     inventory: SongMetadata[],
     libraryPath: string,
   ) {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
 
     // Relative paths from PLAYLIST_DIR, not Library Root
@@ -442,7 +482,10 @@ export class OrganizerService {
 
     const content = this.CONFIG.PLAYLIST_HEADER + lines.join("\n");
     await fs.outputFile(
-      path.join(playlistDir, "00_Master_Library.m3u8"),
+      path.join(
+        playlistDir,
+        `${this.CONSTANTS.MASTER_PLAYLIST_NAME}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+      ),
       content,
     );
   }
@@ -451,7 +494,7 @@ export class OrganizerService {
     inventory: SongMetadata[],
     libraryPath: string,
   ) {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     const genreMap = new Map<string, string[]>();
 
     inventory.forEach((song) => {
@@ -470,7 +513,10 @@ export class OrganizerService {
       const cleanGenre = genre.replace(/[/\\?%*:|"<>]/g, "-");
       const content = this.CONFIG.PLAYLIST_HEADER + tracks.join("\n");
       await fs.outputFile(
-        path.join(playlistDir, `Genre_${cleanGenre}.m3u8`),
+        path.join(
+          playlistDir,
+          `${this.CONSTANTS.GENRE_PLAYLIST_PREFIX}${cleanGenre}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+        ),
         content,
       );
     }
@@ -481,7 +527,10 @@ export class OrganizerService {
     playlistDir: string,
   ) {
     for (const [name, tracks] of newPlaylists) {
-      const filePath = path.join(playlistDir, `${name.trim()}.m3u8`);
+      const filePath = path.join(
+        playlistDir,
+        `${name.trim()}${this.CONSTANTS.PLAYLIST_EXT_PRIMARY}`,
+      );
 
       let existingLines: string[] = [];
       if (await fs.pathExists(filePath)) {
@@ -530,11 +579,11 @@ export class OrganizerService {
     preserveStructure: boolean,
     libraryPath: string,
   ): Promise<{ SuccessCount: number; FailCount: number }> {
-    if (name.includes("00_Master_Library")) {
+    if (name.includes(this.CONSTANTS.MASTER_PLAYLIST_NAME)) {
       throw new Error("Cannot export/move the Master Library playlist");
     }
 
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
 
     // 1. Get Tracks
     // We use getPlaylistDetails to ensure we have paths and metadata
@@ -648,19 +697,22 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<string[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
     if (!(await fs.pathExists(playlistDir))) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlistsContainingTrack: string[] = [];
 
     for (const file of files) {
-      if (file.endsWith(".m3u8") || file.endsWith(".m3u")) {
+      if (
+        file.endsWith(this.CONSTANTS.PLAYLIST_EXT_PRIMARY) ||
+        file.endsWith(this.CONSTANTS.PLAYLIST_EXT_LEGACY)
+      ) {
         const playlistName = path.parse(file).name;
 
         if (
-          playlistName.startsWith("00_Master") ||
-          playlistName.startsWith("Genre_")
+          playlistName.startsWith(this.CONSTANTS.MASTER_PLAYLIST_PREFIX) ||
+          playlistName.startsWith(this.CONSTANTS.GENRE_PLAYLIST_PREFIX)
         ) {
           continue;
         }
@@ -738,7 +790,7 @@ export class OrganizerService {
     preserveStructure: boolean,
     libraryPath: string,
   ): Promise<{ SuccessCount: number; FailCount: number }> {
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
 
     if (!(await fs.pathExists(dbPath))) {
       throw new Error("Library database not found");
@@ -794,14 +846,15 @@ export class OrganizerService {
       await this.generateMasterPlaylist(updatedInventory, libraryPath);
       await this.generateGenrePlaylists(updatedInventory, libraryPath);
 
-      const playlistDir = path.join(libraryPath, "Playlists");
+      const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
       if (await fs.pathExists(playlistDir)) {
         const files = await fs.readdir(playlistDir);
         for (const file of files) {
           if (
-            (file.endsWith(".m3u8") || file.endsWith(".m3u")) &&
-            !file.startsWith("00_Master") &&
-            !file.startsWith("Genre_")
+            (file.endsWith(this.CONSTANTS.PLAYLIST_EXT_PRIMARY) ||
+              file.endsWith(this.CONSTANTS.PLAYLIST_EXT_LEGACY)) &&
+            !file.startsWith(this.CONSTANTS.MASTER_PLAYLIST_PREFIX) &&
+            !file.startsWith(this.CONSTANTS.GENRE_PLAYLIST_PREFIX)
           ) {
             const playlistPath = path.join(playlistDir, file);
             const content = await fs.readFile(playlistPath, "utf-8");
