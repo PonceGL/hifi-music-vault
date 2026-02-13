@@ -526,4 +526,197 @@ describe('OrganizerService', () => {
       expect(fs.copy).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("regenerateDatabase", () => {
+    it("should scan all audio files and regenerate database", async () => {
+      const mockAudioFiles = [
+        "/library/Artist1/Album1/Song1.mp3",
+        "/library/Artist2/Album2/Song2.flac",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      // Mock extractCompleteMetadata
+      const mockMetadata1: SongMetadata = {
+        title: "Song1",
+        artist: "Artist1",
+        album: "Album1",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist1/Album1/Song1.mp3",
+        relPath: "Artist1/Album1/Song1.mp3",
+        bitrate: 320,
+        duration: 180,
+        codec: "MP3",
+        sampleRate: 44100,
+      };
+
+      const mockMetadata2: SongMetadata = {
+        title: "Song2",
+        artist: "Artist2",
+        album: "Album2",
+        trackNo: "01",
+        genre: ["Jazz"],
+        format: ".flac",
+        absPath: "/library/Artist2/Album2/Song2.flac",
+        relPath: "Artist2/Album2/Song2.flac",
+        bitrate: 1411,
+        duration: 240,
+        codec: "FLAC",
+        sampleRate: 96000,
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata")
+        .mockResolvedValueOnce(mockMetadata1)
+        .mockResolvedValueOnce(mockMetadata2);
+
+      // Mock getPlaylistsForTrack
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack")
+        .mockResolvedValueOnce(["Favorites"])
+        .mockResolvedValueOnce([]);
+
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failCount).toBe(0);
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining("library_db.json"),
+        expect.arrayContaining([
+          expect.objectContaining({
+            title: "Song1",
+            playlists: ["Favorites"],
+          }),
+          expect.objectContaining({
+            title: "Song2",
+            playlists: undefined,
+          }),
+        ]),
+        { spaces: 2 },
+      );
+    });
+
+    it("should handle errors during metadata extraction", async () => {
+      const mockAudioFiles = [
+        "/library/Artist/Album/Song1.mp3",
+        "/library/Artist/Album/Song2.mp3",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song1",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song1.mp3",
+        relPath: "Artist/Album/Song1.mp3",
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata")
+        .mockResolvedValueOnce(mockMetadata)
+        // @ts-expect-error - Testing null return case
+        .mockResolvedValueOnce(null);
+
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValue([]);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(2);
+      expect(result.successCount).toBe(1);
+      expect(result.failCount).toBe(1);
+    });
+
+    it("should exclude files in Playlists directory", async () => {
+      const mockFiles = [
+        "/library/Artist/Album/Song.mp3",
+        "/library/Playlists/00_Master_Library.m3u8",
+        "/library/Playlists/Genre_Rock.m3u8",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song.mp3",
+        relPath: "Artist/Album/Song.mp3",
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata").mockResolvedValue(
+        mockMetadata,
+      );
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValue([]);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(1);
+      expect(result.successCount).toBe(1);
+    });
+
+    it("should handle errors when getting playlists for tracks", async () => {
+      const mockAudioFiles = ["/library/Artist/Album/Song.mp3"];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song.mp3",
+        relPath: "Artist/Album/Song.mp3",
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata").mockResolvedValue(
+        mockMetadata,
+      );
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockRejectedValue(
+        new Error("Playlist error"),
+      );
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.successCount).toBe(1);
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.arrayContaining([
+          expect.objectContaining({
+            playlists: undefined,
+          }),
+        ]),
+        expect.anything(),
+      );
+    });
+  });
 });
