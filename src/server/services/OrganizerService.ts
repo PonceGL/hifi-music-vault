@@ -553,6 +553,40 @@ export class OrganizerService {
     }
   }
 
+  /**
+   * Updates the playlists field for specific tracks in library_db.json
+   * This ensures the JSON is always in sync with the actual .m3u8 files
+   */
+  private static async updateTrackPlaylistsInDatabase(
+    trackPaths: string[],
+    libraryPath: string,
+  ): Promise<void> {
+    const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
+
+    // Load current inventory
+    if (!(await fs.pathExists(dbPath))) {
+      return; // No database to update
+    }
+
+    const inventory: SongMetadata[] = await fs.readJson(dbPath);
+
+    // Update playlists for each track
+    for (const trackPath of trackPaths) {
+      const track = inventory.find((song) => song.absPath === trackPath);
+      if (track) {
+        // Get current playlists for this track
+        const playlists = await this.getPlaylistsForTrack(
+          trackPath,
+          libraryPath,
+        );
+        track.playlists = playlists.length > 0 ? playlists : undefined;
+      }
+    }
+
+    // Save updated inventory
+    await fs.outputJson(dbPath, inventory, { spaces: 2 });
+  }
+
   private static async cleanupEmptyDirs(startDir: string) {
     if (!(await fs.pathExists(startDir))) return;
 
@@ -811,11 +845,16 @@ export class OrganizerService {
         artist: common.artist || this.CONSTANTS.UNKNOWN_ARTIST,
         album: common.album || this.CONSTANTS.UNKNOWN_ALBUM,
         year: common.year,
-        trackNo: common.track.no?.toString().padStart(2, "0") || this.CONSTANTS.DEFAULT_TRACK_NO,
+        trackNo:
+          common.track.no?.toString().padStart(2, "0") ||
+          this.CONSTANTS.DEFAULT_TRACK_NO,
         genre: common.genre || [this.CONFIG.DEFAULT_GENRE],
         format: path.extname(trackPath).toLowerCase(),
         absPath: trackPath,
-        relPath: path.relative(libraryPath, trackPath).split(path.sep).join("/"),
+        relPath: path
+          .relative(libraryPath, trackPath)
+          .split(path.sep)
+          .join("/"),
         bitrate: format.bitrate ? Math.round(format.bitrate / 1000) : undefined,
         duration: format.duration,
         codec: format.codec,
@@ -824,7 +863,10 @@ export class OrganizerService {
 
       return song;
     } catch (err) {
-      console.error(`Failed to extract complete metadata from ${trackPath}`, err);
+      console.error(
+        `Failed to extract complete metadata from ${trackPath}`,
+        err,
+      );
       return null;
     }
   }
@@ -837,18 +879,23 @@ export class OrganizerService {
   static async regenerateDatabase(
     libraryPath: string,
   ): Promise<{ totalFiles: number; successCount: number; failCount: number }> {
-    console.log(`[OrganizerService] Starting database regeneration for: ${libraryPath}`);
-    
+    console.log(
+      `[OrganizerService] Starting database regeneration for: ${libraryPath}`,
+    );
+
     const dbPath = path.join(libraryPath, this.CONSTANTS.LIBRARY_DB_FILE);
     const playlistDir = path.join(libraryPath, this.CONSTANTS.PLAYLISTS_DIR);
 
     // 1. Scan all audio files in libraryPath (excluding Playlists directory)
     const allFiles = await this.getFilesRecursive(libraryPath);
     const audioFiles = allFiles.filter(
-      (file) => !file.includes(playlistDir) && this.SUPPORTED_FORMATS.test(file)
+      (file) =>
+        !file.includes(playlistDir) && this.SUPPORTED_FORMATS.test(file),
     );
 
-    console.log(`[OrganizerService] Found ${audioFiles.length} audio files to process`);
+    console.log(
+      `[OrganizerService] Found ${audioFiles.length} audio files to process`,
+    );
 
     let successCount = 0;
     let failCount = 0;
@@ -857,7 +904,10 @@ export class OrganizerService {
     // 2. Extract complete metadata for each file
     for (const filePath of audioFiles) {
       try {
-        const metadata = await this.extractCompleteMetadata(filePath, libraryPath);
+        const metadata = await this.extractCompleteMetadata(
+          filePath,
+          libraryPath,
+        );
         if (metadata) {
           inventory.push(metadata);
           successCount++;
@@ -870,23 +920,33 @@ export class OrganizerService {
       }
     }
 
-    console.log(`[OrganizerService] Extracted metadata for ${successCount} files`);
+    console.log(
+      `[OrganizerService] Extracted metadata for ${successCount} files`,
+    );
 
     // 3. Cross-reference with playlists
     console.log(`[OrganizerService] Cross-referencing with playlists...`);
     for (const song of inventory) {
       try {
-        const playlists = await this.getPlaylistsForTrack(song.absPath, libraryPath);
+        const playlists = await this.getPlaylistsForTrack(
+          song.absPath,
+          libraryPath,
+        );
         song.playlists = playlists.length > 0 ? playlists : undefined;
       } catch (err) {
-        console.error(`[OrganizerService] Failed to get playlists for ${song.absPath}`, err);
+        console.error(
+          `[OrganizerService] Failed to get playlists for ${song.absPath}`,
+          err,
+        );
         song.playlists = undefined;
       }
     }
 
     // 4. Save to database
     await fs.outputJson(dbPath, inventory, { spaces: 2 });
-    console.log(`[OrganizerService] Database regenerated successfully. Total tracks: ${inventory.length}`);
+    console.log(
+      `[OrganizerService] Database regenerated successfully. Total tracks: ${inventory.length}`,
+    );
 
     return {
       totalFiles: audioFiles.length,
