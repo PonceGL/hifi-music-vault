@@ -815,4 +815,81 @@ describe('API Routes', () => {
       expect(response.body).toEqual({ error: 'Unknown error' });
     });
   });
+
+  describe("POST /api/library/regenerate", () => {
+    it("should return 400 if libraryPath is missing", async () => {
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: "libraryPath is required" });
+    });
+
+    it("should regenerate database successfully", async () => {
+      const mockResult = {
+        totalFiles: 10,
+        successCount: 10,
+        failCount: 0,
+      };
+
+      vi.mocked(OrganizerService.regenerateDatabase).mockResolvedValue(
+        mockResult,
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Database regenerated successfully",
+        totalFiles: 10,
+        successCount: 10,
+        failCount: 0,
+      });
+      expect(OrganizerService.regenerateDatabase).toHaveBeenCalledWith(
+        "/library",
+      );
+    });
+
+    it("should return statistics with some failures", async () => {
+      const mockResult = {
+        totalFiles: 10,
+        successCount: 8,
+        failCount: 2,
+      };
+
+      vi.mocked(OrganizerService.regenerateDatabase).mockResolvedValue(
+        mockResult,
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Database regenerated successfully",
+        totalFiles: 10,
+        successCount: 8,
+        failCount: 2,
+      });
+    });
+
+    it("should return 500 on error", async () => {
+      vi.mocked(OrganizerService.regenerateDatabase).mockRejectedValue(
+        new Error("Regeneration failed"),
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: "Regeneration failed" });
+    });
+  });
 });
