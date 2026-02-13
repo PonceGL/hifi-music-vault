@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 config.json
+coverage/
 
 # Editor directories and files
 .vscode/*
