@@ -2,6 +2,12 @@ import fs from 'fs-extra';
 import path from 'path';
 import { exec } from 'child_process';
 import type { SongMetadata } from './OrganizerService';
+import {
+  FILE_CONSTANTS,
+  APPLE_MUSIC_CONSTANTS,
+  ERROR_MESSAGES,
+  LOG_MESSAGES,
+} from "../constants";
 
 /**
  * Payload simplificado para enviar al script JXA de Apple Music
@@ -21,10 +27,10 @@ export class AppleMusicSync {
    * NO importa archivos, solo organiza lo que YA existe en Música.
    */
   static async syncPlaylists(libraryPath: string) {
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
     
     if (!(await fs.pathExists(dbPath))) {
-      throw new Error("No se encontró library_db.json");
+      throw new Error(ERROR_MESSAGES.LIBRARY_DB_NOT_FOUND);
     }
 
     const inventory: SongMetadata[] = await fs.readJson(dbPath);
@@ -33,11 +39,11 @@ export class AppleMusicSync {
     const tracksToSync = inventory.filter(song => song.playlists && song.playlists.length > 0);
 
     if (tracksToSync.length === 0) {
-      console.log("No hay canciones con playlists asignadas para sincronizar.");
+      console.log(LOG_MESSAGES.NO_PLAYLISTS_TO_SYNC);
       return;
     }
 
-    console.log(`Encontradas ${tracksToSync.length} canciones con asignación de playlists. Iniciando sincronización...`);
+    console.log(LOG_MESSAGES.SYNC_STARTED(tracksToSync.length));
 
     // 2. Preparamos los datos para enviarlos al script JXA
     // Simplificamos los datos para no sobrecargar el script
@@ -51,20 +57,23 @@ export class AppleMusicSync {
     // 3. Ejecutamos el JXA
     try {
       await this.runJXAScript(payload);
-      console.log("✅ Sincronización con Apple Music terminada.");
+      console.log(LOG_MESSAGES.SYNC_COMPLETED);
     } catch (error) {
-      console.error("❌ Error durante la sincronización con Apple Music:", error);
+      console.error(LOG_MESSAGES.SYNC_ERROR, error);
     }
   }
 
   private static async runJXAScript(data: AppleMusicSyncPayload[]): Promise<void> {
     // Creamos un archivo temporal .js que contiene el script JXA y los datos
     // Esto es más seguro que pasar argumentos por línea de comandos
-    const tempScriptPath = path.join(process.cwd(), 'temp_sync_script.js');
+    const tempScriptPath = path.join(
+      process.cwd(),
+      FILE_CONSTANTS.TEMP_SYNC_SCRIPT,
+    );
 
     const jxaCode = `
       // --- INICIO DEL SCRIPT JXA ---
-      const app = Application('Music');
+      const app = Application('${APPLE_MUSIC_CONSTANTS.APP_NAME}');
       const data = ${JSON.stringify(data)}; // Inyectamos los datos directamente aquí
 
       console.log("Iniciando procesamiento de " + data.length + " items en Apple Music...");
@@ -118,17 +127,21 @@ export class AppleMusicSync {
 
     return new Promise((resolve, reject) => {
       // Ejecutamos osascript con el flag -l JavaScript
-      exec(`osascript -l JavaScript "${tempScriptPath}"`, (error, stdout, stderr) => {
-        // Borramos el archivo temporal siempre
-        fs.unlink(tempScriptPath).catch(() => {});
+      exec(
+        `osascript -l ${APPLE_MUSIC_CONSTANTS.OSASCRIPT_LANGUAGE} "${tempScriptPath}"`,
+        (error, stdout, stderr) => {
+          // Borramos el archivo temporal siempre
+          fs.unlink(tempScriptPath).catch(() => {});
 
-        if (error) {
-          reject(stderr || error.message);
-        } else {
-          if (stdout) console.log(`[AppleMusic Log]: ${stdout}`);
-          resolve();
-        }
-      });
+          if (error) {
+            reject(stderr || error.message);
+          } else {
+            if (stdout)
+              console.log(`${LOG_MESSAGES.APPLE_MUSIC_LOG_PREFIX} ${stdout}`);
+            resolve();
+          }
+        },
+      );
     });
   }
 }

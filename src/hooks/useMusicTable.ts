@@ -1,6 +1,8 @@
 import type { SongMetadata } from "@/server/services/OrganizerService";
 import { useState, useMemo } from "react";
 
+export type { SongMetadata };
+
 export interface ScanResult {
   file: string;
   metadata: SongMetadata;
