@@ -155,18 +155,19 @@ describe('OrganizerService', () => {
 
       const mockResults: ScanResult[] = [
         {
-          file: '/inbox/song.mp3',
+          file: "/inbox/song.mp3",
           metadata: {
-            title: 'New Song',
-            artist: 'New Artist',
-            album: 'New Album',
-            trackNo: '01',
-            genre: ['Pop'],
-            format: '.mp3',
-            absPath: '/inbox/song.mp3',
+            title: "New Song",
+            artist: "New Artist",
+            album: "New Album",
+            trackNo: "01",
+            genre: ["Pop"],
+            format: ".mp3",
+            absPath: "/inbox/song.mp3",
+            playlists: [],
           },
-          proposedPath: '/library/New Artist/New Album/01 - New Song.mp3',
-          playlists: ['Favorites'],
+          proposedPath: "/library/New Artist/New Album/01 - New Song.mp3",
+          playlists: ["Favorites"],
         },
       ];
 
@@ -209,6 +210,7 @@ describe('OrganizerService', () => {
           format: ".mp3",
           absPath: "/library/Artist/Album/Song.mp3",
           relPath: "Artist/Album/Song.mp3",
+          playlists: [],
         },
       ];
       vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
@@ -266,14 +268,15 @@ describe('OrganizerService', () => {
       // Mock for database sync
       const mockInventory = [
         {
-          title: 'Song1',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/mock/library/Artist/Album/Song1.mp3',
-          relPath: 'Artist/Album/Song1.mp3',
+          title: "Song1",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/mock/library/Artist/Album/Song1.mp3",
+          relPath: "Artist/Album/Song1.mp3",
+          playlists: [],
         },
       ];
       vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
@@ -398,13 +401,14 @@ describe('OrganizerService', () => {
 
       const inventory: SongMetadata[] = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/mock/library/Artist/Album/Song.mp3',
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/mock/library/Artist/Album/Song.mp3",
+          playlists: [],
         },
       ];
 
@@ -651,6 +655,7 @@ describe('OrganizerService', () => {
         format: ".mp3",
         absPath: "/library/Artist1/Album1/Song1.mp3",
         relPath: "Artist1/Album1/Song1.mp3",
+        playlists: [],
         bitrate: 320,
         duration: 180,
         codec: "MP3",
@@ -666,6 +671,7 @@ describe('OrganizerService', () => {
         format: ".flac",
         absPath: "/library/Artist2/Album2/Song2.flac",
         relPath: "Artist2/Album2/Song2.flac",
+        playlists: [],
         bitrate: 1411,
         duration: 240,
         codec: "FLAC",
@@ -698,7 +704,7 @@ describe('OrganizerService', () => {
           }),
           expect.objectContaining({
             title: "Song2",
-            playlists: undefined,
+            playlists: [],
           }),
         ]),
         { spaces: 2 },
@@ -725,6 +731,7 @@ describe('OrganizerService', () => {
         format: ".mp3",
         absPath: "/library/Artist/Album/Song1.mp3",
         relPath: "Artist/Album/Song1.mp3",
+        playlists: [],
       };
 
       // @ts-expect-error - Mocking private method for testing
@@ -764,6 +771,7 @@ describe('OrganizerService', () => {
         format: ".mp3",
         absPath: "/library/Artist/Album/Song.mp3",
         relPath: "Artist/Album/Song.mp3",
+        playlists: [],
       };
 
       // @ts-expect-error - Mocking private method for testing
@@ -796,6 +804,7 @@ describe('OrganizerService', () => {
         format: ".mp3",
         absPath: "/library/Artist/Album/Song.mp3",
         relPath: "Artist/Album/Song.mp3",
+        playlists: [],
       };
 
       // @ts-expect-error - Mocking private method for testing
@@ -814,7 +823,7 @@ describe('OrganizerService', () => {
         expect.anything(),
         expect.arrayContaining([
           expect.objectContaining({
-            playlists: undefined,
+            playlists: [],
           }),
         ]),
         expect.anything(),

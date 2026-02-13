@@ -13,7 +13,7 @@ export interface SongMetadata {
   format: string;
   absPath: string; // Current or Destination path depending on context
   relPath?: string; // Relative to Library Root
-  playlists?: string[]; // Names of playlists containing this track
+  playlists: string[]; // Names of playlists containing this track (always present, empty array if none)
   bitrate?: number; // Bitrate in kbps
   duration?: number; // Duration in seconds
   codec?: string; // Audio codec (e.g., "FLAC", "MP3", "AAC")
@@ -387,6 +387,7 @@ export class OrganizerService {
           genre: [],
           format: path.extname(absPath),
           absPath: absPath,
+          playlists: [],
         });
       }
     }
@@ -439,6 +440,7 @@ export class OrganizerService {
         genre: common.genre || [this.CONFIG.DEFAULT_GENRE],
         format: path.extname(sourcePath).toLowerCase(),
         absPath: sourcePath,
+        playlists: [],
       };
 
       const clean = (s: string) => s.replace(/[/\\?%*:|"<>]/g, "-").trim();
@@ -584,12 +586,11 @@ export class OrganizerService {
     for (const trackPath of trackPaths) {
       const track = inventory.find((song) => song.absPath === trackPath);
       if (track) {
-        // Get current playlists for this track
-        const playlists = await this.getPlaylistsForTrack(
+        // Get current playlists for this track (always an array, empty if none)
+        track.playlists = await this.getPlaylistsForTrack(
           trackPath,
           libraryPath,
         );
-        track.playlists = playlists.length > 0 ? playlists : undefined;
       }
     }
 
@@ -865,6 +866,7 @@ export class OrganizerService {
           .relative(libraryPath, trackPath)
           .split(path.sep)
           .join("/"),
+        playlists: [],
         bitrate: format.bitrate ? Math.round(format.bitrate / 1000) : undefined,
         duration: format.duration,
         codec: format.codec,
@@ -938,17 +940,16 @@ export class OrganizerService {
     console.log(`[OrganizerService] Cross-referencing with playlists...`);
     for (const song of inventory) {
       try {
-        const playlists = await this.getPlaylistsForTrack(
+        song.playlists = await this.getPlaylistsForTrack(
           song.absPath,
           libraryPath,
         );
-        song.playlists = playlists.length > 0 ? playlists : undefined;
       } catch (err) {
         console.error(
           `[OrganizerService] Failed to get playlists for ${song.absPath}`,
           err,
         );
-        song.playlists = undefined;
+        song.playlists = [];
       }
     }
 

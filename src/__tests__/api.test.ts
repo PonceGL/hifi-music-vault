@@ -41,17 +41,18 @@ describe('API Routes', () => {
     it('should scan inbox successfully', async () => {
       const mockResults: ScanResult[] = [
         {
-          file: '/inbox/song.mp3',
+          file: "/inbox/song.mp3",
           metadata: {
-            title: 'Test Song',
-            artist: 'Test Artist',
-            album: 'Test Album',
-            trackNo: '01',
-            genre: ['Rock'],
-            format: '.mp3',
-            absPath: '/inbox/song.mp3',
+            title: "Test Song",
+            artist: "Test Artist",
+            album: "Test Album",
+            trackNo: "01",
+            genre: ["Rock"],
+            format: ".mp3",
+            absPath: "/inbox/song.mp3",
+            playlists: [],
           },
-          proposedPath: '/library/Test Artist/Test Album/01 - Test Song.mp3',
+          proposedPath: "/library/Test Artist/Test Album/01 - Test Song.mp3",
           playlists: [],
         },
       ];
@@ -155,13 +156,24 @@ describe('API Routes', () => {
     it('should return inventory successfully', async () => {
       const mockInventory = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/library/Artist/Album/Song.mp3',
+          title: "Song1",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song1.mp3",
+          playlists: [],
+        },
+        {
+          title: "Song2",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "02",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song2.mp3",
+          playlists: [],
         },
       ];
 
@@ -290,13 +302,14 @@ describe('API Routes', () => {
     it('should get playlist details successfully', async () => {
       const mockTracks = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/track.mp3',
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/track.mp3",
+          playlists: [],
         },
       ];
 
