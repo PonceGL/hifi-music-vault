@@ -11,6 +11,7 @@ import {
   FolderSearch,
   MoreVertical,
   HardDriveDownload,
+  RefreshCw,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -313,13 +314,32 @@ export function LibraryPage() {
           )}
 
           {viewMode === "library" && libraryFiles.length > 0 && (
-            <Button
-              onClick={() => setIsExportDialogOpen(true)}
-              variant="outline"
-            >
-              <HardDriveDownload className="mr-2 h-4 w-4" />
-              Export Library
-            </Button>
+            <>
+              <Button
+                onClick={handleRegenerateDatabase}
+                disabled={isRegenerating}
+                variant="outline"
+              >
+                {isRegenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Regenerating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Regenerate Database
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => setIsExportDialogOpen(true)}
+                variant="outline"
+              >
+                <HardDriveDownload className="mr-2 h-4 w-4" />
+                Export Library
+              </Button>
+            </>
           )}
         </div>
       </div>
