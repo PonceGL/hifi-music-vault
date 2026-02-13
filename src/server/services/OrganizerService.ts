@@ -141,6 +141,10 @@ export class OrganizerService {
     await this.generateMasterPlaylist(inventory, libraryPath);
     await this.generateGenrePlaylists(inventory, libraryPath); // Assumes we rebuild from full inventory
     await this.appendCustomPlaylists(customPlaylists, playlistDir);
+
+    // 5. Sync playlists field in database for all moved tracks
+    const movedTrackPaths = results.map((item) => item.proposedPath);
+    await this.updateTrackPlaylistsInDatabase(movedTrackPaths, libraryPath);
   }
 
   static async addToPlaylist(
