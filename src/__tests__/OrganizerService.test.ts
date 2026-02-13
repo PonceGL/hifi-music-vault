@@ -192,6 +192,49 @@ describe('OrganizerService', () => {
         expect.stringContaining('#EXTM3U')
       );
     });
+
+    it("should sync playlists field in database after adding tracks", async () => {
+      vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockResolvedValue("#EXTM3U\n" as never);
+      vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+
+      const mockInventory = [
+        {
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song.mp3",
+          relPath: "Artist/Album/Song.mp3",
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValueOnce([
+        "MyPlaylist",
+      ]);
+
+      const tracks = ["/library/Artist/Album/Song.mp3"];
+      await OrganizerService.addToPlaylist(
+        "MyPlaylist",
+        tracks,
+        mockLibraryPath,
+      );
+
+      // Verify database was updated with playlists field
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining("library_db.json"),
+        expect.arrayContaining([
+          expect.objectContaining({
+            absPath: "/library/Artist/Album/Song.mp3",
+            playlists: ["MyPlaylist"],
+          }),
+        ]),
+        { spaces: 2 },
+      );
+    });
   });
 
   describe('removeFromPlaylist', () => {
@@ -219,6 +262,23 @@ describe('OrganizerService', () => {
         '#EXTM3U\n../Artist/Album/Song1.mp3\n../Artist/Album/Song2.mp3\n' as never
       );
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+      
+      // Mock for database sync
+      const mockInventory = [
+        {
+          title: 'Song1',
+          artist: 'Artist',
+          album: 'Album',
+          trackNo: '01',
+          genre: ['Rock'],
+          format: '.mp3',
+          absPath: '/mock/library/Artist/Album/Song1.mp3',
+          relPath: 'Artist/Album/Song1.mp3',
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+      vi.spyOn(OrganizerService, 'getPlaylistsForTrack').mockResolvedValueOnce([]);
 
       await OrganizerService.removeFromPlaylist(
         'MyPlaylist',
@@ -231,6 +291,48 @@ describe('OrganizerService', () => {
 
       expect(content).not.toContain('Song1.mp3');
       expect(content).toContain('Song2.mp3');
+    });
+
+    it('should sync playlists field in database after removing track', async () => {
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockResolvedValue(
+        '#EXTM3U\n../Artist/Album/Song1.mp3\n' as never
+      );
+      vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+      
+      const mockInventory = [
+        {
+          title: 'Song1',
+          artist: 'Artist',
+          album: 'Album',
+          trackNo: '01',
+          genre: ['Rock'],
+          format: '.mp3',
+          absPath: '/mock/library/Artist/Album/Song1.mp3',
+          relPath: 'Artist/Album/Song1.mp3',
+          playlists: ['MyPlaylist', 'OtherPlaylist'],
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.spyOn(OrganizerService, 'getPlaylistsForTrack').mockResolvedValueOnce(['OtherPlaylist']);
+
+      await OrganizerService.removeFromPlaylist(
+        'MyPlaylist',
+        '/mock/library/Artist/Album/Song1.mp3',
+        mockLibraryPath
+      );
+
+      // Verify database was updated with playlists field (MyPlaylist removed)
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining('library_db.json'),
+        expect.arrayContaining([
+          expect.objectContaining({
+            absPath: '/mock/library/Artist/Album/Song1.mp3',
+            playlists: ['OtherPlaylist'],
+          }),
+        ]),
+        { spaces: 2 }
+      );
     });
   });
 
