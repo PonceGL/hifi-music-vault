@@ -177,6 +177,9 @@ export class OrganizerService {
     const content =
       this.CONFIG.PLAYLIST_HEADER + Array.from(allTracks).join("\n");
     await fs.outputFile(filePath, content);
+
+    // Sync playlists field in database for added tracks
+    await this.updateTrackPlaylistsInDatabase(tracks, libraryPath);
   }
 
   static async removeFromPlaylist(
