@@ -359,4 +359,30 @@ router.get('/tracks/metadata', async (req, res): Promise<any> => {
     }
 });
 
+// 14. Regenerate Library Database
+router.post('/library/regenerate', async (req, res): Promise<void> => {
+    try {
+        const { libraryPath } = req.body;
+
+        if (!libraryPath) {
+            res.status(400).json({ error: 'libraryPath is required' });
+            return;
+        }
+
+        console.log(`Regenerating database for library: ${libraryPath}`);
+        const result = await OrganizerService.regenerateDatabase(libraryPath);
+        
+        res.json({ 
+            success: true, 
+            message: 'Database regenerated successfully',
+            ...result 
+        });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Regenerate Database Error:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
 export default router;
