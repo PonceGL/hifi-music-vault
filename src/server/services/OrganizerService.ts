@@ -4,15 +4,20 @@ import * as mm from 'music-metadata';
 import { exec } from 'child_process';
 
 export interface SongMetadata {
-    title: string;
-    artist: string;
-    album: string;
-    year?: number;
-    trackNo: string;
-    genre: string[];
-    format: string;
-    absPath: string; // Current or Destination path depending on context
-    relPath?: string; // Relative to Library Root
+  title: string;
+  artist: string;
+  album: string;
+  year?: number;
+  trackNo: string;
+  genre: string[];
+  format: string;
+  absPath: string; // Current or Destination path depending on context
+  relPath?: string; // Relative to Library Root
+  playlists?: string[]; // Names of playlists containing this track
+  bitrate?: number; // Bitrate in kbps
+  duration?: number; // Duration in seconds
+  codec?: string; // Audio codec (e.g., "FLAC", "MP3", "AAC")
+  sampleRate?: number; // Sample rate in Hz
 }
 
 export interface ScanResult {
