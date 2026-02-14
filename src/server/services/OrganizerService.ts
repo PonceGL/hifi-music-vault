@@ -2,17 +2,29 @@ import fs from 'fs-extra';
 import path from 'path';
 import * as mm from 'music-metadata';
 import { exec } from 'child_process';
+import {
+  FILE_CONSTANTS,
+  FILE_EXTENSIONS,
+  PLAYLIST_CONSTANTS,
+  METADATA_DEFAULTS,
+  ERROR_MESSAGES,
+} from "../constants";
 
 export interface SongMetadata {
-    title: string;
-    artist: string;
-    album: string;
-    year?: number;
-    trackNo: string;
-    genre: string[];
-    format: string;
-    absPath: string; // Current or Destination path depending on context
-    relPath?: string; // Relative to Library Root
+  title: string;
+  artist: string;
+  album: string;
+  year?: number;
+  trackNo: string;
+  genre: string[];
+  format: string;
+  absPath: string; // Current or Destination path depending on context
+  relPath?: string; // Relative to Library Root
+  playlists: string[]; // Names of playlists containing this track (always present, empty array if none)
+  bitrate?: number; // Bitrate in kbps
+  duration?: number; // Duration in seconds
+  codec?: string; // Audio codec (e.g., "FLAC", "MP3", "AAC")
+  sampleRate?: number; // Sample rate in Hz
 }
 
 export interface ScanResult {
@@ -24,10 +36,6 @@ export interface ScanResult {
 
 export class OrganizerService {
   private static SUPPORTED_FORMATS = /\.(flac|mp3|m4a|wav|ogg)$/i;
-  private static CONFIG = {
-    PLAYLIST_HEADER: "#EXTM3U\n",
-    DEFAULT_GENRE: "Otros",
-  };
 
   /**
    * Scans the Inbox directory and returns a preview of what would happen.
@@ -72,9 +80,9 @@ export class OrganizerService {
     libraryPath: string,
   ): Promise<void> {
     await fs.ensureDir(libraryPath);
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
 
     // 1. Load existing inventory
     let inventory: SongMetadata[] = [];
@@ -122,6 +130,10 @@ export class OrganizerService {
     await this.generateMasterPlaylist(inventory, libraryPath);
     await this.generateGenrePlaylists(inventory, libraryPath); // Assumes we rebuild from full inventory
     await this.appendCustomPlaylists(customPlaylists, playlistDir);
+
+    // 5. Sync playlists field in database for all moved tracks
+    const movedTrackPaths = results.map((item) => item.proposedPath);
+    await this.updateTrackPlaylistsInDatabase(movedTrackPaths, libraryPath);
   }
 
   static async addToPlaylist(
@@ -129,9 +141,12 @@ export class OrganizerService {
     tracks: string[],
     libraryPath: string,
   ): Promise<void> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
-    const filePath = path.join(playlistDir, `${name.trim()}.m3u8`);
+    const filePath = path.join(
+      playlistDir,
+      `${name.trim()}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+    );
 
     let existingLines: string[] = [];
     if (await fs.pathExists(filePath)) {
@@ -149,8 +164,11 @@ export class OrganizerService {
 
     const allTracks = new Set([...existingLines, ...newRelativePaths]);
     const content =
-      this.CONFIG.PLAYLIST_HEADER + Array.from(allTracks).join("\n");
+      PLAYLIST_CONSTANTS.PLAYLIST_HEADER + Array.from(allTracks).join("\n");
     await fs.outputFile(filePath, content);
+
+    // Sync playlists field in database for added tracks
+    await this.updateTrackPlaylistsInDatabase(tracks, libraryPath);
   }
 
   static async removeFromPlaylist(
@@ -158,26 +176,32 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<void> {
-    if (name.includes("00_Master_Library")) {
-      throw new Error("Cannot modify the Master Library playlist");
+    if (name.includes(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_NAME)) {
+      throw new Error(ERROR_MESSAGES.CANNOT_MODIFY_MASTER);
     }
 
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const filePath = path.join(playlistDir, `${name}.m3u8`);
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
+    const filePath = path.join(
+      playlistDir,
+      `${name}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+    );
 
     console.log(`[OrganizerService] Removing ${trackPath} from ${name}`);
 
     // Handle .m3u fallback if needed, though we primarily write .m3u8
     if (!(await fs.pathExists(filePath))) {
       // Check for .m3u
-      const legacyPath = path.join(playlistDir, `${name}.m3u`);
+      const legacyPath = path.join(
+        playlistDir,
+        `${name}${FILE_EXTENSIONS.PLAYLIST_LEGACY}`,
+      );
       if (await fs.pathExists(legacyPath)) {
         // Convert/Use legacy path? For now just throw or support.
         // Let's support deletion from legacy too if we find it.
         // But simpler to just error if main one missing for now or check both.
-        throw new Error(`Playlist ${name} not found`);
+        throw new Error(ERROR_MESSAGES.PLAYLIST_NOT_FOUND(name));
       }
-      throw new Error(`Playlist ${name} not found`);
+      throw new Error(ERROR_MESSAGES.PLAYLIST_NOT_FOUND(name));
     }
 
     const content = await fs.readFile(filePath, "utf-8");
@@ -223,29 +247,38 @@ export class OrganizerService {
       console.log("Sample lines from file:", lines.slice(0, 3));
     }
 
-    const newContent = this.CONFIG.PLAYLIST_HEADER + newLines.join("\n");
+    const newContent = PLAYLIST_CONSTANTS.PLAYLIST_HEADER + newLines.join("\n");
     await fs.outputFile(filePath, newContent);
+
+    // Sync playlists field in database for removed track
+    await this.updateTrackPlaylistsInDatabase([trackPath], libraryPath);
   }
 
   static async deletePlaylist(
     name: string,
     libraryPath: string,
   ): Promise<void> {
-    if (name.includes("00_Master_Library")) {
-      throw new Error("Cannot delete the Master Library playlist");
+    if (name.includes(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_NAME)) {
+      throw new Error(ERROR_MESSAGES.CANNOT_DELETE_MASTER);
     }
 
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const filePath = path.join(playlistDir, `${name}.m3u8`);
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
+    const filePath = path.join(
+      playlistDir,
+      `${name}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+    );
 
     if (await fs.pathExists(filePath)) {
       await fs.remove(filePath);
     } else {
-      const legacyPath = path.join(playlistDir, `${name}.m3u`);
+      const legacyPath = path.join(
+        playlistDir,
+        `${name}${FILE_EXTENSIONS.PLAYLIST_LEGACY}`,
+      );
       if (await fs.pathExists(legacyPath)) {
         await fs.remove(legacyPath);
       } else {
-        throw new Error(`Playlist ${name} not found`);
+        throw new Error(ERROR_MESSAGES.PLAYLIST_NOT_FOUND(name));
       }
     }
   }
@@ -253,16 +286,19 @@ export class OrganizerService {
   static async listPlaylists(
     libraryPath: string,
   ): Promise<{ name: string; count: number; path: string }[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     if (!(await fs.pathExists(playlistDir))) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlists = [];
 
     for (const file of files) {
-      if (file.includes("00_Master_Library")) continue;
+      if (file.includes(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_NAME)) continue;
 
-      if (file.endsWith(".m3u8") || file.endsWith(".m3u")) {
+      if (
+        file.endsWith(FILE_EXTENSIONS.PLAYLIST_PRIMARY) ||
+        file.endsWith(FILE_EXTENSIONS.PLAYLIST_LEGACY)
+      ) {
         const filePath = path.join(playlistDir, file);
         const content = await fs.readFile(filePath, "utf-8");
         const lineCount = content
@@ -283,15 +319,21 @@ export class OrganizerService {
     name: string,
     libraryPath: string,
   ): Promise<SongMetadata[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
 
     // Find existing file (check .m3u8 and .m3u)
-    let filePath = path.join(playlistDir, `${name}.m3u8`);
+    let filePath = path.join(
+      playlistDir,
+      `${name}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+    );
     if (!(await fs.pathExists(filePath))) {
-      filePath = path.join(playlistDir, `${name}.m3u`);
+      filePath = path.join(
+        playlistDir,
+        `${name}${FILE_EXTENSIONS.PLAYLIST_LEGACY}`,
+      );
       if (!(await fs.pathExists(filePath))) {
-        throw new Error(`Playlist ${name} not found`);
+        throw new Error(ERROR_MESSAGES.PLAYLIST_NOT_FOUND(name));
       }
     }
 
@@ -328,12 +370,13 @@ export class OrganizerService {
         // If not in inventory, construct basic metadata from file path
         playlistTracks.push({
           title: path.parse(absPath).name,
-          artist: "Unknown",
-          album: "Unknown",
-          trackNo: "00",
+          artist: METADATA_DEFAULTS.UNKNOWN,
+          album: METADATA_DEFAULTS.UNKNOWN,
+          trackNo: METADATA_DEFAULTS.DEFAULT_TRACK_NO,
           genre: [],
           format: path.extname(absPath),
           absPath: absPath,
+          playlists: [],
         });
       }
     }
@@ -377,13 +420,16 @@ export class OrganizerService {
 
       const song: SongMetadata = {
         title: common.title || path.parse(sourcePath).name,
-        artist: common.artist || "Unknown Artist",
-        album: common.album || "Unknown Album",
+        artist: common.artist || METADATA_DEFAULTS.UNKNOWN_ARTIST,
+        album: common.album || METADATA_DEFAULTS.UNKNOWN_ALBUM,
         year: common.year,
-        trackNo: common.track.no?.toString().padStart(2, "0") || "00",
-        genre: common.genre || ["Otros"],
+        trackNo:
+          common.track.no?.toString().padStart(2, "0") ||
+          METADATA_DEFAULTS.DEFAULT_TRACK_NO,
+        genre: common.genre || [METADATA_DEFAULTS.DEFAULT_GENRE],
         format: path.extname(sourcePath).toLowerCase(),
         absPath: sourcePath,
+        playlists: [],
       };
 
       const clean = (s: string) => s.replace(/[/\\?%*:|"<>]/g, "-").trim();
@@ -428,7 +474,7 @@ export class OrganizerService {
     inventory: SongMetadata[],
     libraryPath: string,
   ) {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     await fs.ensureDir(playlistDir);
 
     // Relative paths from PLAYLIST_DIR, not Library Root
@@ -440,9 +486,12 @@ export class OrganizerService {
       return path.relative(playlistDir, song.absPath).split(path.sep).join("/");
     });
 
-    const content = this.CONFIG.PLAYLIST_HEADER + lines.join("\n");
+    const content = PLAYLIST_CONSTANTS.PLAYLIST_HEADER + lines.join("\n");
     await fs.outputFile(
-      path.join(playlistDir, "00_Master_Library.m3u8"),
+      path.join(
+        playlistDir,
+        `${PLAYLIST_CONSTANTS.MASTER_PLAYLIST_NAME}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+      ),
       content,
     );
   }
@@ -451,7 +500,7 @@ export class OrganizerService {
     inventory: SongMetadata[],
     libraryPath: string,
   ) {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     const genreMap = new Map<string, string[]>();
 
     inventory.forEach((song) => {
@@ -468,9 +517,12 @@ export class OrganizerService {
 
     for (const [genre, tracks] of genreMap) {
       const cleanGenre = genre.replace(/[/\\?%*:|"<>]/g, "-");
-      const content = this.CONFIG.PLAYLIST_HEADER + tracks.join("\n");
+      const content = PLAYLIST_CONSTANTS.PLAYLIST_HEADER + tracks.join("\n");
       await fs.outputFile(
-        path.join(playlistDir, `Genre_${cleanGenre}.m3u8`),
+        path.join(
+          playlistDir,
+          `${PLAYLIST_CONSTANTS.GENRE_PLAYLIST_PREFIX}${cleanGenre}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+        ),
         content,
       );
     }
@@ -481,7 +533,10 @@ export class OrganizerService {
     playlistDir: string,
   ) {
     for (const [name, tracks] of newPlaylists) {
-      const filePath = path.join(playlistDir, `${name.trim()}.m3u8`);
+      const filePath = path.join(
+        playlistDir,
+        `${name.trim()}${FILE_EXTENSIONS.PLAYLIST_PRIMARY}`,
+      );
 
       let existingLines: string[] = [];
       if (await fs.pathExists(filePath)) {
@@ -494,9 +549,42 @@ export class OrganizerService {
       // Merge existing and new, avoid dupes
       const allTracks = new Set([...existingLines, ...tracks]);
       const content =
-        this.CONFIG.PLAYLIST_HEADER + Array.from(allTracks).join("\n");
+        PLAYLIST_CONSTANTS.PLAYLIST_HEADER + Array.from(allTracks).join("\n");
       await fs.outputFile(filePath, content);
     }
+  }
+
+  /**
+   * Updates the playlists field for specific tracks in library_db.json
+   * This ensures the JSON is always in sync with the actual .m3u8 files
+   */
+  private static async updateTrackPlaylistsInDatabase(
+    trackPaths: string[],
+    libraryPath: string,
+  ): Promise<void> {
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
+
+    // Load current inventory
+    if (!(await fs.pathExists(dbPath))) {
+      return; // No database to update
+    }
+
+    const inventory: SongMetadata[] = await fs.readJson(dbPath);
+
+    // Update playlists for each track
+    for (const trackPath of trackPaths) {
+      const track = inventory.find((song) => song.absPath === trackPath);
+      if (track) {
+        // Get current playlists for this track (always an array, empty if none)
+        track.playlists = await this.getPlaylistsForTrack(
+          trackPath,
+          libraryPath,
+        );
+      }
+    }
+
+    // Save updated inventory
+    await fs.outputJson(dbPath, inventory, { spaces: 2 });
   }
 
   private static async cleanupEmptyDirs(startDir: string) {
@@ -530,11 +618,11 @@ export class OrganizerService {
     preserveStructure: boolean,
     libraryPath: string,
   ): Promise<{ SuccessCount: number; FailCount: number }> {
-    if (name.includes("00_Master_Library")) {
-      throw new Error("Cannot export/move the Master Library playlist");
+    if (name.includes(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_NAME)) {
+      throw new Error(ERROR_MESSAGES.CANNOT_EXPORT_MASTER);
     }
 
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
 
     // 1. Get Tracks
     // We use getPlaylistDetails to ensure we have paths and metadata
@@ -648,19 +736,22 @@ export class OrganizerService {
     trackPath: string,
     libraryPath: string,
   ): Promise<string[]> {
-    const playlistDir = path.join(libraryPath, "Playlists");
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
     if (!(await fs.pathExists(playlistDir))) return [];
 
     const files = await fs.readdir(playlistDir);
     const playlistsContainingTrack: string[] = [];
 
     for (const file of files) {
-      if (file.endsWith(".m3u8") || file.endsWith(".m3u")) {
+      if (
+        file.endsWith(FILE_EXTENSIONS.PLAYLIST_PRIMARY) ||
+        file.endsWith(FILE_EXTENSIONS.PLAYLIST_LEGACY)
+      ) {
         const playlistName = path.parse(file).name;
 
         if (
-          playlistName.startsWith("00_Master") ||
-          playlistName.startsWith("Genre_")
+          playlistName.startsWith(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_PREFIX) ||
+          playlistName.startsWith(PLAYLIST_CONSTANTS.GENRE_PLAYLIST_PREFIX)
         ) {
           continue;
         }
@@ -732,13 +823,145 @@ export class OrganizerService {
     }
   }
 
+  /**
+   * Extracts complete metadata from an audio file for database regeneration.
+   * Returns SongMetadata with all available fields populated.
+   */
+  private static async extractCompleteMetadata(
+    trackPath: string,
+    libraryPath: string,
+  ): Promise<SongMetadata | null> {
+    try {
+      if (!(await fs.pathExists(trackPath))) {
+        return null;
+      }
+
+      const metadata = await mm.parseFile(trackPath, { duration: true });
+      const common = metadata.common;
+      const format = metadata.format;
+
+      const song: SongMetadata = {
+        title: common.title || path.parse(trackPath).name,
+        artist: common.artist || METADATA_DEFAULTS.UNKNOWN_ARTIST,
+        album: common.album || METADATA_DEFAULTS.UNKNOWN_ALBUM,
+        year: common.year,
+        trackNo:
+          common.track.no?.toString().padStart(2, "0") ||
+          METADATA_DEFAULTS.DEFAULT_TRACK_NO,
+        genre: common.genre || [METADATA_DEFAULTS.DEFAULT_GENRE],
+        format: path.extname(trackPath).toLowerCase(),
+        absPath: trackPath,
+        relPath: path
+          .relative(libraryPath, trackPath)
+          .split(path.sep)
+          .join("/"),
+        playlists: [],
+        bitrate: format.bitrate ? Math.round(format.bitrate / 1000) : undefined,
+        duration: format.duration,
+        codec: format.codec,
+        sampleRate: format.sampleRate,
+      };
+
+      return song;
+    } catch (err) {
+      console.error(
+        `Failed to extract complete metadata from ${trackPath}`,
+        err,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Regenerates the library database by scanning all audio files in libraryPath.
+   * Extracts complete metadata (bitrate, duration, codec, etc.) and cross-references with playlists.
+   * Overwrites library_db.json with fresh, complete information.
+   */
+  static async regenerateDatabase(
+    libraryPath: string,
+  ): Promise<{ totalFiles: number; successCount: number; failCount: number }> {
+    console.log(
+      `[OrganizerService] Starting database regeneration for: ${libraryPath}`,
+    );
+
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
+    const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
+
+    // 1. Scan all audio files in libraryPath (excluding Playlists directory)
+    const allFiles = await this.getFilesRecursive(libraryPath);
+    const audioFiles = allFiles.filter(
+      (file) =>
+        !file.includes(playlistDir) && this.SUPPORTED_FORMATS.test(file),
+    );
+
+    console.log(
+      `[OrganizerService] Found ${audioFiles.length} audio files to process`,
+    );
+
+    let successCount = 0;
+    let failCount = 0;
+    const inventory: SongMetadata[] = [];
+
+    // 2. Extract complete metadata for each file
+    for (const filePath of audioFiles) {
+      try {
+        const metadata = await this.extractCompleteMetadata(
+          filePath,
+          libraryPath,
+        );
+        if (metadata) {
+          inventory.push(metadata);
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error(`[OrganizerService] Failed to process ${filePath}`, err);
+        failCount++;
+      }
+    }
+
+    console.log(
+      `[OrganizerService] Extracted metadata for ${successCount} files`,
+    );
+
+    // 3. Cross-reference with playlists
+    console.log(`[OrganizerService] Cross-referencing with playlists...`);
+    for (const song of inventory) {
+      try {
+        song.playlists = await this.getPlaylistsForTrack(
+          song.absPath,
+          libraryPath,
+        );
+      } catch (err) {
+        console.error(
+          `[OrganizerService] Failed to get playlists for ${song.absPath}`,
+          err,
+        );
+        song.playlists = [];
+      }
+    }
+
+    // 4. Save to database
+    await fs.outputJson(dbPath, inventory, { spaces: 2 });
+    console.log(
+      `[OrganizerService] Database regenerated successfully. Total tracks: ${inventory.length}`,
+    );
+
+    return {
+      totalFiles: audioFiles.length,
+      successCount,
+      failCount,
+    };
+  }
+
   static async exportLibrary(
     destination: string,
     mode: "copy" | "move",
     preserveStructure: boolean,
     libraryPath: string,
   ): Promise<{ SuccessCount: number; FailCount: number }> {
-    const dbPath = path.join(libraryPath, "library_db.json");
+    const dbPath = path.join(libraryPath, FILE_CONSTANTS.LIBRARY_DB_FILE);
 
     if (!(await fs.pathExists(dbPath))) {
       throw new Error("Library database not found");
@@ -794,14 +1017,15 @@ export class OrganizerService {
       await this.generateMasterPlaylist(updatedInventory, libraryPath);
       await this.generateGenrePlaylists(updatedInventory, libraryPath);
 
-      const playlistDir = path.join(libraryPath, "Playlists");
+      const playlistDir = path.join(libraryPath, FILE_CONSTANTS.PLAYLISTS_DIR);
       if (await fs.pathExists(playlistDir)) {
         const files = await fs.readdir(playlistDir);
         for (const file of files) {
           if (
-            (file.endsWith(".m3u8") || file.endsWith(".m3u")) &&
-            !file.startsWith("00_Master") &&
-            !file.startsWith("Genre_")
+            (file.endsWith(FILE_EXTENSIONS.PLAYLIST_PRIMARY) ||
+              file.endsWith(FILE_EXTENSIONS.PLAYLIST_LEGACY)) &&
+            !file.startsWith(PLAYLIST_CONSTANTS.MASTER_PLAYLIST_PREFIX) &&
+            !file.startsWith(PLAYLIST_CONSTANTS.GENRE_PLAYLIST_PREFIX)
           ) {
             const playlistPath = path.join(playlistDir, file);
             const content = await fs.readFile(playlistPath, "utf-8");

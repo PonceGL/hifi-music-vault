@@ -19,7 +19,7 @@ describe('OrganizerService', () => {
 
   describe('scanInbox', () => {
     it('should throw error if inbox path does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       await expect(
         OrganizerService.scanInbox(mockInboxPath, mockLibraryPath)
@@ -27,7 +27,7 @@ describe('OrganizerService', () => {
     });
 
     it('should scan files directly in inbox', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'song.flac', isDirectory: () => false, isFile: () => true },
       ] as never);
@@ -54,7 +54,7 @@ describe('OrganizerService', () => {
     });
 
     it('should scan folders with tags and extract playlists', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValueOnce([
         { name: '[Favorites][Workout]', isDirectory: () => true, isFile: () => false },
       ] as never);
@@ -80,7 +80,7 @@ describe('OrganizerService', () => {
     });
 
     it('should handle files without metadata gracefully', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'corrupted.mp3', isDirectory: () => false, isFile: () => true },
       ] as never);
@@ -93,7 +93,7 @@ describe('OrganizerService', () => {
     });
 
     it('should use default values for missing metadata fields', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'minimal.wav', isDirectory: () => false, isFile: () => true },
       ] as never);
@@ -117,7 +117,7 @@ describe('OrganizerService', () => {
     });
 
     it('should skip unsupported file formats', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'document.pdf', isDirectory: () => false, isFile: () => true },
       ] as never);
@@ -132,7 +132,7 @@ describe('OrganizerService', () => {
   describe('organize', () => {
     it('should create library and playlist directories', async () => {
       vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
       vi.mocked(fs.outputJson).mockResolvedValue(undefined);
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
 
@@ -146,25 +146,28 @@ describe('OrganizerService', () => {
 
     it('should move files and update inventory', async () => {
       vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
-      vi.mocked(fs.pathExists).mockResolvedValueOnce(false).mockResolvedValueOnce(false);
+      vi.mocked(fs.pathExists)
+        .mockResolvedValueOnce(false as never)
+        .mockResolvedValueOnce(false as never);
       vi.mocked(fs.move).mockResolvedValue(undefined);
       vi.mocked(fs.outputJson).mockResolvedValue(undefined);
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
 
       const mockResults: ScanResult[] = [
         {
-          file: '/inbox/song.mp3',
+          file: "/inbox/song.mp3",
           metadata: {
-            title: 'New Song',
-            artist: 'New Artist',
-            album: 'New Album',
-            trackNo: '01',
-            genre: ['Pop'],
-            format: '.mp3',
-            absPath: '/inbox/song.mp3',
+            title: "New Song",
+            artist: "New Artist",
+            album: "New Album",
+            trackNo: "01",
+            genre: ["Pop"],
+            format: ".mp3",
+            absPath: "/inbox/song.mp3",
+            playlists: [],
           },
-          proposedPath: '/library/New Artist/New Album/01 - New Song.mp3',
-          playlists: ['Favorites'],
+          proposedPath: "/library/New Artist/New Album/01 - New Song.mp3",
+          playlists: ["Favorites"],
         },
       ];
 
@@ -178,7 +181,7 @@ describe('OrganizerService', () => {
   describe('addToPlaylist', () => {
     it('should create new playlist with tracks', async () => {
       vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
 
       const tracks = ['/library/Artist/Album/Song.mp3'];
@@ -188,6 +191,50 @@ describe('OrganizerService', () => {
       expect(fs.outputFile).toHaveBeenCalledWith(
         expect.stringContaining('MyPlaylist.m3u8'),
         expect.stringContaining('#EXTM3U')
+      );
+    });
+
+    it("should sync playlists field in database after adding tracks", async () => {
+      vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockResolvedValue("#EXTM3U\n" as never);
+      vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+
+      const mockInventory = [
+        {
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song.mp3",
+          relPath: "Artist/Album/Song.mp3",
+          playlists: [],
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValueOnce([
+        "MyPlaylist",
+      ]);
+
+      const tracks = ["/library/Artist/Album/Song.mp3"];
+      await OrganizerService.addToPlaylist(
+        "MyPlaylist",
+        tracks,
+        mockLibraryPath,
+      );
+
+      // Verify database was updated with playlists field
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining("library_db.json"),
+        expect.arrayContaining([
+          expect.objectContaining({
+            absPath: "/library/Artist/Album/Song.mp3",
+            playlists: ["MyPlaylist"],
+          }),
+        ]),
+        { spaces: 2 },
       );
     });
   });
@@ -204,7 +251,7 @@ describe('OrganizerService', () => {
     });
 
     it('should throw error if playlist does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       await expect(
         OrganizerService.removeFromPlaylist('NonExistent', '/track.mp3', mockLibraryPath)
@@ -212,11 +259,29 @@ describe('OrganizerService', () => {
     });
 
     it('should remove track from playlist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readFile).mockResolvedValue(
         '#EXTM3U\n../Artist/Album/Song1.mp3\n../Artist/Album/Song2.mp3\n' as never
       );
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+      
+      // Mock for database sync
+      const mockInventory = [
+        {
+          title: "Song1",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/mock/library/Artist/Album/Song1.mp3",
+          relPath: "Artist/Album/Song1.mp3",
+          playlists: [],
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+      vi.spyOn(OrganizerService, 'getPlaylistsForTrack').mockResolvedValueOnce([]);
 
       await OrganizerService.removeFromPlaylist(
         'MyPlaylist',
@@ -230,6 +295,48 @@ describe('OrganizerService', () => {
       expect(content).not.toContain('Song1.mp3');
       expect(content).toContain('Song2.mp3');
     });
+
+    it('should sync playlists field in database after removing track', async () => {
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
+      vi.mocked(fs.readFile).mockResolvedValue(
+        '#EXTM3U\n../Artist/Album/Song1.mp3\n' as never
+      );
+      vi.mocked(fs.outputFile).mockResolvedValue(undefined);
+      
+      const mockInventory = [
+        {
+          title: 'Song1',
+          artist: 'Artist',
+          album: 'Album',
+          trackNo: '01',
+          genre: ['Rock'],
+          format: '.mp3',
+          absPath: '/mock/library/Artist/Album/Song1.mp3',
+          relPath: 'Artist/Album/Song1.mp3',
+          playlists: ['MyPlaylist', 'OtherPlaylist'],
+        },
+      ];
+      vi.mocked(fs.readJson).mockResolvedValueOnce(mockInventory as never);
+      vi.spyOn(OrganizerService, 'getPlaylistsForTrack').mockResolvedValueOnce(['OtherPlaylist']);
+
+      await OrganizerService.removeFromPlaylist(
+        'MyPlaylist',
+        '/mock/library/Artist/Album/Song1.mp3',
+        mockLibraryPath
+      );
+
+      // Verify database was updated with playlists field (MyPlaylist removed)
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining('library_db.json'),
+        expect.arrayContaining([
+          expect.objectContaining({
+            absPath: '/mock/library/Artist/Album/Song1.mp3',
+            playlists: ['OtherPlaylist'],
+          }),
+        ]),
+        { spaces: 2 }
+      );
+    });
   });
 
   describe('deletePlaylist', () => {
@@ -240,7 +347,7 @@ describe('OrganizerService', () => {
     });
 
     it('should delete .m3u8 playlist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.remove).mockResolvedValue(undefined);
 
       await OrganizerService.deletePlaylist('MyPlaylist', mockLibraryPath);
@@ -253,7 +360,7 @@ describe('OrganizerService', () => {
 
   describe('listPlaylists', () => {
     it('should return empty array if playlist directory does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const result = await OrganizerService.listPlaylists(mockLibraryPath);
 
@@ -261,7 +368,7 @@ describe('OrganizerService', () => {
     });
 
     it('should list all playlists except Master Library', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         '00_Master_Library.m3u8',
         'Favorites.m3u8',
@@ -279,7 +386,7 @@ describe('OrganizerService', () => {
 
   describe('getPlaylistDetails', () => {
     it('should throw error if playlist not found', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       await expect(
         OrganizerService.getPlaylistDetails('NonExistent', mockLibraryPath)
@@ -287,20 +394,21 @@ describe('OrganizerService', () => {
     });
 
     it('should return tracks with metadata from inventory', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readFile).mockResolvedValue(
         '#EXTM3U\n../Artist/Album/Song.mp3\n' as never
       );
 
       const inventory: SongMetadata[] = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/mock/library/Artist/Album/Song.mp3',
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/mock/library/Artist/Album/Song.mp3",
+          playlists: [],
         },
       ];
 
@@ -328,7 +436,7 @@ describe('OrganizerService', () => {
     });
 
     it('should copy files in flat structure', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readFile).mockResolvedValue('#EXTM3U\n../Artist/Album/Song.mp3\n' as never);
       vi.mocked(fs.readJson).mockResolvedValue([
         {
@@ -361,7 +469,7 @@ describe('OrganizerService', () => {
 
   describe('revealInFileExplorer', () => {
     it('should throw error if file does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       await expect(
         OrganizerService.revealInFileExplorer('/nonexistent.mp3')
@@ -371,7 +479,7 @@ describe('OrganizerService', () => {
 
   describe('getPlaylistsForTrack', () => {
     it('should return empty array if playlist directory does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const result = await OrganizerService.getPlaylistsForTrack(
         '/track.mp3',
@@ -382,7 +490,7 @@ describe('OrganizerService', () => {
     });
 
     it('should find playlists containing the track', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         'Favorites.m3u8',
         'Workout.m3u8',
@@ -403,7 +511,7 @@ describe('OrganizerService', () => {
 
   describe('getAlbumCover', () => {
     it('should return null if file does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const result = await OrganizerService.getAlbumCover('/nonexistent.mp3');
 
@@ -411,7 +519,7 @@ describe('OrganizerService', () => {
     });
 
     it('should extract album cover from metadata', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       
       const mockPicture = {
         data: new Uint8Array([1, 2, 3, 4]),
@@ -432,7 +540,7 @@ describe('OrganizerService', () => {
     });
 
     it('should return null if no picture in metadata', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(mm.parseFile).mockResolvedValue({
         common: {},
       } as never);
@@ -445,7 +553,7 @@ describe('OrganizerService', () => {
 
   describe('getTrackMetadata', () => {
     it('should return null if file does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const result = await OrganizerService.getTrackMetadata('/nonexistent.mp3');
 
@@ -453,7 +561,7 @@ describe('OrganizerService', () => {
     });
 
     it('should extract full metadata with duration', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       
       const mockMetadata = {
         common: {
@@ -476,7 +584,7 @@ describe('OrganizerService', () => {
 
   describe('exportLibrary', () => {
     it('should throw error if database not found', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       await expect(
         OrganizerService.exportLibrary('/dest', 'copy', false, mockLibraryPath)
@@ -484,7 +592,9 @@ describe('OrganizerService', () => {
     });
 
     it('should copy entire library in flat structure', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValueOnce(true).mockResolvedValue(true);
+      vi.mocked(fs.pathExists)
+        .mockResolvedValueOnce(true as never)
+        .mockResolvedValue(true as never);
       vi.mocked(fs.readJson).mockResolvedValue([
         {
           title: 'Song1',
@@ -520,6 +630,204 @@ describe('OrganizerService', () => {
       expect(result.SuccessCount).toBe(2);
       expect(result.FailCount).toBe(0);
       expect(fs.copy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("regenerateDatabase", () => {
+    it("should scan all audio files and regenerate database", async () => {
+      const mockAudioFiles = [
+        "/library/Artist1/Album1/Song1.mp3",
+        "/library/Artist2/Album2/Song2.flac",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      // Mock extractCompleteMetadata
+      const mockMetadata1: SongMetadata = {
+        title: "Song1",
+        artist: "Artist1",
+        album: "Album1",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist1/Album1/Song1.mp3",
+        relPath: "Artist1/Album1/Song1.mp3",
+        playlists: [],
+        bitrate: 320,
+        duration: 180,
+        codec: "MP3",
+        sampleRate: 44100,
+      };
+
+      const mockMetadata2: SongMetadata = {
+        title: "Song2",
+        artist: "Artist2",
+        album: "Album2",
+        trackNo: "01",
+        genre: ["Jazz"],
+        format: ".flac",
+        absPath: "/library/Artist2/Album2/Song2.flac",
+        relPath: "Artist2/Album2/Song2.flac",
+        playlists: [],
+        bitrate: 1411,
+        duration: 240,
+        codec: "FLAC",
+        sampleRate: 96000,
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata")
+        .mockResolvedValueOnce(mockMetadata1)
+        .mockResolvedValueOnce(mockMetadata2);
+
+      // Mock getPlaylistsForTrack
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack")
+        .mockResolvedValueOnce(["Favorites"])
+        .mockResolvedValueOnce([]);
+
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(2);
+      expect(result.successCount).toBe(2);
+      expect(result.failCount).toBe(0);
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.stringContaining("library_db.json"),
+        expect.arrayContaining([
+          expect.objectContaining({
+            title: "Song1",
+            playlists: ["Favorites"],
+          }),
+          expect.objectContaining({
+            title: "Song2",
+            playlists: [],
+          }),
+        ]),
+        { spaces: 2 },
+      );
+    });
+
+    it("should handle errors during metadata extraction", async () => {
+      const mockAudioFiles = [
+        "/library/Artist/Album/Song1.mp3",
+        "/library/Artist/Album/Song2.mp3",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song1",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song1.mp3",
+        relPath: "Artist/Album/Song1.mp3",
+        playlists: [],
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata")
+        .mockResolvedValueOnce(mockMetadata)
+        // @ts-expect-error - Testing null return case
+        .mockResolvedValueOnce(null);
+
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValue([]);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(2);
+      expect(result.successCount).toBe(1);
+      expect(result.failCount).toBe(1);
+    });
+
+    it("should exclude files in Playlists directory", async () => {
+      const mockFiles = [
+        "/library/Artist/Album/Song.mp3",
+        "/library/Playlists/00_Master_Library.m3u8",
+        "/library/Playlists/Genre_Rock.m3u8",
+      ];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song.mp3",
+        relPath: "Artist/Album/Song.mp3",
+        playlists: [],
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata").mockResolvedValue(
+        mockMetadata,
+      );
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockResolvedValue([]);
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.totalFiles).toBe(1);
+      expect(result.successCount).toBe(1);
+    });
+
+    it("should handle errors when getting playlists for tracks", async () => {
+      const mockAudioFiles = ["/library/Artist/Album/Song.mp3"];
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "getFilesRecursive").mockResolvedValue(
+        mockAudioFiles,
+      );
+
+      const mockMetadata: SongMetadata = {
+        title: "Song",
+        artist: "Artist",
+        album: "Album",
+        trackNo: "01",
+        genre: ["Rock"],
+        format: ".mp3",
+        absPath: "/library/Artist/Album/Song.mp3",
+        relPath: "Artist/Album/Song.mp3",
+        playlists: [],
+      };
+
+      // @ts-expect-error - Mocking private method for testing
+      vi.spyOn(OrganizerService, "extractCompleteMetadata").mockResolvedValue(
+        mockMetadata,
+      );
+      vi.spyOn(OrganizerService, "getPlaylistsForTrack").mockRejectedValue(
+        new Error("Playlist error"),
+      );
+      vi.mocked(fs.outputJson).mockResolvedValue(undefined);
+
+      const result = await OrganizerService.regenerateDatabase(mockLibraryPath);
+
+      expect(result.successCount).toBe(1);
+      expect(fs.outputJson).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.arrayContaining([
+          expect.objectContaining({
+            playlists: [],
+          }),
+        ]),
+        expect.anything(),
+      );
     });
   });
 });

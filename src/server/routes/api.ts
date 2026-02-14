@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { OrganizerService } from '../services/OrganizerService.js';
 import type { ScanResult } from '../services/OrganizerService.js';
+import { AppleMusicSync } from "../services/AppleMusicSync.js";
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -355,6 +356,57 @@ router.get('/tracks/metadata', async (req, res): Promise<any> => {
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('Error getting track metadata:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// 14. Regenerate Library Database
+router.post('/library/regenerate', async (req, res): Promise<void> => {
+    try {
+        const { libraryPath } = req.body;
+
+        if (!libraryPath) {
+            res.status(400).json({ error: 'libraryPath is required' });
+            return;
+        }
+
+        console.log(`Regenerating database for library: ${libraryPath}`);
+        const result = await OrganizerService.regenerateDatabase(libraryPath);
+        
+        res.json({ 
+            success: true, 
+            message: 'Database regenerated successfully',
+            ...result 
+        });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Regenerate Database Error:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// 15. Sync Playlists with Apple Music
+router.post('/library/sync-apple-music', async (req, res): Promise<void> => {
+    try {
+        const { libraryPath } = req.body;
+
+        if (!libraryPath) {
+            res.status(400).json({ error: 'libraryPath is required' });
+            return;
+        }
+
+        console.log(`Syncing playlists with Apple Music for library: ${libraryPath}`);
+        await AppleMusicSync.syncPlaylists(libraryPath);
+        
+        res.json({ 
+            success: true, 
+            message: 'Playlists synced with Apple Music successfully'
+        });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Apple Music Sync Error:', errorMessage);
         res.status(500).json({ error: errorMessage });
     }
 });

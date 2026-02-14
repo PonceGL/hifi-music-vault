@@ -4,10 +4,12 @@ import express from 'express';
 import type { ScanResult } from '../server/services/OrganizerService';
 
 vi.mock('../server/services/OrganizerService');
+vi.mock("../server/services/AppleMusicSync");
 vi.mock('fs-extra');
 
 import router from '../server/routes/api';
 import { OrganizerService } from '../server/services/OrganizerService';
+import { AppleMusicSync } from "../server/services/AppleMusicSync";
 import fs from 'fs-extra';
 
 const app = express();
@@ -41,17 +43,18 @@ describe('API Routes', () => {
     it('should scan inbox successfully', async () => {
       const mockResults: ScanResult[] = [
         {
-          file: '/inbox/song.mp3',
+          file: "/inbox/song.mp3",
           metadata: {
-            title: 'Test Song',
-            artist: 'Test Artist',
-            album: 'Test Album',
-            trackNo: '01',
-            genre: ['Rock'],
-            format: '.mp3',
-            absPath: '/inbox/song.mp3',
+            title: "Test Song",
+            artist: "Test Artist",
+            album: "Test Album",
+            trackNo: "01",
+            genre: ["Rock"],
+            format: ".mp3",
+            absPath: "/inbox/song.mp3",
+            playlists: [],
           },
-          proposedPath: '/library/Test Artist/Test Album/01 - Test Song.mp3',
+          proposedPath: "/library/Test Artist/Test Album/01 - Test Song.mp3",
           playlists: [],
         },
       ];
@@ -142,7 +145,7 @@ describe('API Routes', () => {
     });
 
     it('should return empty inventory if database does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app)
         .get('/api/library')
@@ -155,17 +158,28 @@ describe('API Routes', () => {
     it('should return inventory successfully', async () => {
       const mockInventory = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/library/Artist/Album/Song.mp3',
+          title: "Song1",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song1.mp3",
+          playlists: [],
+        },
+        {
+          title: "Song2",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "02",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/library/Artist/Album/Song2.mp3",
+          playlists: [],
         },
       ];
 
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readJson).mockResolvedValue(mockInventory);
 
       const response = await request(app)
@@ -290,13 +304,14 @@ describe('API Routes', () => {
     it('should get playlist details successfully', async () => {
       const mockTracks = [
         {
-          title: 'Song',
-          artist: 'Artist',
-          album: 'Album',
-          trackNo: '01',
-          genre: ['Rock'],
-          format: '.mp3',
-          absPath: '/track.mp3',
+          title: "Song",
+          artist: "Artist",
+          album: "Album",
+          trackNo: "01",
+          genre: ["Rock"],
+          format: ".mp3",
+          absPath: "/track.mp3",
+          playlists: [],
         },
       ];
 
@@ -453,7 +468,7 @@ describe('API Routes', () => {
 
   describe('GET /api/browse', () => {
     it('should return 404 if path does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app)
         .get('/api/browse')
@@ -464,7 +479,7 @@ describe('API Routes', () => {
     });
 
     it('should browse directories successfully', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'folder1', isDirectory: () => true, isFile: () => false },
         { name: '.hidden', isDirectory: () => true, isFile: () => false },
@@ -481,7 +496,7 @@ describe('API Routes', () => {
     });
 
     it('should use root path as default', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readdir).mockResolvedValue([] as never);
 
       const response = await request(app).get('/api/browse');
@@ -547,7 +562,7 @@ describe('API Routes', () => {
 
   describe('GET /api/config', () => {
     it('should return null if config does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      vi.mocked(fs.pathExists).mockResolvedValue(false as never);
 
       const response = await request(app).get('/api/config');
 
@@ -562,7 +577,7 @@ describe('API Routes', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      vi.mocked(fs.pathExists).mockResolvedValue(true as never);
       vi.mocked(fs.readJson).mockResolvedValue(mockConfig);
 
       const response = await request(app).get('/api/config');
@@ -813,6 +828,122 @@ describe('API Routes', () => {
 
       expect(response.status).toBe(500);
       expect(response.body).toEqual({ error: 'Unknown error' });
+    });
+  });
+
+  describe("POST /api/library/regenerate", () => {
+    it("should return 400 if libraryPath is missing", async () => {
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: "libraryPath is required" });
+    });
+
+    it("should regenerate database successfully", async () => {
+      const mockResult = {
+        totalFiles: 10,
+        successCount: 10,
+        failCount: 0,
+      };
+
+      vi.mocked(OrganizerService.regenerateDatabase).mockResolvedValue(
+        mockResult,
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Database regenerated successfully",
+        totalFiles: 10,
+        successCount: 10,
+        failCount: 0,
+      });
+      expect(OrganizerService.regenerateDatabase).toHaveBeenCalledWith(
+        "/library",
+      );
+    });
+
+    it("should return statistics with some failures", async () => {
+      const mockResult = {
+        totalFiles: 10,
+        successCount: 8,
+        failCount: 2,
+      };
+
+      vi.mocked(OrganizerService.regenerateDatabase).mockResolvedValue(
+        mockResult,
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Database regenerated successfully",
+        totalFiles: 10,
+        successCount: 8,
+        failCount: 2,
+      });
+    });
+
+    it("should return 500 on error", async () => {
+      vi.mocked(OrganizerService.regenerateDatabase).mockRejectedValue(
+        new Error("Regeneration failed"),
+      );
+
+      const response = await request(app)
+        .post("/api/library/regenerate")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: "Regeneration failed" });
+    });
+  });
+
+  describe("POST /api/library/sync-apple-music", () => {
+    it("should return 400 if libraryPath is missing", async () => {
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: "libraryPath is required" });
+    });
+
+    it("should sync playlists with Apple Music successfully", async () => {
+      vi.mocked(AppleMusicSync.syncPlaylists).mockResolvedValue(undefined);
+
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Playlists synced with Apple Music successfully",
+      });
+      expect(AppleMusicSync.syncPlaylists).toHaveBeenCalledWith("/library");
+    });
+
+    it("should return 500 on error", async () => {
+      vi.mocked(AppleMusicSync.syncPlaylists).mockRejectedValue(
+        new Error("Sync failed"),
+      );
+
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: "Sync failed" });
     });
   });
 });
