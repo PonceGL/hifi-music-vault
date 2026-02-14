@@ -4,10 +4,12 @@ import express from 'express';
 import type { ScanResult } from '../server/services/OrganizerService';
 
 vi.mock('../server/services/OrganizerService');
+vi.mock("../server/services/AppleMusicSync");
 vi.mock('fs-extra');
 
 import router from '../server/routes/api';
 import { OrganizerService } from '../server/services/OrganizerService';
+import { AppleMusicSync } from "../server/services/AppleMusicSync";
 import fs from 'fs-extra';
 
 const app = express();
@@ -903,6 +905,45 @@ describe('API Routes', () => {
 
       expect(response.status).toBe(500);
       expect(response.body).toEqual({ error: "Regeneration failed" });
+    });
+  });
+
+  describe("POST /api/library/sync-apple-music", () => {
+    it("should return 400 if libraryPath is missing", async () => {
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: "libraryPath is required" });
+    });
+
+    it("should sync playlists with Apple Music successfully", async () => {
+      vi.mocked(AppleMusicSync.syncPlaylists).mockResolvedValue(undefined);
+
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Playlists synced with Apple Music successfully",
+      });
+      expect(AppleMusicSync.syncPlaylists).toHaveBeenCalledWith("/library");
+    });
+
+    it("should return 500 on error", async () => {
+      vi.mocked(AppleMusicSync.syncPlaylists).mockRejectedValue(
+        new Error("Sync failed"),
+      );
+
+      const response = await request(app)
+        .post("/api/library/sync-apple-music")
+        .send({ libraryPath: "/library" });
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: "Sync failed" });
     });
   });
 });

@@ -12,6 +12,7 @@ import {
   MoreVertical,
   HardDriveDownload,
   RefreshCw,
+  Music,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ export function LibraryPage() {
   const [isOrganizing, setIsOrganizing] = useState(false);
   const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSyncingAppleMusic, setIsSyncingAppleMusic] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -253,6 +255,35 @@ export function LibraryPage() {
     }
   };
 
+  const handleSyncAppleMusic = async () => {
+    if (!config.libraryPath) return;
+
+    setIsSyncingAppleMusic(true);
+    setError(null);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${apiUrl}/api/library/sync-apple-music`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          libraryPath: config.libraryPath,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to sync with Apple Music");
+
+      const result = await response.json();
+      console.log("Apple Music Sync Result:", result);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.error("Error syncing with Apple Music:", err);
+      setError(errorMessage);
+    } finally {
+      setIsSyncingAppleMusic(false);
+    }
+  };
+
   return (
     <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
       <div className="flex flex-col items-center gap-2">
@@ -329,6 +360,23 @@ export function LibraryPage() {
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Regenerate Database
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleSyncAppleMusic}
+                disabled={isSyncingAppleMusic}
+                variant="outline"
+              >
+                {isSyncingAppleMusic ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <Music className="mr-2 h-4 w-4" />
+                    Sync Apple Music
                   </>
                 )}
               </Button>
