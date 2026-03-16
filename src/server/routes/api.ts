@@ -462,4 +462,25 @@ router.post('/tracks/metadata', async (req, res): Promise<void> => {
     }
 });
 
+// 18. Lookup MusicBrainz Recording by MBID
+router.get('/musicbrainz/lookup', async (req, res): Promise<void> => {
+    try {
+        const { mbid } = req.query;
+        
+        if (typeof mbid !== 'string' || !mbid) {
+            res.status(400).json({ error: 'mbid query param is required' });
+            return;
+        }
+
+        const result = await MusicBrainzService.lookupByMBID(mbid);
+        res.json({ result });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('MusicBrainz Lookup Error:', errorMessage);
+        const status = errorMessage.includes('not found') ? 404 : 500;
+        res.status(status).json({ error: errorMessage });
+    }
+});
+
 export default router;

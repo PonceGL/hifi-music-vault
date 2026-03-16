@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Loader2, Music, Search, Save, Pencil, X, Check } from "lucide-react"
+import { ArrowLeft, Loader2, Music, Search, Save, Pencil, X } from "lucide-react"
 import { AlbumCover } from "@/components/AlbumCover"
 import { Badge } from "@/components/ui/badge"
-import { MusicBrainzSearchDialog } from "@/components/MusicBrainzSearchDialog"
+import { MusicBrainzSearchDialog, type SelectedMetadata } from "@/components/MusicBrainzSearchDialog"
 
 interface TrackMetadata {
   format?: {
@@ -57,6 +57,7 @@ interface EditableFields {
   artist: string
   album: string
   year: string
+  genre: string
 }
 
 export function TrackDetailPage() {
@@ -69,7 +70,7 @@ export function TrackDetailPage() {
 
   // Editable metadata state
   const [isEditing, setIsEditing] = useState(false)
-  const [editFields, setEditFields] = useState<EditableFields>({ title: "", artist: "", album: "", year: "" })
+  const [editFields, setEditFields] = useState<EditableFields>({ title: "", artist: "", album: "", year: "", genre: "" })
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
@@ -109,7 +110,8 @@ export function TrackDetailPage() {
         title: metadata.common.title || "",
         artist: metadata.common.artist || metadata.common.artists?.join(", ") || "",
         album: metadata.common.album || "",
-        year: metadata.common.year?.toString() || metadata.common.date?.substring(0, 4) || ""
+        year: metadata.common.year?.toString() || metadata.common.date?.substring(0, 4) || "",
+        genre: metadata.common.genre?.join("; ") || ""
       })
     }
   }, [metadata])
@@ -126,7 +128,8 @@ export function TrackDetailPage() {
         title: metadata.common.title || "",
         artist: metadata.common.artist || metadata.common.artists?.join(", ") || "",
         album: metadata.common.album || "",
-        year: metadata.common.year?.toString() || metadata.common.date?.substring(0, 4) || ""
+        year: metadata.common.year?.toString() || metadata.common.date?.substring(0, 4) || "",
+        genre: metadata.common.genre?.join("; ") || ""
       })
     }
     setIsEditing(false)
@@ -151,6 +154,7 @@ export function TrackDetailPage() {
             artist: editFields.artist || undefined,
             album: editFields.album || undefined,
             year: editFields.year || undefined,
+            genre: editFields.genre || undefined,
           }
         })
       })
@@ -173,13 +177,14 @@ export function TrackDetailPage() {
     }
   }
 
-  const handleMusicBrainzSelect = (mbData: { title: string; artist: string; album: string; year?: string }) => {
-    setEditFields({
-      title: mbData.title,
-      artist: mbData.artist,
-      album: mbData.album,
-      year: mbData.year || editFields.year
-    })
+  const handleMusicBrainzSelect = (mbData: SelectedMetadata) => {
+    setEditFields(prev => ({
+      title: mbData.title || prev.title,
+      artist: mbData.artist || prev.artist,
+      album: mbData.album || prev.album,
+      year: mbData.year || prev.year,
+      genre: mbData.genre || prev.genre
+    }))
     setIsEditing(true)
     setSaveMessage(null)
   }
@@ -360,6 +365,14 @@ export function TrackDetailPage() {
                       onChange={(e) => setEditFields(prev => ({ ...prev, year: e.target.value }))}
                       placeholder="Year"
                       className="max-w-[120px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Genre</label>
+                    <Input
+                      value={editFields.genre}
+                      onChange={(e) => setEditFields(prev => ({ ...prev, genre: e.target.value }))}
+                      placeholder="Genre (e.g. Rock; Electronic)"
                     />
                   </div>
                   <Button variant="outline" size="sm" onClick={openMusicBrainzSearch} className="mt-2">

@@ -13,14 +13,25 @@ export interface MusicBrainzRecording {
     artist: string;
     album: string;
     date?: string;
+    genres: string[];
+    releaseId?: string;
+    coverArtUrl?: string;
 }
 
 export class MusicBrainzService {
     private static readonly BASE_URL = 'https://musicbrainz.org/ws/2';
+    private static readonly COVER_ART_URL = 'https://coverartarchive.org';
     private static readonly USER_AGENT = 'HiFiMusicVault/1.0.0 ( local-app )';
 
     /**
-     * Search songs in MusicBrainz
+     * Build a cover art URL for a given release ID
+     */
+    static getCoverArtUrl(releaseId: string): string {
+        return `${this.COVER_ART_URL}/release/${releaseId}/front-500`;
+    }
+
+    /**
+     * Search recordings in MusicBrainz
      */
     static async search(title?: string, artist?: string, album?: string): Promise<MusicBrainzRecording[]> {
         const queryParts: string[] = [];
@@ -47,17 +58,24 @@ export class MusicBrainzService {
             });
 
             const recordings = response.data.recordings || [];
-            
+
             return recordings.map((rec: any) => {
                 const artistCredit = rec['artist-credit']?.[0]?.name || 'Unknown Artist';
                 const release = rec.releases?.[0] || {};
-                
+                const releaseId = release.id || undefined;
+                const genres = (rec.tags || [])
+                    .map((t: any) => t.name)
+                    .filter(Boolean);
+
                 return {
                     id: rec.id,
                     title: rec.title,
                     artist: artistCredit,
                     album: release.title || 'Unknown Album',
-                    date: release.date
+                    date: release.date,
+                    genres,
+                    releaseId,
+                    coverArtUrl: releaseId ? this.getCoverArtUrl(releaseId) : undefined
                 };
             });
         } catch (error) {
@@ -67,15 +85,65 @@ export class MusicBrainzService {
     }
 
     /**
-     * Update metadata on local file using ffmetadata
+     * Lookup a specific recording by its MusicBrainz ID (MBID)
      */
-    static async updateMetadata(trackPath: string, metadata: { title?: string; artist?: string; album?: string; year?: string }): Promise<void> {
+    static async lookupByMBID(recordingId: string): Promise<MusicBrainzRecording> {
+        try {
+            const response = await axios.get(`${this.BASE_URL}/recording/${recordingId}`, {
+                params: {
+                    inc: 'genres+releases+artist-credits',
+                    fmt: 'json'
+                },
+                headers: {
+                    'User-Agent': this.USER_AGENT
+                }
+            });
+
+            const rec = response.data;
+            const artistCredit = rec['artist-credit']?.[0]?.name || 'Unknown Artist';
+            const release = rec.releases?.[0] || {};
+            const releaseId = release.id || undefined;
+            const genres = (rec.genres || [])
+                .map((g: any) => g.name)
+                .filter(Boolean);
+
+            return {
+                id: rec.id,
+                title: rec.title,
+                artist: artistCredit,
+                album: release.title || 'Unknown Album',
+                date: release.date,
+                genres,
+                releaseId,
+                coverArtUrl: releaseId ? this.getCoverArtUrl(releaseId) : undefined
+            };
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                throw new Error(`Recording with MBID "${recordingId}" not found`);
+            }
+            console.error('Error looking up MusicBrainz recording:', error);
+            throw new Error('Failed to lookup MusicBrainz recording');
+        }
+    }
+
+    /**
+     * Update metadata on local file using ffmetadata.
+     * Supports: title, artist, album, year, genre.
+     */
+    static async updateMetadata(trackPath: string, metadata: {
+        title?: string;
+        artist?: string;
+        album?: string;
+        year?: string;
+        genre?: string;
+    }): Promise<void> {
         return new Promise((resolve, reject) => {
             const ffMeta: Record<string, string> = {};
             if (metadata.title) ffMeta.title = metadata.title;
             if (metadata.artist) ffMeta.artist = metadata.artist;
             if (metadata.album) ffMeta.album = metadata.album;
-            if (metadata.year) ffMeta.date = metadata.year; // ffmpeg typical tag for year
+            if (metadata.year) ffMeta.date = metadata.year;
+            if (metadata.genre) ffMeta.genre = metadata.genre;
 
             ffmetadata.write(trackPath, ffMeta, {}, (err: Error | null) => {
                 if (err) {
