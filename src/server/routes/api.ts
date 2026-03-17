@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { OrganizerService } from '../services/OrganizerService.js';
 import type { ScanResult } from '../services/OrganizerService.js';
 import { AppleMusicSync } from "../services/AppleMusicSync.js";
+import { MusicBrainzService } from "../services/MusicBrainzService.js";
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -408,6 +409,77 @@ router.post('/library/sync-apple-music', async (req, res): Promise<void> => {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('Apple Music Sync Error:', errorMessage);
         res.status(500).json({ error: errorMessage });
+    }
+});
+
+// 16. Search MusicBrainz
+router.get('/musicbrainz/search', async (req, res): Promise<void> => {
+    try {
+        const { title, artist, album } = req.query;
+        
+        if (!title && !artist && !album) {
+             res.status(400).json({ error: 'You must provide at least one search parameter (title, artist, or album)' });
+             return;
+        }
+
+        const results = await MusicBrainzService.search(
+            title as string | undefined, 
+            artist as string | undefined, 
+            album as string | undefined
+        );
+        
+        res.json({ results });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('MusicBrainz Search Error:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// 17. Update Track Metadata
+router.post('/tracks/metadata', async (req, res): Promise<void> => {
+    try {
+        const { trackPath, metadata } = req.body;
+
+        if (!trackPath || !metadata) {
+            res.status(400).json({ error: 'trackPath and metadata are required' });
+            return;
+        }
+
+        console.log(`Updating metadata for track: ${trackPath}`);
+        await MusicBrainzService.updateMetadata(trackPath, metadata);
+        
+        res.json({ 
+            success: true, 
+            message: 'Metadata updated successfully'
+        });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Update Metadata Error:', errorMessage);
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// 18. Lookup MusicBrainz Recording by MBID
+router.get('/musicbrainz/lookup', async (req, res): Promise<void> => {
+    try {
+        const { mbid } = req.query;
+        
+        if (typeof mbid !== 'string' || !mbid) {
+            res.status(400).json({ error: 'mbid query param is required' });
+            return;
+        }
+
+        const result = await MusicBrainzService.lookupByMBID(mbid);
+        res.json({ result });
+
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('MusicBrainz Lookup Error:', errorMessage);
+        const status = errorMessage.includes('not found') ? 404 : 500;
+        res.status(status).json({ error: errorMessage });
     }
 });
 
