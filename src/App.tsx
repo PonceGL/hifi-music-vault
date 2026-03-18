@@ -7,7 +7,7 @@ import { useAppConfig } from './hooks/useAppConfig';
 import { PlayListsPage } from './pages/PlayListsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { TrackDetailPage } from "./pages/TrackDetailPage";
-import { PlaylistRefreshProvider } from "./components/PlaylistRefreshProvider";
+import { PlaylistRefreshProvider } from "./components/Providers/PlaylistRefreshProvider";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { config, isLoaded } = useAppConfig();
