@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
+import { Library, ListMusic, PanelLeft, Settings, X } from "lucide-react";
 
 // Definimos nuestra lista de rutas una sola vez
 const NAV_ITEMS = [
-    { name: 'Library', path: '/' },
-    { name: 'Playlists', path: '/playlists' },
-    { name: 'Setup', path: '/setup' },
+    { name: "Biblioteca", path: "/library", icon: Library },
+    { name: "Playlists", path: "/playlists", icon: ListMusic },
+    { name: "Ajustes", path: "/", icon: Settings },
 ];
 
 interface NavigationLinksProps {
@@ -23,12 +24,13 @@ export function NavigationLinks({ layout = 'vertical', onItemClick }: Navigation
                     to={item.path}
                     onClick={onItemClick}
                     className={({ isActive }) =>
-                        `px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                        `flex justify-start items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
                             ? 'bg-gray-200 text-gray-900'
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                         }`
                     }
                 >
+                    <item.icon className="w-4 h-4 mr-2" />
                     {item.name}
                 </NavLink>
             ))}

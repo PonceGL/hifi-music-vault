@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { Layout } from './components/Layout';
+import { Layout } from './components/layout/Layout';
 import { SetupPage } from './pages/SetupPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { useAppConfig } from './hooks/useAppConfig';
