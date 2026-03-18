@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
+import { Folder } from "lucide-react"
 
 export function SetupPage() {
-    const { config, isLoaded, setInboxPath, setLibraryPath } = useAppConfig()
+    const { config, isLoaded, setInboxPath, setLibraryPath, clearConfig } = useAppConfig()
     const navigate = useNavigate()
     const [isSaving, setIsSaving] = useState(false)
 
@@ -15,6 +16,12 @@ export function SetupPage() {
                 <p className="text-muted-foreground">Loading configuration...</p>
             </main>
         )
+    }
+
+    const handleCancel = () => {
+        clearConfig()
+        console.log("Configuration cancelled")
+        console.log(config)
     }
 
     const handleContinue = async () => {
@@ -50,70 +57,103 @@ export function SetupPage() {
     }
 
     return (
-        <main className="w-full flex flex-col justify-start items-center p-8 gap-20">
-            <h1 className="text-3xl font-bold mb-8">Setup</h1>
+        <section className="w-full flex flex-col justify-center items-center gap-20">
+            <h1 className="text-3xl font-bold">Ajustes</h1>
 
-            <div className="w-full flex flex-col items-center justify-center gap-12 md:flex-row md:items-start">
-                {/* Inbox Folder Picker */}
-                <div className="flex flex-col gap-4 w-full max-w-2xl">
+            <div className={`w-full flex flex-col items-center justify-center gap-12 lg:grid ${config.inboxPath && config.libraryPath ? "lg:grid-cols-1" : "lg:grid-cols-2"} lg:justify-around lg:align-start`}>
+                {/*  carpeta de descargas Picker */}
+                <div className="flex flex-col justify-start items-start gap-4 w-full">
                     <div>
-                        <h2 className="text-xl font-semibold mb-2">Inbox Folder</h2>
+                        <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
+                            <Folder />
+                            Carpeta de Descargas
+                        </h2>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Select the folder where new music files will be placed
+                            Carpeta donde se guardan las descargas
                         </p>
+
                         {config.inboxPath && (
-                            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                                <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                                    Selected: <span className="font-mono">{config.inboxPath}</span>
-                                </p>
-                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={() => { }}
+                                disabled={true}
+                                className="justify-start min-w-[320px] md:min-w-[450px]"
+                            >
+                                <span className="hidden md:inline-block">
+                                    Selected:
+                                </span>
+                                <span className="font-mono">{config.inboxPath.slice(-40)}</span>
+                            </Button>
                         )}
                     </div>
-                    <FolderPicker
-                        onSelect={(path) => {
-                            console.log("Inbox path selected:", path)
-                            setInboxPath(path)
-                        }}
-                        initialPath={config.inboxPath || undefined}
-                    />
+                    {!config.inboxPath && (
+                        <FolderPicker
+                            onSelect={(path) => {
+                                console.log("Inbox path selected:", path)
+                                setInboxPath(path)
+                            }}
+                            initialPath={config.inboxPath || undefined}
+                        />
+                    )}
                 </div>
 
-                {/* Library Folder Picker */}
-                <div className="flex flex-col gap-4 w-full max-w-2xl">
+                {/* Carpeta de biblioteca Picker */}
+                <div className="flex flex-col justify-start items-start gap-4 w-full">
                     <div>
-                        <h2 className="text-xl font-semibold mb-2">Library Folder</h2>
+                        <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
+                            <Folder />
+                            Carpeta de Biblioteca
+                        </h2>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Select the folder where your organized music library will be stored
+                            Carpeta donde se guardara la biblioteca organizada
                         </p>
+
                         {config.libraryPath && (
-                            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                                <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                                    Selected: <span className="font-mono">{config.libraryPath}</span>
-                                </p>
-                            </div>
+
+                            <Button
+                                variant="outline"
+                                onClick={() => { }}
+                                disabled={true}
+                                className="justify-start min-w-[320px] md:min-w-[450px]"
+                            >
+                                <span className="hidden md:inline-block">
+                                    Selected:
+                                </span>
+                                <span className="font-mono">{config.libraryPath.slice(-40)}</span>
+                            </Button>
                         )}
                     </div>
-                    <FolderPicker
-                        onSelect={(path) => {
-                            console.log("Library path selected:", path)
-                            setLibraryPath(path)
-                        }}
-                        initialPath={config.libraryPath || undefined}
-                    />
+                    {!config.libraryPath && (
+                        <FolderPicker
+                            onSelect={(path) => {
+                                console.log("Library path selected:", path)
+                                setLibraryPath(path)
+                            }}
+                            initialPath={config.libraryPath || undefined}
+                        />
+                    )}
                 </div>
             </div>
+            {config.inboxPath && config.libraryPath && (
+                <div className="w-full flex flex-col items-center justify-center gap-12">
+                    <div className="w-full max-w-2xl grid grid-cols-2 gap-5">
+                        <Button
+                            variant="destructive"
+                            onClick={handleCancel}
+                        >
+                            Cancelar
+                        </Button>
 
-            <div className="w-full flex justify-center items-center">
-                {config.inboxPath && config.libraryPath && (
-                    <Button
-                        variant="outline"
-                        onClick={handleContinue}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Saving..." : "Continue to Library"}
-                    </Button>
-                )}
-            </div>
-        </main>
+                        <Button
+                            variant="outline"
+                            onClick={handleContinue}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Guardando..." : "Guardar y continuar"}
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </section>
     )
 }

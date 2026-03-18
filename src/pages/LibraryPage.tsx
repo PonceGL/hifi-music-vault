@@ -13,6 +13,7 @@ import {
   HardDriveDownload,
   RefreshCw,
   Music,
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +26,7 @@ import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import { ExportPlaylistDialog } from "@/components/ExportPlaylistDialog";
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
+import { ToolbarAction } from "@/components/layout/ToolbarAction";
 
 export function LibraryPage() {
   const { config } = useAppConfig();
@@ -111,13 +113,6 @@ export function LibraryPage() {
       if (!response.ok) throw new Error("Failed to scan inbox");
 
       const data = await response.json();
-
-      console.log("============================");
-      console.log("SCAN RESULTS:");
-      console.log("============================");
-      console.log(`Found ${data.results.length} files to organize`);
-      console.log(data.results);
-      console.log("============================");
 
       if (data.results.length > 0) {
         setScanResults(data.results);
@@ -286,6 +281,31 @@ export function LibraryPage() {
 
   return (
     <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+      {viewMode === "library" && libraryFiles.length > 0 && (
+        <>
+          <ToolbarAction
+            icon={Plus}
+            label="Create Playlist"
+            onClick={() => setIsCreatePlaylistOpen(true)}
+          />
+          {/* Acción 2: Agregar Carpeta */}
+          <ToolbarAction
+            icon={isRegenerating ? Loader2 : RefreshCw}
+            label={isRegenerating ? "Regenerating..." : "Regenerate Database"}
+            onClick={handleRegenerateDatabase}
+            disabled={isRegenerating}
+          />
+
+          {/* Acción 3: Solo ícono (sin label, válido en cualquier pantalla) */}
+          <ToolbarAction
+            icon={HardDriveDownload}
+            label="Export Library"
+            onClick={() => setIsExportDialogOpen(true)}
+          />
+        </>
+      )}
+
+
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-3xl font-bold">Music Library</h1>
         <p className="text-muted-foreground">
@@ -344,7 +364,7 @@ export function LibraryPage() {
             </Button>
           )}
 
-          {viewMode === "library" && libraryFiles.length > 0 && (
+          {/* {viewMode === "library" && libraryFiles.length > 0 && (
             <>
               <Button
                 onClick={handleRegenerateDatabase}
@@ -388,7 +408,7 @@ export function LibraryPage() {
                 Export Library
               </Button>
             </>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -434,7 +454,6 @@ export function LibraryPage() {
               console.log("Playlist created");
               navigate("/playlists");
             }}
-            trigger={null}
           />
 
           {/* Export Library Dialog */}

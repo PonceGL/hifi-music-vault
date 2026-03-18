@@ -6,22 +6,22 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, MoreVertical, Trash2, ListPlus, MinusCircle, HardDriveDownload, FolderSearch } from "lucide-react"
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
@@ -33,10 +33,10 @@ export function PlaylistDetailPage() {
     const navigate = useNavigate()
 
     const [playlistTracks, setPlaylistTracks] = useState<ScanResult[]>([])
-    
+
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    
+
     // Add to Playlist State (reused logic)
     const [trackToAdd, setTrackToAdd] = useState<ScanResult | null>(null)
     const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false)
@@ -55,31 +55,31 @@ export function PlaylistDetailPage() {
         if (!name) return
 
         const fetchDetails = async () => {
-             if (!config.libraryPath) return
-             setIsLoading(true)
-             try {
+            if (!config.libraryPath) return
+            setIsLoading(true)
+            try {
                 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
                 const response = await fetch(`${apiUrl}/api/playlists/${encodeURIComponent(name)}?libraryPath=${encodeURIComponent(config.libraryPath)}`)
                 if (!response.ok) throw new Error('Failed to fetch playlist details')
                 const data = await response.json()
-                
+
                 // Adapt to ScanResult
-                 const adapted: ScanResult[] = data.tracks.map(
-                   (song: SongMetadata) => ({
-                     file: song.absPath,
-                     metadata: song,
-                     proposedPath: song.absPath,
-                     playlists: [],
-                   }),
-                 );
+                const adapted: ScanResult[] = data.tracks.map(
+                    (song: SongMetadata) => ({
+                        file: song.absPath,
+                        metadata: song,
+                        proposedPath: song.absPath,
+                        playlists: [],
+                    }),
+                );
 
                 setPlaylistTracks(adapted)
-             } catch (err) {
-                 console.error(err)
-                 setError('Failed to load playlist details')
-             } finally {
-                 setIsLoading(false)
-             }
+            } catch (err) {
+                console.error(err)
+                setError('Failed to load playlist details')
+            } finally {
+                setIsLoading(false)
+            }
         }
 
         fetchDetails()
@@ -98,9 +98,9 @@ export function PlaylistDetailPage() {
                     trackPath: trackPath
                 }),
             })
-            
+
             if (!response.ok) throw new Error('Failed to remove track')
-            
+
             // Optimistic update
             setPlaylistTracks(prev => prev.filter(t => t.file !== trackPath))
         } catch (err) {
@@ -117,9 +117,9 @@ export function PlaylistDetailPage() {
             const response = await fetch(`${apiUrl}/api/playlists/${encodeURIComponent(name)}?libraryPath=${encodeURIComponent(config.libraryPath)}`, {
                 method: 'DELETE'
             })
-            
+
             if (!response.ok) throw new Error('Failed to delete playlist')
-            
+
             navigate('/playlists')
         } catch (err) {
             console.error(err)
@@ -144,9 +144,9 @@ export function PlaylistDetailPage() {
                 preserveStructure
             }),
         })
-        
+
         if (!response.ok) throw new Error('Failed to export playlist')
-        
+
         const result = await response.json()
         console.log("Export Result:", result)
 
@@ -183,7 +183,7 @@ export function PlaylistDetailPage() {
 
     if (isLoading) {
         return (
-             <div className="w-full h-[50vh] flex flex-col justify-center items-center">
+            <div className="w-full h-[50vh] flex flex-col justify-center items-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-muted-foreground mt-2">Loading...</p>
             </div>
@@ -191,8 +191,8 @@ export function PlaylistDetailPage() {
     }
 
     if (error) {
-         return (
-             <div className="w-full p-8 flex justify-center">
+        return (
+            <div className="w-full p-8 flex justify-center">
                 <div className="text-red-500 bg-red-50 p-4 rounded-md border border-red-200">
                     Error: {error}
                 </div>
@@ -202,9 +202,9 @@ export function PlaylistDetailPage() {
 
     return (
         <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
-            
+
             {/* Dialogs */}
-            <AddToPlaylistDialog 
+            <AddToPlaylistDialog
                 track={trackToAdd}
                 open={isAddToPlaylistOpen}
                 onOpenChange={setIsAddToPlaylistOpen}
@@ -214,7 +214,7 @@ export function PlaylistDetailPage() {
                 }}
             />
 
-            <CreatePlaylistDialog 
+            <CreatePlaylistDialog
                 libraryData={[]} // Not needed for this flow
                 open={isCreatePlaylistOpen}
                 onOpenChange={setIsCreatePlaylistOpen}
@@ -225,10 +225,9 @@ export function PlaylistDetailPage() {
                     // Maybe stay here? Navigate?
                     navigate('/playlists')
                 }}
-                trigger={null}
             />
 
-            <ExportPlaylistDialog 
+            <ExportPlaylistDialog
                 open={isExportDialogOpen}
                 onOpenChange={setIsExportDialogOpen}
                 playlistName={name || ''}
@@ -241,14 +240,14 @@ export function PlaylistDetailPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Playlist</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{name}"? 
+                            Are you sure you want to delete "{name}"?
                             {playlistTracks.length > 0 && ` It contains ${playlistTracks.length} tracks.`}
-                            <br/>This action cannot be undone.
+                            <br />This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
+                        <AlertDialogAction
                             onClick={(e) => {
                                 e.preventDefault()
                                 handleDeletePlaylist()
@@ -272,15 +271,15 @@ export function PlaylistDetailPage() {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button 
+                    <Button
                         variant="secondary"
                         onClick={() => setIsExportDialogOpen(true)}
                     >
                         <HardDriveDownload className="mr-2 h-4 w-4" />
                         Export / Move
                     </Button>
-                    <Button 
-                        variant="destructive" 
+                    <Button
+                        variant="destructive"
                         onClick={() => setIsDeleteDialogOpen(true)}
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -296,8 +295,8 @@ export function PlaylistDetailPage() {
                         <p className="text-muted-foreground mt-2">Loading playlist...</p>
                     </div>
                 ) : (
-                    <MusicTable 
-                        data={playlistTracks} 
+                    <MusicTable
+                        data={playlistTracks}
                         renderRowAction={(track) => (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -320,7 +319,7 @@ export function PlaylistDetailPage() {
                                         Show in Finder
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         className="text-red-600 focus:text-red-600"
                                         onClick={() => handleRemoveTrack(track.file)}
                                     >

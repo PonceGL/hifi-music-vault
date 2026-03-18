@@ -19,9 +19,11 @@ interface FolderPickerProps {
     initialPath?: string
 }
 
-export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps) {
+const INITIAL_PATH = "/"
+
+export function FolderPicker({ onSelect, initialPath = INITIAL_PATH }: FolderPickerProps) {
     const [currentPath, setCurrentPath] = useState<string>(initialPath)
-    const [parentPath, setParentPath] = useState<string>("/")
+    const [parentPath, setParentPath] = useState<string>(INITIAL_PATH)
     const [directories, setDirectories] = useState<Directory[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -70,12 +72,11 @@ export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps)
     }
 
     const goToHome = () => {
-        const homeDir = process.env.HOME || process.env.USERPROFILE || "/"
-        handleNavigate(homeDir)
+        handleNavigate(INITIAL_PATH)
     }
 
     return (
-        <div className="flex flex-col gap-4 w-full max-w-2xl border rounded-lg p-4">
+        <div className="flex flex-col gap-4 w-full max-w-2xl">
             {/* Header with current path */}
             <div className="flex items-center gap-2">
                 <Button
@@ -83,6 +84,7 @@ export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps)
                     size="sm"
                     onClick={goToHome}
                     title="Go to home directory"
+                    disabled={loading || currentPath === INITIAL_PATH}
                 >
                     <HomeIcon className="h-4 w-4" />
                 </Button>
@@ -90,7 +92,7 @@ export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps)
                     variant="outline"
                     size="sm"
                     onClick={goToParent}
-                    disabled={currentPath === parentPath}
+                    disabled={loading || currentPath === INITIAL_PATH}
                 >
                     ↑ Parent
                 </Button>
@@ -135,7 +137,7 @@ export function FolderPicker({ onSelect, initialPath = "/" }: FolderPickerProps)
                 <Button
                     variant="outline"
                     onClick={handleSelectCurrent}
-                    disabled={loading}
+                    disabled={loading || currentPath === INITIAL_PATH}
                 >
                     Select "{currentPath.split("/").pop() || currentPath}"
                 </Button>
