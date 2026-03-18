@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
   // Redirect to setup if paths are not configured
   if (!config.inboxPath || !config.libraryPath) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/settings" replace />;
   }
 
   return children;
@@ -35,10 +35,8 @@ function App() {
       <PlaylistRefreshProvider>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<SetupPage />} />
-
             <Route
-              path="/library"
+              path="/"
               element={
                 <ProtectedRoute>
                   <LibraryPage />
@@ -71,6 +69,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/settings" element={<SetupPage />} />
 
             {/* Redirect unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />

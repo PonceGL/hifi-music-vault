@@ -3,9 +3,9 @@ import { Library, ListMusic, Settings } from "lucide-react";
 
 // Definimos nuestra lista de rutas una sola vez
 const NAV_ITEMS = [
-    { name: "Biblioteca", path: "/library", icon: Library },
+    { name: "Biblioteca", path: "/", icon: Library },
     { name: "Playlists", path: "/playlists", icon: ListMusic },
-    { name: "Ajustes", path: "/", icon: Settings },
+    { name: "Ajustes", path: "/settings", icon: Settings },
 ];
 
 interface NavigationLinksProps {
