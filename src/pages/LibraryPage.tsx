@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
+import { VIEW_MODES, API_BASE_URL, type ViewMode } from "@/constants/app";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,7 +36,7 @@ export function LibraryPage() {
 
   const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [libraryFiles, setLibraryFiles] = useState<ScanResult[]>([]);
-  const [viewMode, setViewMode] = useState<"scan" | "library">("scan");
+  const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODES.INBOX);
 
   // Loading states
   const [isScanning, setIsScanning] = useState(false);
@@ -62,9 +63,8 @@ export function LibraryPage() {
 
     setIsLoadingLibrary(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
       const response = await fetch(
-        `${apiUrl}/api/library?libraryPath=${encodeURIComponent(config.libraryPath)}`,
+        `${API_BASE_URL}/api/library?libraryPath=${encodeURIComponent(config.libraryPath)}`,
       );
 
       if (!response.ok) throw new Error("Failed to fetch library");
@@ -82,7 +82,7 @@ export function LibraryPage() {
       );
 
       setLibraryFiles(adapted);
-      setViewMode("library");
+      setViewMode(VIEW_MODES.LIBRARY);
     } catch (err) {
       console.error("Error fetching library:", err);
     } finally {
@@ -100,8 +100,7 @@ export function LibraryPage() {
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/scan`, {
+      const response = await fetch(`${API_BASE_URL}/api/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -116,7 +115,7 @@ export function LibraryPage() {
 
       if (data.results.length > 0) {
         setScanResults(data.results);
-        setViewMode("scan");
+        setViewMode(VIEW_MODES.INBOX);
       } else {
         // If nothing to organize, show library
         await fetchLibrary();
@@ -135,8 +134,7 @@ export function LibraryPage() {
 
     setIsOrganizing(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/organize`, {
+      const response = await fetch(`${API_BASE_URL}/api/organize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -178,8 +176,7 @@ export function LibraryPage() {
 
   const handleReveal = async (filePath: string) => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      await fetch(`${apiUrl}/api/reveal`, {
+      await fetch(`${API_BASE_URL}/api/reveal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: filePath }),
@@ -196,8 +193,7 @@ export function LibraryPage() {
   ) => {
     if (!config.libraryPath) return;
 
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/library/export`, {
+    const response = await fetch(`${API_BASE_URL}/api/library/export`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -225,8 +221,7 @@ export function LibraryPage() {
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/library/regenerate`, {
+      const response = await fetch(`${API_BASE_URL}/api/library/regenerate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -257,8 +252,7 @@ export function LibraryPage() {
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/library/sync-apple-music`, {
+      const response = await fetch(`${API_BASE_URL}/api/library/sync-apple-music`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -281,7 +275,7 @@ export function LibraryPage() {
 
   return (
     <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
-      {viewMode === "library" && libraryFiles.length > 0 && (
+      {viewMode === VIEW_MODES.LIBRARY && libraryFiles.length > 0 && (
         <>
           <ToolbarAction
             icon={Plus}
@@ -309,7 +303,7 @@ export function LibraryPage() {
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-3xl font-bold">Music Library</h1>
         <p className="text-muted-foreground">
-          {viewMode === "scan" ? "Inbox Review" : "My Collection"}
+          {viewMode === VIEW_MODES.INBOX ? "Inbox Review" : "My Collection"}
         </p>
       </div>
 
@@ -317,16 +311,16 @@ export function LibraryPage() {
       <div className="w-full max-w-6xl flex justify-between items-center">
         <div className="flex gap-2">
           <Button
-            variant={viewMode === "scan" ? "outline" : "default"}
+            variant={viewMode === VIEW_MODES.INBOX ? "outline" : "default"}
             onClick={() => {
-              setViewMode("scan");
+              setViewMode(VIEW_MODES.INBOX);
               if (scanResults.length === 0) scanInbox();
             }}
           >
             Inbox ({scanResults.length})
           </Button>
           <Button
-            variant={viewMode === "library" ? "outline" : "default"}
+            variant={viewMode === VIEW_MODES.LIBRARY ? "outline" : "default"}
             onClick={() => {
               fetchLibrary();
             }}
@@ -347,7 +341,7 @@ export function LibraryPage() {
         </div>
 
         <div className="flex gap-2">
-          {viewMode === "scan" && scanResults.length > 0 && (
+          {viewMode === VIEW_MODES.INBOX && scanResults.length > 0 && (
             <Button
               onClick={handleOrganize}
               disabled={isOrganizing}
@@ -364,7 +358,7 @@ export function LibraryPage() {
             </Button>
           )}
 
-          {/* {viewMode === "library" && libraryFiles.length > 0 && (
+          {/* {viewMode === VIEW_MODES.LIBRARY && libraryFiles.length > 0 && (
             <>
               <Button
                 onClick={handleRegenerateDatabase}
@@ -465,7 +459,7 @@ export function LibraryPage() {
             onConfirm={handleExportLibrary}
           />
 
-          {viewMode === "scan" ? (
+          {viewMode === VIEW_MODES.INBOX ? (
             scanResults.length > 0 ? (
               <MusicTable data={scanResults} />
             ) : (
