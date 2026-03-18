@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Library, ListMusic, PanelLeft, Settings, X } from "lucide-react";
+import { Library, ListMusic, Settings } from "lucide-react";
 
 // Definimos nuestra lista de rutas una sola vez
 const NAV_ITEMS = [

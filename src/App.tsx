@@ -33,8 +33,8 @@ function App() {
   return (
     <BrowserRouter>
       <PlaylistRefreshProvider>
-        <Layout>
-          <Routes>
+        <Routes>
+          <Route element={<Layout />}>
             <Route path="/" element={<SetupPage />} />
 
             <Route
@@ -74,8 +74,9 @@ function App() {
 
             {/* Redirect unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Layout>
+          </Route>
+
+        </Routes>
       </PlaylistRefreshProvider>
     </BrowserRouter>
   );

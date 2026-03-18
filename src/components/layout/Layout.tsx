@@ -1,10 +1,10 @@
-import { type PropsWithChildren } from 'react';
 import { TopBar } from '@/components/layout/TopBar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { NavigationProvider } from '@/components/Providers/NavigationProvider';
+import { Outlet } from 'react-router-dom';
 
-export function Layout({ children }: PropsWithChildren) {
+export function Layout() {
     return (
         <NavigationProvider>
             {/* Contenedor principal: 
@@ -30,7 +30,7 @@ export function Layout({ children }: PropsWithChildren) {
             - overflow-y-auto permite hacer scroll independiente solo en el contenido.
           */}
                     <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
-                        {children}
+                        <Outlet />
                     </main>
 
                 </div>
