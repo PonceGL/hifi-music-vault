@@ -7,10 +7,11 @@ interface ToolbarActionProps {
     icon: LucideIcon;      // Obligatorio: Recibe el componente del ícono (ej. Search, Plus, Play)
     onClick: () => void;   // Obligatorio: La acción a ejecutar
     label?: string;        // Opcional: Texto que acompañará al ícono en Desktop
+    disabled?: boolean;
     isActive?: boolean;
 }
 
-export function ToolbarAction({ icon: Icon, onClick, label, isActive }: ToolbarActionProps) {
+export function ToolbarAction({ icon: Icon, onClick, label, disabled, isActive }: ToolbarActionProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -37,12 +38,13 @@ export function ToolbarAction({ icon: Icon, onClick, label, isActive }: ToolbarA
                 }`
             }
             aria-label={label}
+            disabled={disabled}
         >
             <Icon className={`w-5 h-5 ${label ? 'mr-2' : ''}`} strokeWidth={2} />
 
             {/* El label se oculta en móvil (hidden) y se muestra a partir de tablet (md:inline) */}
             {label && (
-                <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
                     {label}
                 </span>
             )}
