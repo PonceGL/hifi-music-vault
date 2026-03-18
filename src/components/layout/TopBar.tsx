@@ -3,6 +3,8 @@ import { useNavigation } from "@/hooks/useNavigation";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { PanelLeft } from "lucide-react";
 
+export const PORTAL_ID = "toolbar-portal-target"
+
 export function TopBar() {
     const { isOpen, toggleMenu } = useNavigation();
     const isMobile = useIsMobile();
@@ -27,7 +29,7 @@ export function TopBar() {
             )}
 
             {/* Espacio reservado (Portal Target), Los Toolbar Actions */}
-            <div id="toolbar-portal-target" className="ml-auto flex items-center space-x-2"></div>
+            <div id={PORTAL_ID} className="ml-auto flex items-center space-x-2 [&>*:nth-child(n+4)]:hidden"></div>
 
         </header>
     );
