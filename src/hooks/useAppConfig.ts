@@ -50,11 +50,17 @@ export function useAppConfig() {
         saveConfig({ libraryPath: path })
     }
 
+    const clearConfig = () => {
+        setConfig({ inboxPath: "", libraryPath: "" })
+        localStorage.removeItem(CONFIG_KEY)
+    }
+
     return {
         config,
         isLoaded,
         setInboxPath,
         setLibraryPath,
-        saveConfig
+        saveConfig,
+        clearConfig
     }
 }
