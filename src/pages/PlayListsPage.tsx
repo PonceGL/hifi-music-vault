@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Disc, Music, Loader2 } from "lucide-react"
+import { TitleBar } from "@/components/layout/TitleBar"
 
 interface Playlist {
     name: string
@@ -21,20 +22,20 @@ export function PlayListsPage() {
     // Fetch List of Playlists
     useEffect(() => {
         const fetchPlaylists = async () => {
-             if (!config.libraryPath) return
-             setIsLoading(true)
-             try {
+            if (!config.libraryPath) return
+            setIsLoading(true)
+            try {
                 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
                 const response = await fetch(`${apiUrl}/api/playlists?libraryPath=${encodeURIComponent(config.libraryPath)}`)
                 if (!response.ok) throw new Error('Failed to fetch playlists')
                 const data = await response.json()
                 setPlaylists(data.playlists)
-             } catch (err) {
-                 console.error(err)
-                 setError('Failed to load playlists')
-             } finally {
-                 setIsLoading(false)
-             }
+            } catch (err) {
+                console.error(err)
+                setError('Failed to load playlists')
+            } finally {
+                setIsLoading(false)
+            }
         }
 
         fetchPlaylists()
@@ -42,7 +43,7 @@ export function PlayListsPage() {
 
     if (isLoading) {
         return (
-             <div className="w-full h-[50vh] flex flex-col justify-center items-center">
+            <div className="w-full h-[50vh] flex flex-col justify-center items-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-muted-foreground mt-2">Loading playlists...</p>
             </div>
@@ -50,8 +51,8 @@ export function PlayListsPage() {
     }
 
     if (error) {
-         return (
-             <div className="w-full p-8 flex justify-center">
+        return (
+            <div className="w-full p-8 flex justify-center">
                 <div className="text-red-500 bg-red-50 p-4 rounded-md border border-red-200">
                     Error: {error}
                 </div>
@@ -60,23 +61,25 @@ export function PlayListsPage() {
     }
 
     return (
-        <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+        <section className="w-full flex flex-col justify-start items-center p-8 gap-8">
+
+            <TitleBar title="Playlists" />
 
             <div className="w-full max-w-6xl flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigate('/library')}>
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <div className="flex flex-col">
-                            <h1 className="text-3xl font-bold">Playlists</h1>
-                <p className="text-muted-foreground">Your curated collections</p>
-                        </div>
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/library')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="flex flex-col">
+                        <h1 className="text-3xl font-bold">Playlists</h1>
+                        <p className="text-muted-foreground">Your curated collections</p>
                     </div>
                 </div>
+            </div>
 
-             <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {playlists.map(pl => (
-                    <div 
+                    <div
                         key={pl.name}
                         className="group relative flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                         onClick={() => navigate(`/playlists/${encodeURIComponent(pl.name)}`)}
@@ -92,11 +95,11 @@ export function PlayListsPage() {
                 ))}
 
                 {playlists.length === 0 && (
-                     <div className="col-span-full text-center py-20 text-muted-foreground">
+                    <div className="col-span-full text-center py-20 text-muted-foreground">
                         No playlists found. Scan some music to generate them!
                     </div>
                 )}
-             </div>
-        </main>
+            </div>
+        </section>
     )
 }

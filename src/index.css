@@ -1,4 +1,77 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    --background: theme('colors.white');
+    --foreground: theme('colors.slate.950');
+    --card: theme('colors.white');
+    --card-foreground: theme('colors.slate.950');
+    --popover: theme('colors.white');
+    --popover-foreground: theme('colors.slate.950');
+    --primary: theme('colors.slate.900');
+    --primary-foreground: theme('colors.slate.50');
+    --secondary: theme('colors.slate.100');
+    --secondary-foreground: theme('colors.slate.900');
+    --muted: theme('colors.slate.100');
+    --muted-foreground: theme('colors.slate.500');
+    --accent: theme('colors.slate.100');
+    --accent-foreground: theme('colors.slate.900');
+    --destructive: theme('colors.red.500');
+    --destructive-foreground: theme('colors.slate.50');
+    --border: theme('colors.slate.200');
+    --input: theme('colors.slate.200');
+    --ring: theme('colors.slate.950');
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: theme('colors.slate.950');
+    --foreground: theme('colors.slate.50');
+    --card: theme('colors.slate.950');
+    --card-foreground: theme('colors.slate.50');
+    --popover: theme('colors.slate.950');
+    --popover-foreground: theme('colors.slate.50');
+    --primary: theme('colors.slate.50');
+    --primary-foreground: theme('colors.slate.900');
+    --secondary: theme('colors.slate.800');
+    --secondary-foreground: theme('colors.slate.50');
+    --muted: theme('colors.slate.800');
+    --muted-foreground: theme('colors.slate.400');
+    --accent: theme('colors.slate.800');
+    --accent-foreground: theme('colors.slate.50');
+    --destructive: theme('colors.red.900');
+    --destructive-foreground: theme('colors.slate.50');
+    --border: theme('colors.slate.800');
+    --input: theme('colors.slate.800');
+    --ring: theme('colors.slate.300');
+  }
+}
 
 body {
     width: 100dvw;

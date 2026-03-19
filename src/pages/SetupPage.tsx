@@ -1,14 +1,29 @@
+import { Folder, Sun, Moon, Monitor, MoonIcon } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { getTheme, setTheme } from "@/lib/theme"
+import type { Theme } from "@/lib/theme"
+import { useEffect, useState } from "react"
 import { FolderPicker } from "@/components/FolderPicker"
 import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
-import { useState } from "react"
-import { Folder } from "lucide-react"
+import { TitleBar } from "@/components/layout/TitleBar"
 
 export function SetupPage() {
     const { config, isLoaded, setInboxPath, setLibraryPath, clearConfig } = useAppConfig()
     const navigate = useNavigate()
     const [isSaving, setIsSaving] = useState(false)
+    const [theme, setThemeState] = useState<Theme>("system")
+
+    useEffect(() => {
+        setThemeState(getTheme())
+    }, [])
+
+    const handleThemeChange = (newTheme: Theme) => {
+        setThemeState(newTheme)
+        setTheme(newTheme)
+    }
 
     if (!isLoaded) {
         return (
@@ -57,8 +72,9 @@ export function SetupPage() {
     }
 
     return (
-        <section className="w-full flex flex-col justify-center items-center gap-20">
-            <h1 className="text-3xl font-bold">Ajustes</h1>
+        <section className="w-full flex flex-col justify-center items-center gap-20 pb-8">
+
+            <TitleBar title="Ajustes" />
 
             <div className={`w-full flex flex-col items-center justify-center gap-12 lg:grid ${config.inboxPath && config.libraryPath ? "lg:grid-cols-1" : "lg:grid-cols-2"} lg:justify-around lg:align-start`}>
                 {/*  carpeta de descargas Picker */}
@@ -134,6 +150,7 @@ export function SetupPage() {
                     )}
                 </div>
             </div>
+
             {config.inboxPath && config.libraryPath && (
                 <div className="w-full flex flex-col items-center justify-center gap-12">
                     <div className="w-full max-w-2xl grid grid-cols-2 gap-5">
@@ -141,7 +158,7 @@ export function SetupPage() {
                             variant="destructive"
                             onClick={handleCancel}
                         >
-                            Cancelar
+                            Limpiar
                         </Button>
 
                         <Button
@@ -149,11 +166,65 @@ export function SetupPage() {
                             onClick={handleContinue}
                             disabled={isSaving}
                         >
-                            {isSaving ? "Guardando..." : "Guardar y continuar"}
+                            {isSaving ? "Guardando..." : "Continuar"}
                         </Button>
                     </div>
                 </div>
             )}
+            {/* Sección de Apariencia */}
+            <div className="w-full flex flex-col items-start justify-center gap-8 border-t dark:border-slate-800 pt-12">
+                <div className="flex flex-col items-start gap-2">
+                    <h2 className="flex items-start gap-2 text-xl font-semibold">
+                        <MoonIcon />
+                        <span>Apariencia</span>
+                    </h2>
+                    <p className="text-sm text-muted-foreground text-center">
+                        Personaliza cómo se ve la aplicación
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-6 w-full max-w-md bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                            <Label htmlFor="system-theme" className="flex items-center gap-2 font-medium">
+                                <Monitor size={18} />
+                                Mismo que el sistema
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Se ajusta automáticamente
+                            </p>
+                        </div>
+                        <Switch
+                            id="system-theme"
+                            checked={theme === "system"}
+                            onCheckedChange={(checked) => {
+                                handleThemeChange(checked ? "system" : "light")
+                            }}
+                        />
+                    </div>
+
+                    {theme !== "system" && (
+                        <div className="flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="flex flex-col gap-1">
+                                <Label htmlFor="dark-mode" className="flex items-center gap-2 font-medium">
+                                    {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+                                    {theme === "dark" ? "Modo Oscuro" : "Modo Claro"}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Desactiva el modo {theme === "dark" ? "oscuro" : "claro"}
+                                </p>
+                            </div>
+                            <Switch
+                                id="dark-mode"
+                                checked={theme === "dark"}
+                                onCheckedChange={(checked) => {
+                                    handleThemeChange(checked ? "dark" : "light")
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
         </section>
     )
 }

@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, Music, Search, Save, Pencil, X } from "lucide-react
 import { AlbumCover } from "@/components/AlbumCover"
 import { Badge } from "@/components/ui/badge"
 import { MusicBrainzSearchDialog, type SelectedMetadata } from "@/components/MusicBrainzSearchDialog"
+import { TitleBar } from "@/components/layout/TitleBar"
 
 interface TrackMetadata {
   format?: {
@@ -252,7 +253,8 @@ export function TrackDetailPage() {
   const displayYear = isEditing ? editFields.year : (common?.year?.toString() || common?.date?.substring(0, 4) || "")
 
   return (
-    <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+    <section className="w-full flex flex-col justify-start items-center p-8 gap-8">
+      <TitleBar title={editFields.title || "Canción"} />
       <div className="w-full max-w-4xl">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" onClick={() => navigate(-1)}>
@@ -289,11 +291,10 @@ export function TrackDetailPage() {
 
         {/* Save feedback message */}
         {saveMessage && (
-          <div className={`mb-4 p-3 rounded-md text-sm font-medium ${
-            saveMessage.startsWith("Error")
-              ? "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
-              : "bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
-          }`}>
+          <div className={`mb-4 p-3 rounded-md text-sm font-medium ${saveMessage.startsWith("Error")
+            ? "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
+            : "bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
+            }`}>
             {saveMessage}
           </div>
         )}
@@ -304,7 +305,7 @@ export function TrackDetailPage() {
             <p className="text-sm text-amber-800 dark:text-amber-200">
               This track has missing metadata. You can search MusicBrainz to auto-fill or edit manually.
             </p>
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex gap-2 shrink-0">
               <Button size="sm" variant="outline" onClick={handleStartEdit}>
                 <Pencil className="mr-1 h-3 w-3" />
                 Edit
@@ -320,7 +321,7 @@ export function TrackDetailPage() {
         <div className="flex flex-col gap-6">
           {/* Header Section with Album Art */}
           <div className="flex gap-6 items-start">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {decodedTrackPath ? (
                 <AlbumCover trackPath={decodedTrackPath} size="lg" />
               ) : (
@@ -570,6 +571,6 @@ export function TrackDetailPage() {
         }}
         onSelect={handleMusicBrainzSelect}
       />
-    </main>
+    </section>
   )
 }
