@@ -221,10 +221,10 @@ export function MusicTable({
                     <TableCell>
                       <div className="min-w-64 flex items-center gap-3">
                         <AlbumCover trackPath={item.file} size={isMobile ? "sm" : "md"} />
-                        <span className="font-medium line-clamp-1">{item.metadata.title}</span>
+                        <span className="font-semibold line-clamp-1">{item.metadata.title}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{item.metadata.artist}</TableCell>
+                    <TableCell>{item.metadata.artist.split(";")}</TableCell>
                     <TableCell>{item.metadata.album}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {item.metadata.year || "-"}

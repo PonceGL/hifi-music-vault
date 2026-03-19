@@ -25,8 +25,8 @@ export function NavigationLinks({ layout = 'vertical', onItemClick }: Navigation
                     onClick={onItemClick}
                     className={({ isActive }) =>
                         `flex justify-start items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                            ? 'bg-gray-200 text-gray-900'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
                         }`
                     }
                 >
