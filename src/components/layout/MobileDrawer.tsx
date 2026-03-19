@@ -17,13 +17,13 @@ export function MobileDrawer() {
 
             {/* Panel lateral (Drawer): Se desliza desde la izquierda */}
             <div
-                className={`fixed inset-y-0 left-0 w-3/4 bg-white z-50 transform transition-transform duration-300 ease-in-out shadow-xl ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 w-3/4 bg-white dark:bg-slate-950 z-50 transform transition-transform duration-300 ease-in-out shadow-xl ${isOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <div className="p-4 flex flex-col h-full">
                     <div className="flex justify-between items-center mb-6 px-2">
-                        <h2 className="text-lg font-bold text-gray-800">Mi Música</h2>
-                        <button onClick={closeMenu} className="text-gray-500 hover:text-gray-800 p-1">
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Mi Música</h2>
+                        <button onClick={closeMenu} className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-1">
                             <X />
                         </button>
                     </div>

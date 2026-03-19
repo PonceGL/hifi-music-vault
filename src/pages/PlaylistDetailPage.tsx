@@ -26,6 +26,7 @@ import {
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog"
 import { ExportPlaylistDialog } from "@/components/ExportPlaylistDialog"
+import { TitleBar } from "@/components/layout/TitleBar"
 
 export function PlaylistDetailPage() {
     const { config } = useAppConfig()
@@ -201,7 +202,8 @@ export function PlaylistDetailPage() {
     }
 
     return (
-        <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+        <section className="w-full flex flex-col justify-start items-center p-8 gap-8">
+            <TitleBar title={name || "Playlist"} />
 
             {/* Dialogs */}
             <AddToPlaylistDialog
@@ -332,6 +334,6 @@ export function PlaylistDetailPage() {
                     />
                 )}
             </div>
-        </main>
+        </section>
     )
 }

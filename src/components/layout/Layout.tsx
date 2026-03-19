@@ -11,7 +11,7 @@ export function Layout() {
         - h-dvh asegura que ocupe el alto exacto de la pantalla dinámica en móviles.
         - overflow-hidden evita que la página entera haga scroll; el scroll lo hará solo el 'main'.
       */}
-            <div className="flex h-dvh overflow-hidden bg-white text-gray-900">
+            <div className="flex h-dvh overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
 
                 {/* Menú lateral fijo para Desktop (maneja su propia visibilidad interna) */}
                 <Sidebar />
@@ -29,7 +29,7 @@ export function Layout() {
             - flex-1 toma el espacio vertical restante debajo del TopBar.
             - overflow-y-auto permite hacer scroll independiente solo en el contenido.
           */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+                    <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-900">
                         <Outlet />
                     </main>
 
