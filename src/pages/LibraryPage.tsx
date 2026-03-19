@@ -280,7 +280,7 @@ export function LibraryPage() {
   };
 
   return (
-    <main className="w-full flex flex-col justify-start items-center p-8 gap-8">
+    <section className="w-full flex flex-col justify-start items-center gap-8">
       {viewMode === "library" && libraryFiles.length > 0 && (
         <>
           <ToolbarAction
@@ -509,6 +509,6 @@ export function LibraryPage() {
           )}
         </div>
       )}
-    </main>
+    </section>
   );
 }

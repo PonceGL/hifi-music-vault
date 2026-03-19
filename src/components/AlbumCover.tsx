@@ -36,8 +36,8 @@ export function AlbumCover({ trackPath, size = "sm" }: AlbumCoverProps) {
 
   if (hasError) {
     return (
-      <div 
-        className={`${sizeClasses[size]} rounded-md bg-muted flex items-center justify-center flex-shrink-0`}
+      <div
+        className={`${sizeClasses[size]} rounded-md bg-muted flex items-center justify-center shrink-0`}
       >
         <Music className={`${iconSizes[size]} text-muted-foreground`} />
       </div>
@@ -45,7 +45,7 @@ export function AlbumCover({ trackPath, size = "sm" }: AlbumCoverProps) {
   }
 
   return (
-    <div className={`${sizeClasses[size]} rounded-md overflow-hidden bg-muted flex-shrink-0 relative`}>
+    <div className={`${sizeClasses[size]} rounded-md overflow-hidden bg-muted shrink-0 relative`}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Music className={`${iconSizes[size]} text-muted-foreground animate-pulse`} />

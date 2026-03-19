@@ -1,12 +1,12 @@
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useMusicTable, type ScanResult, type SortField } from "@/hooks/useMusicTable"
 import { TrackPlaylistsCell } from "@/components/TrackPlaylistsCell";
 import { AlbumCover } from "@/components/AlbumCover";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 
 interface MusicTableProps {
   data: ScanResult[];
@@ -33,6 +34,7 @@ export function MusicTable({
   showPlaylistsColumn = false,
 }: MusicTableProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const {
     data: sortedData,
     searchQuery,
@@ -191,67 +193,72 @@ export function MusicTable({
                 </TableCell>
               </TableRow>
             ) : (
-              sortedData.map((item) => (
-                <TableRow
-                  key={item.file}
-                  data-state={
-                    selectedTracks.has(item.file) ? "selected" : undefined
-                  }
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() =>
-                    navigate(`/track/${encodeURIComponent(item.file)}`)
-                  }
-                >
-                  {enableSelection && (
+              sortedData.map((item) => {
+                console.log("===============");
+                console.log(item);
+                console.log("===============");
+                return (
+                  <TableRow
+                    key={item.file}
+                    data-state={
+                      selectedTracks.has(item.file) ? "selected" : undefined
+                    }
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() =>
+                      navigate(`/track/${encodeURIComponent(item.file)}`)
+                    }
+                  >
+                    {enableSelection && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedTracks.has(item.file)}
+                          onCheckedChange={(checked) =>
+                            handleSelectRow(item.file, !!checked)
+                          }
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
-                      <Checkbox
-                        checked={selectedTracks.has(item.file)}
-                        onCheckedChange={(checked) =>
-                          handleSelectRow(item.file, !!checked)
-                        }
-                      />
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <AlbumCover trackPath={item.file} size="sm" />
-                      <span className="font-medium">{item.metadata.title}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.metadata.artist}</TableCell>
-                  <TableCell>{item.metadata.album}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {item.metadata.year || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {item.metadata.genre.map((g, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
-                        >
-                          {g}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground uppercase">
-                    {item.metadata.format.replace(".", "")}
-                  </TableCell>
-                  {showPlaylistsColumn && (
-                    <TableCell>
-                      <TrackPlaylistsCell trackPath={item.file} />
-                    </TableCell>
-                  )}
-                  {renderRowAction && (
-                    <TableCell>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        {renderRowAction(item)}
+                      <div className="min-w-64 flex items-center gap-3">
+                        <AlbumCover trackPath={item.file} size={isMobile ? "sm" : "md"} />
+                        <span className="font-medium line-clamp-1">{item.metadata.title}</span>
                       </div>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))
+                    <TableCell>{item.metadata.artist}</TableCell>
+                    <TableCell>{item.metadata.album}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {item.metadata.year || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {item.metadata.genre[0].split(";").slice(0, 3).map((g, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium"
+                          >
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground uppercase">
+                      {item.metadata.format.replace(".", "")}
+                    </TableCell>
+                    {showPlaylistsColumn && (
+                      <TableCell>
+                        <TrackPlaylistsCell trackPath={item.file} />
+                      </TableCell>
+                    )}
+                    {renderRowAction && (
+                      <TableCell>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          {renderRowAction(item)}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
