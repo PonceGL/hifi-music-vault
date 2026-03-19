@@ -3,7 +3,7 @@
  * Centraliza magic strings y valores de configuración
  */
 
-import { Library, ListMusic, Settings } from "lucide-react";
+import { Library, ListMusic, Settings, Inbox } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -42,6 +42,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
     { name: "Biblioteca", path: ROUTES.HOME, icon: Library },
+    { name: "Inbox", path: ROUTES.INBOX, icon: Inbox },
     { name: "Playlists", path: ROUTES.PLAYLISTS, icon: ListMusic },
     { name: "Ajustes", path: ROUTES.SETTINGS, icon: Settings },
 ];
