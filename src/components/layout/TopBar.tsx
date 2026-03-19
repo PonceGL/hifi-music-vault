@@ -1,13 +1,11 @@
-import { NavigationLinks } from "@/components/layout/NavigationLinks";
 import { useNavigation } from "@/hooks/useNavigation";
-import { useIsMobile } from "@/hooks/useMediaQuery";
 import { PanelLeft } from "lucide-react";
 
 export const PORTAL_ID = "toolbar-portal-target"
+export const TITLE_ID = "title-portal-target"
 
 export function TopBar() {
-    const { isOpen, toggleMenu } = useNavigation();
-    const isMobile = useIsMobile();
+    const { toggleMenu } = useNavigation();
 
     return (
         <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex items-center px-4 shrink-0">
@@ -21,12 +19,8 @@ export function TopBar() {
                 <PanelLeft />
             </button>
 
-            {/* Lógica de los Tabs Superiores: Solo en Escritorio y solo si el Sidebar está cerrado */}
-            {!isMobile && !isOpen && (
-                <div className="flex-1 animate-in fade-in duration-300">
-                    <NavigationLinks layout="horizontal" />
-                </div>
-            )}
+            {/* Espacio reservado (Title Target) */}
+            <div id={TITLE_ID} className="mr-auto flex items-center"></div>
 
             {/* Espacio reservado (Portal Target), Los Toolbar Actions */}
             <div id={PORTAL_ID} className="ml-auto flex items-center space-x-2 [&>*:nth-child(n+4)]:hidden"></div>

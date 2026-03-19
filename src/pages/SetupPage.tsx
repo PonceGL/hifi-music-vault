@@ -8,6 +8,7 @@ import { FolderPicker } from "@/components/FolderPicker"
 import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
+import { TitleBar } from "@/components/layout/TitleBar"
 
 export function SetupPage() {
     const { config, isLoaded, setInboxPath, setLibraryPath, clearConfig } = useAppConfig()
@@ -72,7 +73,8 @@ export function SetupPage() {
 
     return (
         <section className="w-full flex flex-col justify-center items-center gap-20 pb-8">
-            <h1 className="text-3xl font-bold">Ajustes</h1>
+
+            <TitleBar title="Ajustes" />
 
             <div className={`w-full flex flex-col items-center justify-center gap-12 lg:grid ${config.inboxPath && config.libraryPath ? "lg:grid-cols-1" : "lg:grid-cols-2"} lg:justify-around lg:align-start`}>
                 {/*  carpeta de descargas Picker */}

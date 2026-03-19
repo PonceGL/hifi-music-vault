@@ -27,6 +27,7 @@ import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog"
 import { ExportPlaylistDialog } from "@/components/ExportPlaylistDialog";
 import type { ScanResult, SongMetadata } from "@/hooks/useMusicTable"
 import { ToolbarAction } from "@/components/layout/ToolbarAction";
+import { TitleBar } from "@/components/layout/TitleBar";
 
 export function LibraryPage() {
   const { config } = useAppConfig();
@@ -281,6 +282,8 @@ export function LibraryPage() {
 
   return (
     <section className="w-full flex flex-col justify-start items-center gap-8">
+      <TitleBar title="Biblioteca" />
+
       {viewMode === "library" && libraryFiles.length > 0 && (
         <>
           <ToolbarAction
