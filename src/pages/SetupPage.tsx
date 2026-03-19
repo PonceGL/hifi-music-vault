@@ -1,7 +1,4 @@
-import type { PropsWithChildren } from 'react';
-import { Folder, Sun, Moon, Monitor, Settings2, Trash2 } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { Folder, Sun, Moon, Monitor, Settings2 } from "lucide-react"
 import { getTheme, setTheme } from "@/lib/theme"
 import type { Theme } from "@/lib/theme"
 import { useEffect, useState } from "react"
@@ -10,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
 import { TitleBar } from "@/components/layout/TitleBar"
-import { Card } from '@/components/ui/card';
+import { SettingsCard } from '@/components/SettingsCard';
+import { PathDisplay } from '@/components/PathDisplay';
+import { ThemeToggleItem } from '@/components/ThemeToggleItem';
 
 export function SetupPage() {
     const { config, isLoaded, setInboxPath, setLibraryPath } = useAppConfig();
@@ -143,82 +142,5 @@ export function SetupPage() {
                 )}
             </div>
         </section>
-    );
-}
-
-/** * Sub-componentes internos (Serán extraídos a archivos propios en el refactor final)
- */
-
-interface SettingsCardProps {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-}
-
-function SettingsCard({ title, description, icon, children }: PropsWithChildren<SettingsCardProps>) {
-    return (
-        <Card className="flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                    {icon}
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold leading-none">{title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{description}</p>
-                </div>
-            </div>
-            <div className="mt-2">{children}</div>
-        </Card>
-    );
-}
-
-interface PathDisplayProps {
-    path: string;
-    onClear: () => void;
-}
-
-function PathDisplay({ path, onClear }: PathDisplayProps) {
-    return (
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary/5 p-3 border border-secondary/10 group">
-            <div className="flex flex-col overflow-hidden w-full gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary text-left">
-                    Ruta Seleccionada
-                </span>
-                <code
-                    className="font-mono text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                    style={{ direction: 'rtl', textAlign: 'left' }}
-                    title={path}
-                >
-                    {path}
-                </code>
-            </div>
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClear}
-                className="rounded-full hover:bg-destructive/10 hover:text-destructive shrink-0 cursor-pointer"
-            >
-                <Trash2 size={18} />
-            </Button>
-        </div>
-    );
-}
-
-interface ThemeToggleItemProps {
-    icon: React.ReactNode;
-    label: string;
-    active: boolean;
-    onChange: (checked: boolean) => void;
-}
-
-function ThemeToggleItem({ icon, label, active, onChange }: ThemeToggleItemProps) {
-    return (
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                {icon}
-                <Label className="text-base font-medium cursor-pointer">{label}</Label>
-            </div>
-            <Switch checked={active} onCheckedChange={onChange} />
-        </div>
     );
 }
