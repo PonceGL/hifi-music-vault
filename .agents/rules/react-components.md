@@ -16,4 +16,4 @@ Logic Placement. Logic that belongs solely to that component should reside in a 
 
 Strict Prop Typing. Each component must have its own TypeScript interface (e.g., interface ComponentProps). Avoid using React.FC or React.FunctionalComponent to allow full control over the typing of children and generics.
 
-Use PropsWithChildren if a component receives children. import { PropsWithChildren } from ‘react’;
+Use PropsWithChildren if a component receives children. import type { PropsWithChildren } from "react";

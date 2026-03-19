@@ -1,3 +1,4 @@
+import type { PropsWithChildren } from 'react';
 import { Folder, Sun, Moon, Monitor, Settings2, Trash2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
 import { TitleBar } from "@/components/layout/TitleBar"
+import { Card } from '@/components/ui/card';
 
 export function SetupPage() {
     const { config, isLoaded, setInboxPath, setLibraryPath } = useAppConfig();
@@ -133,7 +135,7 @@ export function SetupPage() {
                             size="lg"
                             onClick={handleSaveConfig}
                             disabled={isSaving}
-                            className="h-14 rounded-3xl px-12 text-lg font-bold shadow-lg transition-all hover:scale-105"
+                            className="h-14 rounded-3xl px-12 text-lg font-bold shadow-lg transition-all hover:scale-105 cursor-pointer"
                         >
                             {isSaving ? "Guardando..." : "Finalizar Configuración"}
                         </Button>
@@ -151,12 +153,11 @@ interface SettingsCardProps {
     title: string;
     description: string;
     icon: React.ReactNode;
-    children: React.ReactNode;
 }
 
-function SettingsCard({ title, description, icon, children }: SettingsCardProps) {
+function SettingsCard({ title, description, icon, children }: PropsWithChildren<SettingsCardProps>) {
     return (
-        <div className="flex flex-col gap-4 rounded-[2.5rem] bg-white p-6 shadow-sm border border-slate-100 dark:bg-slate-900 dark:border-slate-800 transition-all hover:shadow-md">
+        <Card className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                     {icon}
@@ -167,7 +168,7 @@ function SettingsCard({ title, description, icon, children }: SettingsCardProps)
                 </div>
             </div>
             <div className="mt-2">{children}</div>
-        </div>
+        </Card>
     );
 }
 
@@ -179,8 +180,8 @@ interface PathDisplayProps {
 function PathDisplay({ path, onClear }: PathDisplayProps) {
     return (
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-secondary/5 p-3 border border-secondary/10 group">
-            <div className="flex flex-col overflow-hidden w-full">
-                <span className="text-xs font-bold uppercase tracking-wider text-secondary/60 text-left">
+            <div className="flex flex-col overflow-hidden w-full gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary text-left">
                     Ruta Seleccionada
                 </span>
                 <code
@@ -195,7 +196,7 @@ function PathDisplay({ path, onClear }: PathDisplayProps) {
                 variant="ghost"
                 size="icon"
                 onClick={onClear}
-                className="rounded-full hover:bg-destructive/10 hover:text-destructive shrink-0"
+                className="rounded-full hover:bg-destructive/10 hover:text-destructive shrink-0 cursor-pointer"
             >
                 <Trash2 size={18} />
             </Button>
