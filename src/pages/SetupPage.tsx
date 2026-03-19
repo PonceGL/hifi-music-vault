@@ -1,6 +1,4 @@
-import { Folder, Sun, Moon, Monitor, MoonIcon } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { Folder, Sun, Moon, Monitor, Settings2 } from "lucide-react"
 import { getTheme, setTheme } from "@/lib/theme"
 import type { Theme } from "@/lib/theme"
 import { useEffect, useState } from "react"
@@ -9,222 +7,140 @@ import { Button } from "@/components/ui/button"
 import { useAppConfig } from "@/hooks/useAppConfig"
 import { useNavigate } from "react-router-dom"
 import { TitleBar } from "@/components/layout/TitleBar"
+import { SettingsCard } from '@/components/SettingsCard';
+import { PathDisplay } from '@/components/PathDisplay';
+import { ThemeToggleItem } from '@/components/ThemeToggleItem';
 
 export function SetupPage() {
-    const { config, isLoaded, setInboxPath, setLibraryPath, clearConfig } = useAppConfig()
-    const navigate = useNavigate()
-    const [isSaving, setIsSaving] = useState(false)
-    const [theme, setThemeState] = useState<Theme>("system")
+    const { config, isLoaded, setInboxPath, setLibraryPath } = useAppConfig();
+    const navigate = useNavigate();
+    const [isSaving, setIsSaving] = useState(false);
+    const [theme, setThemeState] = useState<Theme>("system");
 
     useEffect(() => {
-        setThemeState(getTheme())
-    }, [])
+        setThemeState(getTheme());
+    }, []);
 
     const handleThemeChange = (newTheme: Theme) => {
-        setThemeState(newTheme)
-        setTheme(newTheme)
-    }
+        setThemeState(newTheme);
+        setTheme(newTheme);
+    };
 
-    if (!isLoaded) {
-        return (
-            <main className="w-full flex flex-col justify-center items-center min-h-screen">
-                <p className="text-muted-foreground">Loading configuration...</p>
-            </main>
-        )
-    }
-
-    const handleCancel = () => {
-        clearConfig()
-        console.log("Configuration cancelled")
-        console.log(config)
-    }
-
-    const handleContinue = async () => {
-        setIsSaving(true)
+    const handleSaveConfig = async () => {
+        setIsSaving(true);
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001"
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
             const response = await fetch(`${apiUrl}/api/config`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     inboxPath: config.inboxPath,
                     libraryPath: config.libraryPath,
                 }),
-            })
+            });
 
-            if (!response.ok) {
-                throw new Error('Failed to save configuration')
-            }
-
-            const data = await response.json()
-            console.log('Configuration saved to server:', data)
-
-            // Navigate to library page
-            navigate('/library')
+            if (!response.ok) throw new Error("Failed to save");
+            navigate("/library");
         } catch (error) {
-            console.error('Error saving configuration:', error)
-            alert('Failed to save configuration. Please try again.')
+            console.error(error);
+            alert("Error al guardar la configuración.");
         } finally {
-            setIsSaving(false)
+            setIsSaving(false);
         }
+    };
+
+    if (!isLoaded) {
+        return (
+            <section className="flex min-h-screen items-center justify-center">
+                <p className="text-muted-foreground animate-pulse">Cargando...</p>
+            </section>
+        );
     }
 
-    return (
-        <section className="w-full flex flex-col justify-center items-center gap-20 pb-8">
+    // Determina si estamos en flujo de configuración inicial
+    const isInitialSetup = !config.inboxPath || !config.libraryPath;
 
+    return (
+        <section className="flex w-full flex-col gap-8 pb-12">
             <TitleBar title="Ajustes" />
 
-            <div className={`w-full flex flex-col items-center justify-center gap-12 lg:grid ${config.inboxPath && config.libraryPath ? "lg:grid-cols-1" : "lg:grid-cols-2"} lg:justify-around lg:align-start`}>
-                {/*  carpeta de descargas Picker */}
-                <div className="flex flex-col justify-start items-start gap-4 w-full">
-                    <div>
-                        <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
-                            <Folder />
-                            Carpeta de Descargas
-                        </h2>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Carpeta donde se guardan las descargas
-                        </p>
+            <div className="mx-auto w-full max-w-6xl md:px-8">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-                        {config.inboxPath && (
-                            <Button
-                                variant="outline"
-                                onClick={() => { }}
-                                disabled={true}
-                                className="justify-start min-w-[320px] md:min-w-[450px]"
-                            >
-                                <span className="hidden md:inline-block">
-                                    Selected:
-                                </span>
-                                <span className="font-mono">{config.inboxPath.slice(-40)}</span>
-                            </Button>
-                        )}
-                    </div>
-                    {!config.inboxPath && (
-                        <FolderPicker
-                            onSelect={(path) => {
-                                console.log("Inbox path selected:", path)
-                                setInboxPath(path)
-                            }}
-                            initialPath={config.inboxPath || undefined}
-                        />
-                    )}
-                </div>
-
-                {/* Carpeta de biblioteca Picker */}
-                <div className="flex flex-col justify-start items-start gap-4 w-full">
-                    <div>
-                        <h2 className="flex items-center gap-2 text-xl font-semibold mb-2">
-                            <Folder />
-                            Carpeta de Biblioteca
-                        </h2>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Carpeta donde se guardara la biblioteca organizada
-                        </p>
-
-                        {config.libraryPath && (
-
-                            <Button
-                                variant="outline"
-                                onClick={() => { }}
-                                disabled={true}
-                                className="justify-start min-w-[320px] md:min-w-[450px]"
-                            >
-                                <span className="hidden md:inline-block">
-                                    Selected:
-                                </span>
-                                <span className="font-mono">{config.libraryPath.slice(-40)}</span>
-                            </Button>
-                        )}
-                    </div>
-                    {!config.libraryPath && (
-                        <FolderPicker
-                            onSelect={(path) => {
-                                console.log("Library path selected:", path)
-                                setLibraryPath(path)
-                            }}
-                            initialPath={config.libraryPath || undefined}
-                        />
-                    )}
-                </div>
-            </div>
-
-            {config.inboxPath && config.libraryPath && (
-                <div className="w-full flex flex-col items-center justify-center gap-12">
-                    <div className="w-full max-w-2xl grid grid-cols-2 gap-5">
-                        <Button
-                            variant="destructive"
-                            onClick={handleCancel}
-                        >
-                            Limpiar
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            onClick={handleContinue}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Guardando..." : "Continuar"}
-                        </Button>
-                    </div>
-                </div>
-            )}
-            {/* Sección de Apariencia */}
-            <div className="w-full flex flex-col items-start justify-center gap-8 border-t dark:border-slate-800 pt-12">
-                <div className="flex flex-col items-start gap-2">
-                    <h2 className="flex items-start gap-2 text-xl font-semibold">
-                        <MoonIcon />
-                        <span>Apariencia</span>
-                    </h2>
-                    <p className="text-sm text-muted-foreground text-center">
-                        Personaliza cómo se ve la aplicación
-                    </p>
-                </div>
-
-                <div className="flex flex-col gap-6 w-full max-w-md bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                            <Label htmlFor="system-theme" className="flex items-center gap-2 font-medium">
-                                <Monitor size={18} />
-                                Mismo que el sistema
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                                Se ajusta automáticamente
-                            </p>
-                        </div>
-                        <Switch
-                            id="system-theme"
-                            checked={theme === "system"}
-                            onCheckedChange={(checked) => {
-                                handleThemeChange(checked ? "system" : "light")
-                            }}
-                        />
-                    </div>
-
-                    {theme !== "system" && (
-                        <div className="flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="flex flex-col gap-1">
-                                <Label htmlFor="dark-mode" className="flex items-center gap-2 font-medium">
-                                    {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
-                                    {theme === "dark" ? "Modo Oscuro" : "Modo Claro"}
-                                </Label>
-                                <p className="text-xs text-muted-foreground">
-                                    Desactiva el modo {theme === "dark" ? "oscuro" : "claro"}
-                                </p>
-                            </div>
-                            <Switch
-                                id="dark-mode"
-                                checked={theme === "dark"}
-                                onCheckedChange={(checked) => {
-                                    handleThemeChange(checked ? "dark" : "light")
-                                }}
+                    {/* SECCIÓN: CARPETA DE DESCARGAS */}
+                    <SettingsCard
+                        title="Descargas"
+                        description="Origen de tus archivos"
+                        icon={<Folder className="text-primary" />}
+                    >
+                        {config.inboxPath ? (
+                            <PathDisplay
+                                path={config.inboxPath}
+                                onClear={() => setInboxPath("")}
                             />
-                        </div>
-                    )}
+                        ) : (
+                            <FolderPicker onSelect={setInboxPath} />
+                        )}
+                    </SettingsCard>
+
+                    {/* SECCIÓN: CARPETA DE BIBLIOTECA */}
+                    <SettingsCard
+                        title="Biblioteca"
+                        description="Destino organizado"
+                        icon={<Folder className="text-primary" />}
+                    >
+                        {config.libraryPath ? (
+                            <PathDisplay
+                                path={config.libraryPath}
+                                onClear={() => setLibraryPath("")}
+                            />
+                        ) : (
+                            <FolderPicker onSelect={setLibraryPath} />
+                        )}
+                    </SettingsCard>
                 </div>
+
+                {/* SECCIÓN: APARIENCIA (M3 Container) */}
+                <div className="mt-8">
+                    <SettingsCard
+                        title="Personalización"
+                        description="Estilo visual de la interfaz"
+                        icon={<Settings2 className="text-tertiary" />}
+                    >
+                        <div className="flex flex-col gap-4 rounded-2xl bg-slate-100/50 p-4 dark:bg-slate-900/50">
+                            <ThemeToggleItem
+                                icon={<Monitor size={20} />}
+                                label="Seguir Sistema"
+                                active={theme === "system"}
+                                onChange={(checked: boolean) => handleThemeChange(checked ? "system" : "light")}
+                            />
+
+                            {theme !== "system" && (
+                                <ThemeToggleItem
+                                    icon={theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
+                                    label={theme === "dark" ? "Modo Oscuro" : "Modo Claro"}
+                                    active={theme === "dark"}
+                                    onChange={(checked: boolean) => handleThemeChange(checked ? "dark" : "light")}
+                                />
+                            )}
+                        </div>
+                    </SettingsCard>
+                </div>
+
+                {/* BOTÓN DE ACCIÓN (Solo Onboarding) */}
+                {!isInitialSetup && (
+                    <div className="mt-12 flex justify-center animate-in fade-in zoom-in duration-500">
+                        <Button
+                            size="lg"
+                            onClick={handleSaveConfig}
+                            disabled={isSaving}
+                            className="h-14 rounded-3xl px-12 text-lg font-bold shadow-lg transition-all hover:scale-105 cursor-pointer"
+                        >
+                            {isSaving ? "Guardando..." : "Finalizar Configuración"}
+                        </Button>
+                    </div>
+                )}
             </div>
         </section>
-    )
+    );
 }

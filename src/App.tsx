@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Layout } from './components/layout/Layout';
 import { SetupPage } from './pages/SetupPage';
 import { LibraryPage } from './pages/LibraryPage';
+import { InboxPage } from './pages/InboxPage';
 import { useAppConfig } from './hooks/useAppConfig';
 import { PlayListsPage } from './pages/PlayListsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
@@ -40,6 +41,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <LibraryPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/inbox"
+              element={
+                <ProtectedRoute>
+                  <InboxPage />
                 </ProtectedRoute>
               }
             />

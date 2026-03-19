@@ -123,9 +123,9 @@ export function FolderPicker({ onSelect, initialPath = INITIAL_PATH }: FolderPic
                                 onClick={() => handleNavigate(dir.path)}
                                 className="w-full flex items-center gap-2 px-4 py-3 hover:bg-muted transition-colors text-left"
                             >
-                                <FolderIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                <FolderIcon className="h-4 w-4 text-blue-500 shrink-0" />
                                 <span className="flex-1 truncate">{dir.name}</span>
-                                <ChevronRightIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <ChevronRightIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                             </button>
                         ))}
                     </div>

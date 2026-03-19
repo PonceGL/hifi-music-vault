@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MusicBrainzService } from '../server/services/MusicBrainzService.js';
+import { MusicBrainzService } from '@/server/services/MusicBrainzService';
 import axios from 'axios';
 import ffmetadata from 'ffmetadata';
 

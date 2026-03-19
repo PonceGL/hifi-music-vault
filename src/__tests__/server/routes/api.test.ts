@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import type { ScanResult } from '../server/services/OrganizerService';
+import type { ScanResult } from '@/server/services/OrganizerService';
 
-vi.mock('../server/services/OrganizerService');
-vi.mock("../server/services/AppleMusicSync");
+vi.mock('@/server/services/OrganizerService');
+vi.mock("@/server/services/AppleMusicSync");
 vi.mock('fs-extra');
 
-import router from '../server/routes/api';
-import { OrganizerService } from '../server/services/OrganizerService';
-import { AppleMusicSync } from "../server/services/AppleMusicSync";
+import router from '@/server/routes/api';
+import { OrganizerService } from '@/server/services/OrganizerService';
+import { AppleMusicSync } from "@/server/services/AppleMusicSync";
 import fs from 'fs-extra';
 
 const app = express();

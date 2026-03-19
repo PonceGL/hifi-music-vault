@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { ScanResult, SongMetadata } from '../server/services/OrganizerService';
+import type { ScanResult, SongMetadata } from '../../../server/services/OrganizerService';
 
 vi.mock('fs-extra');
 vi.mock('music-metadata');
 
-import { OrganizerService } from '../server/services/OrganizerService';
+import { OrganizerService } from '../../../server/services/OrganizerService';
 import fs from 'fs-extra';
 import * as mm from 'music-metadata';
 
@@ -264,7 +264,7 @@ describe('OrganizerService', () => {
         '#EXTM3U\n../Artist/Album/Song1.mp3\n../Artist/Album/Song2.mp3\n' as never
       );
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
-      
+
       // Mock for database sync
       const mockInventory = [
         {
@@ -302,7 +302,7 @@ describe('OrganizerService', () => {
         '#EXTM3U\n../Artist/Album/Song1.mp3\n' as never
       );
       vi.mocked(fs.outputFile).mockResolvedValue(undefined);
-      
+
       const mockInventory = [
         {
           title: 'Song1',
@@ -520,7 +520,7 @@ describe('OrganizerService', () => {
 
     it('should extract album cover from metadata', async () => {
       vi.mocked(fs.pathExists).mockResolvedValue(true as never);
-      
+
       const mockPicture = {
         data: new Uint8Array([1, 2, 3, 4]),
         format: 'image/jpeg',
@@ -562,7 +562,7 @@ describe('OrganizerService', () => {
 
     it('should extract full metadata with duration', async () => {
       vi.mocked(fs.pathExists).mockResolvedValue(true as never);
-      
+
       const mockMetadata = {
         common: {
           title: 'Song',

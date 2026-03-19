@@ -1,12 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Library, ListMusic, Settings } from "lucide-react";
-
-// Definimos nuestra lista de rutas una sola vez
-const NAV_ITEMS = [
-    { name: "Biblioteca", path: "/", icon: Library },
-    { name: "Playlists", path: "/playlists", icon: ListMusic },
-    { name: "Ajustes", path: "/settings", icon: Settings },
-];
+import { NAV_ITEMS } from '@/constants/app';
 
 interface NavigationLinksProps {
     layout?: 'vertical' | 'horizontal';
