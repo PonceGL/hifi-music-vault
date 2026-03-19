@@ -3,7 +3,9 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { MusicTable } from "@/components/MusicTable"
 import { usePlaylistRefresh } from "@/hooks/usePlaylistRefresh";
-import { VIEW_MODES, API_BASE_URL, type ViewMode } from "@/constants/app";
+import { VIEW_MODES, type ViewMode } from "@/constants/app";
+import { useInbox } from "@/hooks/useInbox";
+import { useLibrary } from "@/hooks/useLibrary";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,18 +36,31 @@ export function LibraryPage() {
   const navigate = useNavigate();
   const { triggerRefresh } = usePlaylistRefresh();
 
-  const [scanResults, setScanResults] = useState<ScanResult[]>([]);
-  const [libraryFiles, setLibraryFiles] = useState<ScanResult[]>([]);
+  // Hooks para gestión de estado
+  const {
+    scanResults,
+    isScanning,
+    isOrganizing,
+    error: inboxError,
+    scanInbox: performScan,
+    organize: performOrganize,
+  } = useInbox();
+
+  const {
+    libraryFiles,
+    isLoadingLibrary,
+    isRegenerating,
+    isSyncingAppleMusic,
+    error: libraryError,
+    fetchLibrary: performFetchLibrary,
+    regenerateDatabase: performRegenerate,
+    syncAppleMusic: performSync,
+    exportLibrary: performExport,
+    revealFile: performReveal,
+  } = useLibrary();
+
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODES.INBOX);
-
-  // Loading states
-  const [isScanning, setIsScanning] = useState(false);
-  const [isOrganizing, setIsOrganizing] = useState(false);
-  const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [isSyncingAppleMusic, setIsSyncingAppleMusic] = useState(false);
-
-  const [error, setError] = useState<string | null>(null);
+  const error = inboxError || libraryError;
 
   // Add to Playlist State
   const [trackToAdd, setTrackToAdd] = useState<ScanResult | null>(null);
@@ -58,35 +73,15 @@ export function LibraryPage() {
   // Export Library State
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
+  // Wrapper functions to handle library path from config
   const fetchLibrary = async () => {
     if (!config.libraryPath) return;
 
-    setIsLoadingLibrary(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/library?libraryPath=${encodeURIComponent(config.libraryPath)}`,
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch library");
-
-      const data = await response.json();
-
-      // Adapt SongMetadata to ScanResult for the table
-      const adapted: ScanResult[] = data.inventory.map(
-        (song: SongMetadata) => ({
-          file: song.absPath,
-          metadata: song,
-          proposedPath: song.absPath, // Already present
-          playlists: [],
-        }),
-      );
-
-      setLibraryFiles(adapted);
+      await performFetchLibrary(config.libraryPath);
       setViewMode(VIEW_MODES.LIBRARY);
     } catch (err) {
       console.error("Error fetching library:", err);
-    } finally {
-      setIsLoadingLibrary(false);
     }
   };
 
@@ -96,63 +91,71 @@ export function LibraryPage() {
       return;
     }
 
-    setIsScanning(true);
-    setError(null);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/scan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inboxPath: config.inboxPath,
-          libraryPath: config.libraryPath,
-        }),
-      });
+      const results = await performScan(config.inboxPath, config.libraryPath);
 
-      if (!response.ok) throw new Error("Failed to scan inbox");
-
-      const data = await response.json();
-
-      if (data.results.length > 0) {
-        setScanResults(data.results);
+      if (results.length > 0) {
         setViewMode(VIEW_MODES.INBOX);
       } else {
         // If nothing to organize, show library
         await fetchLibrary();
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
       console.error("Error scanning inbox:", err);
-      setError(errorMessage);
-    } finally {
-      setIsScanning(false);
     }
   };
 
   const handleOrganize = async () => {
-    if (scanResults.length === 0 || !config.libraryPath) return;
+    if (!config.libraryPath) return;
 
-    setIsOrganizing(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/organize`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          results: scanResults,
-          libraryPath: config.libraryPath,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Organization failed");
-
+      await performOrganize(config.libraryPath);
       // Success! Refresh library
-      setScanResults([]);
       await fetchLibrary();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMessage);
-    } finally {
-      setIsOrganizing(false);
+      console.error("Error organizing:", err);
+    }
+  };
+
+  const handleRegenerateDatabase = async () => {
+    if (!config.libraryPath) return;
+
+    try {
+      await performRegenerate(config.libraryPath);
+    } catch (err) {
+      console.error("Error regenerating database:", err);
+    }
+  };
+
+  const handleSyncAppleMusic = async () => {
+    if (!config.libraryPath) return;
+
+    try {
+      await performSync(config.libraryPath);
+    } catch (err) {
+      console.error("Error syncing with Apple Music:", err);
+    }
+  };
+
+  const handleExportLibrary = async (
+    destination: string,
+    mode: "copy" | "move",
+    preserveStructure: boolean,
+  ) => {
+    if (!config.libraryPath) return;
+
+    try {
+      await performExport(config.libraryPath, destination, mode, preserveStructure);
+    } catch (err) {
+      console.error("Error exporting library:", err);
+    }
+  };
+
+  const handleReveal = async (filePath: string) => {
+    try {
+      await performReveal(filePath);
+    } catch (err) {
+      console.error("Failed to reveal file", err);
     }
   };
 
@@ -171,105 +174,6 @@ export function LibraryPage() {
       setInitialTracksForCreate([trackToAdd.file]);
       setIsAddToPlaylistOpen(false);
       setIsCreatePlaylistOpen(true);
-    }
-  };
-
-  const handleReveal = async (filePath: string) => {
-    try {
-      await fetch(`${API_BASE_URL}/api/reveal`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: filePath }),
-      });
-    } catch (err) {
-      console.error("Failed to reveal file", err);
-    }
-  };
-
-  const handleExportLibrary = async (
-    destination: string,
-    mode: "copy" | "move",
-    preserveStructure: boolean,
-  ) => {
-    if (!config.libraryPath) return;
-
-    const response = await fetch(`${API_BASE_URL}/api/library/export`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        libraryPath: config.libraryPath,
-        destination,
-        mode,
-        preserveStructure,
-      }),
-    });
-
-    if (!response.ok) throw new Error("Failed to export library");
-
-    const result = await response.json();
-    console.log("Export Result:", result);
-
-    if (mode === "move") {
-      await fetchLibrary();
-    }
-  };
-
-  const handleRegenerateDatabase = async () => {
-    if (!config.libraryPath) return;
-
-    setIsRegenerating(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/library/regenerate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          libraryPath: config.libraryPath,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to regenerate database");
-
-      const result = await response.json();
-      console.log("Regenerate Result:", result);
-
-      // Refresh library view after regeneration
-      await fetchLibrary();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error("Error regenerating database:", err);
-      setError(errorMessage);
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const handleSyncAppleMusic = async () => {
-    if (!config.libraryPath) return;
-
-    setIsSyncingAppleMusic(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/library/sync-apple-music`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          libraryPath: config.libraryPath,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to sync with Apple Music");
-
-      const result = await response.json();
-      console.log("Apple Music Sync Result:", result);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error("Error syncing with Apple Music:", err);
-      setError(errorMessage);
-    } finally {
-      setIsSyncingAppleMusic(false);
     }
   };
 
