@@ -8,6 +8,11 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const SOURCE_FILES = ["src/**/*.{ts,tsx}", "__tests__/**/*.{ts,tsx}"];
+const TEST_FILES = [
+  "src/**/*.test.{ts,tsx}",
+  "__tests__/**/*.test.{ts,tsx}",
+  "jest.setup.ts",
+];
 
 export default defineConfig([
   globalIgnores([
@@ -46,6 +51,15 @@ export default defineConfig([
       "@typescript-eslint/no-unused-vars": "warn",
       "@next/next/no-img-element": "error",
       "react-hooks/exhaustive-deps": "warn",
+    },
+  },
+
+  // Relax rules for test files — callbacks and mocks don't need strict typing
+  {
+    files: TEST_FILES,
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 
