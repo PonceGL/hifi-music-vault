@@ -120,50 +120,150 @@ Audio file reading, integrity checking, and MP3 conversion go through `ffmpeg`/`
 
 ## Folder Structure
 
+The project lives inside `src/`. Next.js App Router conventions are followed strictly — only files that Next.js recognizes as special (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`) go inside `src/app/`. Everything else lives outside `app/`.
+
+### Separation of concerns
+
+```
+src/app/          → Routing only: pages, layouts, Next.js special files, API route handlers
+src/server/       → All Node.js business logic: file system, ffmpeg, MusicBrainz, path ops
+src/components/   → React UI components (client-side only — never import from src/server/)
+src/hooks/        → React custom hooks (client-side)
+src/lib/          → Shared pure utilities (no Node.js APIs, safe for both sides)
+src/types/        → TypeScript types shared across frontend and backend
+```
+
+**Rule:** `src/app/api/**/route.ts` files are thin handlers only. They parse the request, call a function from `src/server/`, and return the response. No business logic inside route handlers.
+
+```ts
+// ✅ correct — route handler is thin
+// src/app/api/sync/route.ts
+import { startSync } from "@/server/sync";
+export async function POST(req: Request) {
+  const { downloadPath, libraryPath } = await req.json();
+  return startSync({ downloadPath, libraryPath });
+}
+
+// ❌ wrong — business logic inside the route handler
+export async function POST(req: Request) {
+  const files = await readdir("/some/path"); // ← belongs in src/server/
+  // ... 80 lines of logic
+}
+```
+
+---
+
+### Full folder structure
+
 ```
 src/
-├── app/
-│   ├── globals.css            ← ALL design tokens (CSS custom properties). Single source of truth.
-│   ├── layout.tsx             ← Root layout with Geist fonts, theme attribute, AppShell
-│   ├── page.tsx               ← Entry point → redirects to /library or /onboarding
+│
+├── app/                                  ← Next.js App Router (routing only)
+│   ├── globals.css                       ← Design tokens — single source of truth
+│   ├── layout.tsx                        ← Root layout: Geist fonts, data-theme, AppShell
+│   ├── page.tsx                          ← Entry: redirects to /library or /onboarding
+│   ├── not-found.tsx                     ← Global 404
+│   ├── error.tsx                         ← Global error boundary
 │   │
 │   ├── onboarding/
-│   │   └── page.tsx
-│   ├── library/
-│   │   ├── page.tsx           ← Track list / grid view
-│   │   └── [id]/page.tsx      ← Individual track detail (mobile only — desktop uses panel)
-│   ├── artists/
 │   │   ├── page.tsx
-│   │   └── [id]/page.tsx
-│   ├── albums/
-│   │   ├── page.tsx
-│   │   └── [id]/page.tsx
-│   ├── playlists/
-│   │   ├── page.tsx
-│   │   └── [id]/page.tsx
-│   ├── health/
-│   │   └── page.tsx
-│   ├── settings/
-│   │   └── page.tsx
+│   │   └── loading.tsx
 │   │
-│   └── api/                   ← All backend logic lives here
-│       ├── sync/route.ts          ← Trigger sync, stream progress
-│       ├── library/route.ts       ← Read library index
-│       ├── tracks/[id]/route.ts   ← Track CRUD
-│       ├── metadata/route.ts      ← MusicBrainz lookup + write metadata
-│       ├── playlists/route.ts     ← Read/write .m3u8 files
-│       ├── health/route.ts        ← File integrity scan
-│       ├── export/route.ts        ← Copy/move/convert operations
-│       └── fs/route.ts            ← Folder picker, path validation, disk space
+│   ├── (app)/                            ← Route group: all authenticated/configured views
+│   │   ├── layout.tsx                    ← AppShell layout (sidebar + topbar + content)
+│   │   │
+│   │   ├── library/
+│   │   │   ├── page.tsx                  ← Track list / grid
+│   │   │   ├── loading.tsx               ← Skeleton loader
+│   │   │   ├── error.tsx                 ← Error boundary for library
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx              ← Track detail (mobile only)
+│   │   │       └── not-found.tsx
+│   │   │
+│   │   ├── artists/
+│   │   │   ├── page.tsx
+│   │   │   ├── loading.tsx
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx
+│   │   │       └── not-found.tsx
+│   │   │
+│   │   ├── albums/
+│   │   │   ├── page.tsx
+│   │   │   ├── loading.tsx
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx
+│   │   │       └── not-found.tsx
+│   │   │
+│   │   ├── playlists/
+│   │   │   ├── page.tsx
+│   │   │   ├── loading.tsx
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx
+│   │   │       └── not-found.tsx
+│   │   │
+│   │   ├── health/
+│   │   │   ├── page.tsx
+│   │   │   └── loading.tsx
+│   │   │
+│   │   └── settings/
+│   │       └── page.tsx
+│   │
+│   └── api/                              ← API route handlers (thin — no business logic)
+│       ├── sync/
+│       │   └── route.ts                  ← POST: start sync | GET: SSE progress stream
+│       ├── library/
+│       │   └── route.ts                  ← GET: paginated track list
+│       ├── tracks/
+│       │   └── [id]/
+│       │       └── route.ts              ← GET / PATCH / DELETE single track
+│       ├── metadata/
+│       │   └── route.ts                  ← GET: MusicBrainz lookup | PATCH: write metadata
+│       ├── playlists/
+│       │   ├── route.ts                  ← GET: list | POST: create
+│       │   └── [id]/
+│       │       └── route.ts              ← GET / PATCH / DELETE single playlist
+│       ├── health/
+│       │   └── route.ts                  ← GET: integrity scan (SSE stream)
+│       ├── export/
+│       │   └── route.ts                  ← POST: start export | GET: SSE progress stream
+│       └── fs/
+│           └── route.ts                  ← GET: disk space | POST: validate path
 │
-├── components/
-│   ├── ui/                    ← shadcn/ui base components (installed + cleaned)
+├── server/                               ← Node.js services (never imported by components)
+│   ├── sync/
+│   │   ├── sync.ts                       ← Orchestrates the full sync process
+│   │   ├── scanner.ts                    ← Recursive directory scan, filter audio files
+│   │   ├── organizer.ts                  ← Build destination path from metadata
+│   │   ├── deduplicator.ts               ← Detect files already in library
+│   │   └── tag-folders.ts                ← Parse [PlaylistName] folder convention
+│   ├── metadata/
+│   │   ├── reader.ts                     ← Read embedded audio tags (via ffprobe)
+│   │   ├── writer.ts                     ← Write metadata to audio files (via ffmpeg)
+│   │   └── musicbrainz.ts                ← MusicBrainz API client
+│   ├── library/
+│   │   ├── index.ts                      ← Build and query the library index
+│   │   └── health.ts                     ← Compute health status per track
+│   ├── playlists/
+│   │   ├── reader.ts                     ← Parse .m3u8 files
+│   │   ├── writer.ts                     ← Write .m3u8 files
+│   │   └── orphan-detector.ts            ← Find playlist entries pointing to missing files
+│   ├── export/
+│   │   ├── exporter.ts                   ← Copy / move with structure or flatten
+│   │   └── converter.ts                  ← MP3 conversion via ffmpeg
+│   └── fs/
+│       ├── disk-space.ts                 ← Check available disk space
+│       ├── path-sanitizer.ts             ← Replace forbidden chars by OS
+│       └── integrity.ts                  ← CRC / file corruption check via ffprobe
+│
+├── components/                           ← React UI (client-side only)
+│   │
+│   ├── ui/                               ← shadcn/ui base components (installed + cleaned)
 │   │   ├── button/
 │   │   │   ├── button.tsx
 │   │   │   └── button.test.tsx
 │   │   ├── dialog/
-│   │   │   ├── dialog.tsx         ← Only the root Dialog wrapper
-│   │   │   ├── dialog-header.tsx  ← Separated sub-component
+│   │   │   ├── dialog.tsx                ← Root Dialog wrapper only
+│   │   │   ├── dialog-header.tsx
 │   │   │   ├── dialog-content.tsx
 │   │   │   ├── dialog-footer.tsx
 │   │   │   └── dialog.test.tsx
@@ -178,26 +278,28 @@ src/
 │   │   ├── sheet/
 │   │   └── skeleton/
 │   │
-│   ├── shared/                ← App-specific composite components
+│   ├── shared/                           ← App-specific composite components
 │   │   ├── health-dot/
 │   │   │   ├── health-dot.tsx
 │   │   │   └── health-dot.test.tsx
 │   │   ├── format-badge/
+│   │   │   ├── format-badge.tsx
+│   │   │   └── format-badge.test.tsx
 │   │   ├── track-row/
 │   │   ├── track-card/
 │   │   ├── empty-state/
-│   │   ├── action-bar/        ← Multi-selection batch actions bar
-│   │   ├── confirm-dialog/    ← Standardized double-confirmation pattern
-│   │   └── progress-overlay/  ← Full-screen progress for sync/export
+│   │   ├── action-bar/                   ← Multi-selection batch actions bar
+│   │   ├── confirm-dialog/               ← Standard double-confirmation pattern
+│   │   └── progress-overlay/             ← Full-screen progress (sync / export)
 │   │
-│   ├── layout/
-│   │   ├── app-shell.tsx      ← Root layout shell (topbar + sidebar/tabbar + content)
+│   ├── layout/                           ← Shell components
+│   │   ├── app-shell.tsx
 │   │   ├── topbar.tsx
 │   │   ├── sidebar.tsx
-│   │   ├── tab-bar.tsx        ← Mobile only
-│   │   └── detail-panel.tsx   ← Desktop only (320px right panel)
+│   │   ├── tab-bar.tsx                   ← Mobile only (hidden md+)
+│   │   └── detail-panel.tsx              ← Desktop only (hidden below xl)
 │   │
-│   └── features/              ← Feature-specific components, coupled to domain
+│   └── features/                         ← Feature components (domain-coupled)
 │       ├── library/
 │       ├── playlists/
 │       ├── metadata/
@@ -205,25 +307,39 @@ src/
 │       ├── export/
 │       └── health/
 │
-├── hooks/
-│   ├── use-theme.ts           ← Dark/light/system toggle, persists to localStorage
-│   ├── use-sidebar.ts         ← Sidebar collapsed state, persists to localStorage
-│   ├── use-selection.ts       ← Multi-track selection state
-│   ├── use-local-storage.ts   ← Generic typed localStorage hook
-│   └── use-sync.ts            ← Sync process state (progress, cancel, result)
+├── hooks/                                ← React custom hooks (client-side)
+│   ├── use-theme.ts                      ← Dark/light/system, persists to localStorage
+│   ├── use-sidebar.ts                    ← Sidebar collapsed state, persists to localStorage
+│   ├── use-selection.ts                  ← Multi-track selection state
+│   ├── use-local-storage.ts              ← Generic typed localStorage hook
+│   └── use-sync.ts                       ← Sync SSE stream → progress state
 │
-├── lib/
-│   ├── cn.ts                  ← clsx + tailwind-merge utility
-│   ├── musicbrainz.ts         ← MusicBrainz API client (server-side only)
-│   ├── audio-formats.ts       ← Format detection, LOSSLESS_FORMATS constant
-│   └── paths.ts               ← Path sanitization, OS-specific rules
+├── lib/                                  ← Pure shared utilities (no Node.js APIs)
+│   ├── cn.ts                             ← clsx + tailwind-merge
+│   ├── audio-formats.ts                  ← LOSSLESS_FORMATS, format display helpers
+│   └── health.ts                         ← HealthStatus color/label maps (UI use)
 │
-└── types/
-    ├── track.ts               ← Track, TrackMetadata, HealthStatus types
-    ├── playlist.ts            ← Playlist, PlaylistEntry, OrphanEntry types
-    ├── sync.ts                ← SyncResult, SyncProgress, SyncError types
-    └── settings.ts            ← UserSettings, UIMode types
+└── types/                                ← Shared types: frontend AND backend use these
+    ├── track.ts                          ← Track, TrackMetadata, HealthStatus
+    ├── playlist.ts                       ← Playlist, PlaylistEntry, OrphanEntry
+    ├── sync.ts                           ← SyncResult, SyncProgress, SyncError
+    ├── export.ts                         ← ExportOptions, ExportResult
+    └── settings.ts                       ← UserSettings, UIMode, FolderConfig
 ```
+
+### Key conventions
+
+**`loading.tsx`** — Every route that fetches data has a `loading.tsx` sibling. It renders a skeleton that matches the real page layout. Next.js wraps it in `<Suspense>` automatically.
+
+**`error.tsx`** — Must be a Client Component (`'use client'`). Catches runtime errors for its route segment. Does not catch errors in `layout.tsx` of the same segment — those need a parent `error.tsx`.
+
+**`not-found.tsx`** — Rendered when `notFound()` is called from a page or when no route matches. Each dynamic segment (`[id]`) has its own `not-found.tsx`.
+
+**Route group `(app)/`** — Groups all post-onboarding views under a shared `layout.tsx` that renders the AppShell (sidebar + topbar). The `onboarding/` route is intentionally outside this group — it has no shell.
+
+**`src/server/`** — Nothing here is ever imported by a React component or client hook. If a component needs data from a server module, it goes through an API route. The boundary is strict.
+
+**`src/types/`** — The one place where frontend and backend share code. Types only — no runtime logic, no Node.js imports. Safe to import anywhere.
 
 ---
 
@@ -326,41 +442,62 @@ These are product decisions already made. Do not suggest alternatives.
 
 ## API Routes — Patterns
 
-All file system operations happen in API routes. Never import `fs`, `path`, or `child_process` from a React component or a client component.
+Route handlers in `src/app/api/` are thin by design. They handle HTTP concerns only: parse request, call server service, return response. All logic lives in `src/server/`.
 
 ```ts
-// ✅ correct — API route reads file system
-// src/app/api/sync/route.ts
-import { readdir } from 'fs/promises'
-export async function POST(request: Request) { ... }
+// ✅ correct — thin handler
+// src/app/api/tracks/[id]/route.ts
+import { getTrack, updateTrackMetadata } from "@/server/metadata/writer";
 
-// ❌ wrong — client component reads file system
-'use client'
-import { readdir } from 'fs/promises' // will fail — client bundle
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const track = await getTrack(id);
+  if (!track) return new Response("Not found", { status: 404 });
+  return Response.json(track);
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const body = await req.json();
+  const result = await updateTrackMetadata(id, body);
+  return Response.json(result);
+}
 ```
 
-For long-running operations (sync, export, integrity scan), use **Server-Sent Events** (SSE) to stream progress to the client. Do not poll. Do not use WebSockets unless explicitly instructed.
+For long-running operations (sync, export, integrity scan), use **Server-Sent Events (SSE)** to stream progress. Never poll. Never use WebSockets unless explicitly instructed.
 
 ```ts
-// SSE pattern for streaming progress
-export async function GET(request: Request) {
+// SSE pattern — src/app/api/sync/route.ts
+import { runSync } from "@/server/sync/sync";
+
+export async function GET(req: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      // send progress events
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ progress: 65 })}\n\n`),
-      );
+      const send = (data: object) =>
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+
+      await runSync({ onProgress: send });
+      controller.close();
     },
   });
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
+      Connection: "keep-alive",
     },
   });
 }
 ```
+
+**Never import from `src/server/` in client components or hooks.** The boundary between client and server is enforced by import direction — server modules may import from `src/types/` and `src/lib/`, but never from `src/components/` or `src/hooks/`.
 
 ---
 
@@ -403,7 +540,8 @@ type PlaylistEntryStatus = "ok" | "orphaned"; // orphaned = file no longer found
 - **Never hardcode color hex values** in component files — always use tokens
 - **Never use `useCallback` or `useMemo`** without a documented performance reason (React Compiler handles it)
 - **Never add webpack config** to `next.config.ts` (Turbopack is default, webpack breaks it)
-- **Never access the file system from client components** — API routes only
+- **Never import from `src/server/`** in React components, hooks, or any client-side code — only API route handlers may import from server modules
+- **Never put business logic in `src/app/api/` route handlers** — route handlers are thin; logic goes in `src/server/`
 - **Never write metadata during sync** — sync only reads metadata to determine destination path
 - **Never add a database** (SQLite, Prisma, Drizzle, etc.) without explicit instruction
 - **Never suggest cloud deployment** — this app runs locally
@@ -412,3 +550,5 @@ type PlaylistEntryStatus = "ok" | "orphaned"; // orphaned = file no longer found
 - **Never leave shadcn component code as installed** — always clean and split sub-components
 - **Never create a test file** that asserts on Tailwind class names — test behavior, not styling
 - **Never import from `features/`** in `shared/` or `ui/` — dependencies only flow downward
+- **Never add `loading.tsx` without a matching skeleton** that mirrors the real page layout
+- **Never use `error.tsx` as a `'use server'` component** — it must be `'use client'`
