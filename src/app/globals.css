@@ -1,26 +1,290 @@
 @import "tailwindcss";
 
+/* ─── PRIMITIVE TOKENS ───────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Gray scale */
+  --gray-0:   #ffffff;
+  --gray-50:  #f8f8f9;
+  --gray-100: #f0f0f2;
+  --gray-200: #e2e2e6;
+  --gray-300: #c8c8ce;
+  --gray-400: #9898a2;
+  --gray-500: #6e6e78;
+  --gray-600: #4e4e58;
+  --gray-700: #323238;
+  --gray-800: #1e1e22;
+  --gray-850: #18181c;
+  --gray-900: #111114;
+  --gray-950: #0a0a0d;
+
+  /* Accent — Indigo */
+  --accent-50:  #eef2ff;
+  --accent-100: #e0e7ff;
+  --accent-200: #c7d2fe;
+  --accent-300: #a5b4fc;
+  --accent-400: #818cf8;
+  --accent-500: #6366f1;
+  --accent-600: #4f46e5;
+  --accent-700: #4338ca;
+  --accent-800: #3730a3;
+  --accent-900: #312e81;
+
+  /* Health status */
+  --health-green:  #22c55e;
+  --health-yellow: #eab308;
+  --health-orange: #f97316;
+  --health-red:    #ef4444;
+
+  /* Audio format */
+  --format-flac:  #818cf8;
+  --format-alac:  #a78bfa;
+  --format-mp3:   #6b7280;
+  --format-other: #6b7280;
+
+  /* Animation durations */
+  --duration-instant: 0ms;
+  --duration-fast:    100ms;
+  --duration-normal:  200ms;
+  --duration-slow:    350ms;
+  --duration-xslow:   500ms;
+
+  /* Easing curves */
+  --ease-default: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-linear:  linear;
 }
+
+/* ─── SEMANTIC TOKENS — DARK MODE (default) ──────────────────────────────── */
+
+:root,
+[data-theme="dark"] {
+  /* Surfaces */
+  --color-bg:                var(--gray-950);
+  --color-surface-primary:   var(--gray-900);
+  --color-surface-secondary: var(--gray-850);
+  --color-surface-elevated:  var(--gray-800);
+  --color-surface-overlay:   var(--gray-700);
+
+  /* Borders */
+  --color-border:       var(--gray-800);
+  --color-border-strong: var(--gray-600);
+  --color-border-focus: var(--accent-500);
+
+  /* Text */
+  --color-text-primary:   var(--gray-50);
+  --color-text-secondary: var(--gray-400);
+  --color-text-tertiary:  var(--gray-600);
+  --color-text-disabled:  var(--gray-700);
+  --color-text-inverse:   var(--gray-950);
+  --color-text-on-accent: var(--gray-0);
+
+  /* Accent */
+  --color-accent:        var(--accent-500);
+  --color-accent-hover:  var(--accent-400);
+  --color-accent-subtle: color-mix(in srgb, var(--accent-500) 12%, transparent);
+
+  /* Semantic states */
+  --color-success: var(--health-green);
+  --color-warning: var(--health-yellow);
+  --color-error:   var(--health-red);
+  --color-info:    var(--accent-400);
+
+  /* Health */
+  --color-health-green:  var(--health-green);
+  --color-health-yellow: var(--health-yellow);
+  --color-health-orange: var(--health-orange);
+  --color-health-red:    var(--health-red);
+
+  /* Sidebar */
+  --color-sidebar-bg:     var(--gray-950);
+  --color-sidebar-hover:  color-mix(in srgb, var(--gray-0) 5%, transparent);
+  --color-sidebar-active: color-mix(in srgb, var(--accent-500) 15%, transparent);
+
+  /* Topbar */
+  --color-topbar-bg: color-mix(in srgb, var(--gray-950) 85%, transparent);
+
+  /* Track row */
+  --color-track-row-hover:    color-mix(in srgb, var(--gray-0) 4%, transparent);
+  --color-track-row-selected: color-mix(in srgb, var(--accent-500) 10%, transparent);
+
+  /* Shadows */
+  --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-xl:    0 16px 40px rgba(0, 0, 0, 0.7);
+  --shadow-focus: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
+}
+
+/* ─── SEMANTIC TOKENS — LIGHT MODE ──────────────────────────────────────── */
+
+[data-theme="light"] {
+  /* Surfaces */
+  --color-bg:                var(--gray-50);
+  --color-surface-primary:   var(--gray-0);
+  --color-surface-secondary: var(--gray-100);
+  --color-surface-elevated:  var(--gray-0);
+  --color-surface-overlay:   var(--gray-200);
+
+  /* Borders */
+  --color-border:        var(--gray-200);
+  --color-border-strong: var(--gray-300);
+  --color-border-focus:  var(--accent-500);
+
+  /* Text */
+  --color-text-primary:   var(--gray-900);
+  --color-text-secondary: var(--gray-500);
+  --color-text-tertiary:  var(--gray-400);
+  --color-text-disabled:  var(--gray-300);
+  --color-text-inverse:   var(--gray-0);
+  --color-text-on-accent: var(--gray-0);
+
+  /* Accent */
+  --color-accent:        var(--accent-600);
+  --color-accent-hover:  var(--accent-700);
+  --color-accent-subtle: color-mix(in srgb, var(--accent-500) 10%, transparent);
+
+  /* Semantic states */
+  --color-success: var(--health-green);
+  --color-warning: var(--health-yellow);
+  --color-error:   var(--health-red);
+  --color-info:    var(--accent-400);
+
+  /* Health (same in both modes — functional colors must not shift) */
+  --color-health-green:  var(--health-green);
+  --color-health-yellow: var(--health-yellow);
+  --color-health-orange: var(--health-orange);
+  --color-health-red:    var(--health-red);
+
+  /* Sidebar */
+  --color-sidebar-bg:     var(--gray-0);
+  --color-sidebar-hover:  var(--gray-100);
+  --color-sidebar-active: color-mix(in srgb, var(--accent-500) 10%, transparent);
+
+  /* Topbar */
+  --color-topbar-bg: color-mix(in srgb, var(--gray-0) 90%, transparent);
+
+  /* Track row */
+  --color-track-row-hover:    var(--gray-50);
+  --color-track-row-selected: color-mix(in srgb, var(--accent-500) 8%, transparent);
+
+  /* Shadows — light mode needs stronger shadows for layer separation */
+  --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-xl:    0 16px 40px rgba(0, 0, 0, 0.15);
+  --shadow-focus: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-border-focus);
+}
+
+/* ─── SHADCN VARIABLE MAPPING ────────────────────────────────────────────── */
+/* Maps shadcn's expected variable names to our semantic tokens.             */
+/* Only one block needed — shadcn vars reference our tokens which cascade.   */
+
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --background:             var(--color-bg);
+  --foreground:             var(--color-text-primary);
+  --card:                   var(--color-surface-primary);
+  --card-foreground:        var(--color-text-primary);
+  --popover:                var(--color-surface-elevated);
+  --popover-foreground:     var(--color-text-primary);
+  --primary:                var(--color-accent);
+  --primary-foreground:     var(--color-text-on-accent);
+  --secondary:              var(--color-surface-secondary);
+  --secondary-foreground:   var(--color-text-primary);
+  --muted:                  var(--color-surface-secondary);
+  --muted-foreground:       var(--color-text-secondary);
+  --accent:                 var(--color-surface-secondary);
+  --accent-foreground:      var(--color-text-primary);
+  --destructive:            var(--color-error);
+  --destructive-foreground: var(--color-text-on-accent);
+  --border:                 var(--color-border);
+  --input:                  var(--color-border);
+  --ring:                   var(--color-border-focus);
+  --radius:                 var(--radius-md);
+}
+
+/* ─── TAILWIND v4 — @theme MAPPING ──────────────────────────────────────── */
+/* inline: utility classes reference CSS vars at runtime (theme-aware).      */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Fonts — resolved from layout.tsx CSS variables */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Background */
+  --color-background: var(--color-bg);
+
+  /* Surfaces */
+  --color-surface-primary:   var(--color-surface-primary);
+  --color-surface-secondary: var(--color-surface-secondary);
+  --color-surface-elevated:  var(--color-surface-elevated);
+  --color-surface-overlay:   var(--color-surface-overlay);
+
+  /* Borders */
+  --color-border:        var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-border-focus:  var(--color-border-focus);
+
+  /* Text */
+  --color-text-primary:   var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary:  var(--color-text-tertiary);
+  --color-text-disabled:  var(--color-text-disabled);
+  --color-text-inverse:   var(--color-text-inverse);
+  --color-text-on-accent: var(--color-text-on-accent);
+
+  /* Accent */
+  --color-accent:        var(--color-accent);
+  --color-accent-hover:  var(--color-accent-hover);
+  --color-accent-subtle: var(--color-accent-subtle);
+
+  /* Health */
+  --color-health-green:  var(--color-health-green);
+  --color-health-yellow: var(--color-health-yellow);
+  --color-health-orange: var(--color-health-orange);
+  --color-health-red:    var(--color-health-red);
+
+  /* Sidebar */
+  --color-sidebar-bg:     var(--color-sidebar-bg);
+  --color-sidebar-hover:  var(--color-sidebar-hover);
+  --color-sidebar-active: var(--color-sidebar-active);
+
+  /* Topbar */
+  --color-topbar-bg: var(--color-topbar-bg);
+
+  /* Track row */
+  --color-track-row-hover:    var(--color-track-row-hover);
+  --color-track-row-selected: var(--color-track-row-selected);
+
+  /* Audio format */
+  --color-format-flac:  var(--format-flac);
+  --color-format-alac:  var(--format-alac);
+  --color-format-mp3:   var(--format-mp3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* @theme (no inline) — static values Tailwind injects into :root.           */
+/* Overrides Tailwind's defaults to match our design system scale.           */
+
+@theme {
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+}
+
+/* ─── REDUCED MOTION ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
