@@ -1,0 +1,6 @@
+"use client";
+
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+
+export const Dialog = DialogPrimitive.Root;
+export type DialogProps = DialogPrimitive.DialogProps;
