@@ -14,7 +14,7 @@ export function SearchInput({
     <div className="relative flex w-full items-center">
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 h-4 w-4 text-[var(--color-text-tertiary)]"
+        className="pointer-events-none absolute left-3 h-4 w-4 text-text-tertiary"
       />
       <Input
         type="search"
@@ -26,8 +26,8 @@ export function SearchInput({
         aria-label={`Atajo de teclado: ${SEARCH_SHORTCUT_LABEL}`}
         className={cn(
           "pointer-events-none absolute right-3",
-          "rounded border border-[var(--color-border)] bg-[var(--color-surface-elevated)]",
-          "px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-text-tertiary)]",
+          "rounded border border-border",
+          "px-1.5 py-0.5 font-mono text-[10px] text-text-tertiary",
         )}
       >
         {SEARCH_SHORTCUT_LABEL}

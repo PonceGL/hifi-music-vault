@@ -35,11 +35,11 @@ export function Input({
         type={type}
         data-state={state}
         className={cn(
-          "h-9 w-full rounded-md border bg-[var(--color-surface-secondary)] px-3 text-sm",
-          "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)]",
+          "h-9 w-full rounded-md border px-3 text-sm",
+          "text-surface-secondary placeholder:text-text-tertiary/70",
           "transition-colors duration-150",
           "focus-visible:outline-none focus-visible:ring-2",
-          "focus-visible:ring-[var(--color-border-focus)] focus-visible:ring-offset-2",
+          "focus-visible:ring-border-focus focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "file:border-0 file:bg-transparent file:text-sm file:font-medium",
           STATE_BORDER[state],
@@ -48,12 +48,12 @@ export function Input({
         {...props}
       />
       {error && (
-        <p className="text-xs text-[var(--color-health-red)]" role="alert">
+        <p className="text-xs text-health-red" role="alert">
           {error}
         </p>
       )}
       {!error && warning && (
-        <p className="text-xs text-[var(--color-health-yellow)]" role="status">
+        <p className="text-xs text-health-yellow" role="status">
           {warning}
         </p>
       )}
