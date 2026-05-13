@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Music, MoreHorizontal } from "lucide-react";
 import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button/button";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { Skeleton } from "@/components/ui/skeleton/skeleton";
 import { FormatBadge } from "@/components/shared/format-badge/format-badge";
@@ -188,15 +189,16 @@ export function TrackRow({
       </span>
 
       {/* More menu */}
-      <button
+      <Button
         data-more-menu
-        type="button"
+        variant="ghost"
+        size="icon"
         aria-label={MORE_MENU_ARIA_LABEL}
         onClick={(e: MouseEvent) => e.stopPropagation()}
-        className="shrink-0 rounded-sm p-0.5 text-text-tertiary opacity-0 transition-opacity duration-100 hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus group-hover:opacity-100"
+        className="shrink-0 text-text-tertiary opacity-0 hover:text-text-primary group-hover:opacity-100 focus-visible:opacity-100"
       >
         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-      </button>
+      </Button>
     </div>
   );
 }
