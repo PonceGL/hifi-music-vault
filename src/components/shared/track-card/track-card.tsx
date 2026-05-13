@@ -2,6 +2,7 @@
 
 import type { MouseEvent, ReactElement } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Music, MoreHorizontal } from "lucide-react";
 import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
@@ -18,6 +19,8 @@ import {
 
 export interface TrackCardProps {
   track: Track;
+  trackHref?: string;
+  artistHref?: string;
   isSelected?: boolean;
   isSelectionActive?: boolean;
   onSelect?: (id: string) => void;
@@ -26,6 +29,8 @@ export interface TrackCardProps {
 
 export function TrackCard({
   track,
+  trackHref,
+  artistHref,
   isSelected = false,
   isSelectionActive = false,
   onSelect,
@@ -38,7 +43,11 @@ export function TrackCard({
 
   const handleCardClick = (e: MouseEvent<HTMLDivElement>): void => {
     const target = e.target as HTMLElement;
-    if (target.closest("[data-checkbox]") || target.closest("[data-more-menu]")) return;
+    if (
+      target.closest("[data-checkbox]") ||
+      target.closest("[data-more-menu]") ||
+      target.closest("a")
+    ) return;
     onClick?.(id);
   };
 
@@ -57,7 +66,7 @@ export function TrackCard({
       onClick={handleCardClick}
     >
       {/* Artwork */}
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary border border-green-500">
         {metadata.artwork ? (
           <Image
             src={metadata.artwork}
@@ -125,7 +134,15 @@ export function TrackCard({
             title === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-primary",
           )}
         >
-          {title}
+          {trackHref && title !== EMPTY_VALUE ? (
+            <Link
+              href={trackHref}
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+              className="hover:underline focus-visible:outline-none focus-visible:rounded-sm focus-visible:ring-1 focus-visible:ring-border-focus"
+            >
+              {title}
+            </Link>
+          ) : title}
         </p>
         <p
           className={cn(
@@ -133,7 +150,15 @@ export function TrackCard({
             artist === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
           )}
         >
-          {artist}
+          {artistHref && artist !== EMPTY_VALUE ? (
+            <Link
+              href={artistHref}
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+              className="hover:underline focus-visible:outline-none focus-visible:rounded-sm focus-visible:ring-1 focus-visible:ring-border-focus"
+            >
+              {artist}
+            </Link>
+          ) : artist}
         </p>
       </div>
     </div>

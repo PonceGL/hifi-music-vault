@@ -116,7 +116,7 @@ describe("TrackCard — callbacks", () => {
     expect(onSelect).toHaveBeenCalledWith(MOCK_TRACK.id);
   });
 
-  it("calls onClick with track id when card is clicked", () => {
+  it("calls onClick when clicking outside links and interactive elements", () => {
     const onClick = jest.fn();
     render(<TrackCard track={MOCK_TRACK} onClick={onClick} />);
     fireEvent.click(screen.getByText("Wildlife Analysis"));
@@ -142,5 +142,51 @@ describe("TrackCard — callbacks", () => {
       render(<TrackCard track={MOCK_TRACK} />);
       fireEvent.click(screen.getByText("Wildlife Analysis"));
     }).not.toThrow();
+  });
+});
+
+describe("TrackCard — navigation links", () => {
+  it("renders title as link when trackHref is provided", () => {
+    render(<TrackCard track={MOCK_TRACK} trackHref="/library/track-1" />);
+    expect(screen.getByRole("link", { name: "Wildlife Analysis" })).toHaveAttribute(
+      "href",
+      "/library/track-1",
+    );
+  });
+
+  it("renders artist as link when artistHref is provided", () => {
+    render(<TrackCard track={MOCK_TRACK} artistHref="/artists/boards-of-canada" />);
+    expect(screen.getByRole("link", { name: "Boards of Canada" })).toHaveAttribute(
+      "href",
+      "/artists/boards-of-canada",
+    );
+  });
+
+  it("does not render title as link when trackHref is not provided", () => {
+    render(<TrackCard track={MOCK_TRACK} />);
+    expect(screen.queryByRole("link", { name: "Wildlife Analysis" })).not.toBeInTheDocument();
+  });
+
+  it("does not render title as link when title is missing", () => {
+    render(<TrackCard track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("does not call onClick when title link is clicked", () => {
+    const onClick = jest.fn();
+    render(
+      <TrackCard track={MOCK_TRACK} trackHref="/library/track-1" onClick={onClick} />,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Wildlife Analysis" }));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("does not call onClick when artist link is clicked", () => {
+    const onClick = jest.fn();
+    render(
+      <TrackCard track={MOCK_TRACK} artistHref="/artists/boards-of-canada" onClick={onClick} />,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Boards of Canada" }));
+    expect(onClick).not.toHaveBeenCalled();
   });
 });
