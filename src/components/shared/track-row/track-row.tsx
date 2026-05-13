@@ -1,6 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactElement } from "react";
+import Image from "next/image";
 import { Music, MoreHorizontal } from "lucide-react";
 import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
@@ -114,11 +115,12 @@ export function TrackRow({
       {/* Thumbnail */}
       <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-sm bg-surface-secondary">
         {metadata.artwork ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={metadata.artwork}
             alt={`${title} ${ARTWORK_ALT_SUFFIX}`}
-            className="h-full w-full object-cover"
+            fill
+            sizes="36px"
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
