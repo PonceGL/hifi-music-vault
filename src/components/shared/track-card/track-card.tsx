@@ -48,8 +48,7 @@ export function TrackCard({
 
   return (
     <div
-      role="article"
-      aria-selected={isSelected}
+      data-selected={isSelected}
       className={cn(
         "group cursor-pointer rounded-lg transition-all duration-150",
         "ring-2 ring-transparent",
