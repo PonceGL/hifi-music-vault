@@ -182,3 +182,45 @@ describe("TrackRow — error state", () => {
     expect(row.className).not.toContain("opacity-70");
   });
 });
+
+describe("TrackRow — navigation links", () => {
+  it("renders title as link when trackHref is provided", () => {
+    render(<TrackRow track={MOCK_TRACK} trackHref="/library/track-1" />);
+    expect(screen.getByRole("link", { name: "Track Title" })).toHaveAttribute(
+      "href",
+      "/library/track-1",
+    );
+  });
+
+  it("renders artist as link when artistHref is provided", () => {
+    render(<TrackRow track={MOCK_TRACK} artistHref="/artists/artist-name" />);
+    expect(screen.getByRole("link", { name: "Artist Name" })).toHaveAttribute(
+      "href",
+      "/artists/artist-name",
+    );
+  });
+
+  it("does not render title as link when trackHref is not provided", () => {
+    render(<TrackRow track={MOCK_TRACK} />);
+    expect(screen.queryByRole("link", { name: "Track Title" })).not.toBeInTheDocument();
+  });
+
+  it("does not render title as link when title is missing", () => {
+    render(<TrackRow track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("does not call onClick when title link is clicked", () => {
+    const onClick = jest.fn();
+    render(<TrackRow track={MOCK_TRACK} trackHref="/library/track-1" onClick={onClick} />);
+    fireEvent.click(screen.getByRole("link", { name: "Track Title" }));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("does not call onClick when artist link is clicked", () => {
+    const onClick = jest.fn();
+    render(<TrackRow track={MOCK_TRACK} artistHref="/artists/artist-name" onClick={onClick} />);
+    fireEvent.click(screen.getByRole("link", { name: "Artist Name" }));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+});

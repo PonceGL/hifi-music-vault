@@ -2,6 +2,7 @@
 
 import type { MouseEvent, ReactElement } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Music, MoreHorizontal } from "lucide-react";
 import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
@@ -20,6 +21,8 @@ import {
 
 export interface TrackRowProps {
   track: Track;
+  trackHref?: string;
+  artistHref?: string;
   isSelected?: boolean;
   isLoading?: boolean;
   isSelectionActive?: boolean;
@@ -52,6 +55,8 @@ function TrackRowSkeleton(): ReactElement {
 
 export function TrackRow({
   track,
+  trackHref,
+  artistHref,
   isSelected = false,
   isLoading = false,
   isSelectionActive = false,
@@ -71,7 +76,11 @@ export function TrackRow({
 
   const handleRowClick = (e: MouseEvent<HTMLDivElement>): void => {
     const target = e.target as HTMLElement;
-    if (target.closest("[data-checkbox]") || target.closest("[data-more-menu]")) return;
+    if (
+      target.closest("[data-checkbox]") ||
+      target.closest("[data-more-menu]") ||
+      target.closest("a")
+    ) return;
     onClick?.(id);
   };
 
@@ -138,7 +147,15 @@ export function TrackRow({
             title === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-primary",
           )}
         >
-          {title}
+          {trackHref && title !== EMPTY_VALUE ? (
+            <Link
+              href={trackHref}
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+              className="hover:underline focus-visible:outline-none focus-visible:rounded-sm focus-visible:ring-1 focus-visible:ring-border-focus"
+            >
+              {title}
+            </Link>
+          ) : title}
         </span>
         <span
           className={cn(
@@ -146,7 +163,15 @@ export function TrackRow({
             artist === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
           )}
         >
-          {artist}
+          {artistHref && artist !== EMPTY_VALUE ? (
+            <Link
+              href={artistHref}
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+              className="hover:underline focus-visible:outline-none focus-visible:rounded-sm focus-visible:ring-1 focus-visible:ring-border-focus"
+            >
+              {artist}
+            </Link>
+          ) : artist}
         </span>
       </div>
 
