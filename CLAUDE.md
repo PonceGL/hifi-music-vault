@@ -14,7 +14,9 @@ npm run dev      # development server (Turbopack, port 3000)
 npm run build    # production build (Turbopack)
 npm run start    # serve production build
 npm run lint     # ESLint
-npm run test     # Vitest (not yet configured — do not create test infra without instruction)
+npm run test     # Jest unit tests
+pnpm storybook        # Storybook dev server (port 6006, webpack 5)
+pnpm build-storybook  # Static Storybook build → storybook-static/
 ```
 
 ---
@@ -552,3 +554,49 @@ type PlaylistEntryStatus = "ok" | "orphaned"; // orphaned = file no longer found
 - **Never import from `features/`** in `shared/` or `ui/` — dependencies only flow downward
 - **Never add `loading.tsx` without a matching skeleton** that mirrors the real page layout
 - **Never use `error.tsx` as a `'use server'` component** — it must be `'use client'`
+
+---
+
+## Storybook — Conventions
+
+Storybook 10 runs at `http://localhost:6006` via `pnpm storybook`. It uses webpack 5 via `@storybook/nextjs` and is completely independent from Next.js's Turbopack server.
+
+### Story file location
+
+Every component gets a `*.stories.tsx` file placed **next to the component file**:
+
+```
+src/components/ui/button/
+  button.tsx
+  button.test.tsx       ← Jest unit tests (behavior)
+  button.stories.tsx    ← Storybook stories (visual)
+```
+
+### Story conventions
+
+```tsx
+import type { Meta, StoryObj } from "@storybook/nextjs";
+import { MyComponent } from "./my-component";
+
+const meta = {
+  title: "UI/MyComponent",         // UI/ for ui/, Shared/ for shared/
+  component: MyComponent,
+  tags: ["autodocs"],              // enables auto-generated docs page
+  args: { /* required prop defaults */ },
+  argTypes: { /* controls config */ },
+} satisfies Meta<typeof MyComponent>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = { args: { ... } };
+export const AllVariants: Story = { render: (args) => (...) };
+```
+
+**Rules:**
+- Use `satisfies Meta<typeof Component>` — not `Meta<ComponentProps>`
+- One `Default` story per component + one `AllVariants` overview story
+- Stories that use `render` must spread `args` so controls still work: `<Comp {...args} variant="x" />`
+- **Never test logic in stories** — stories are visual only. Logic goes in `*.test.tsx`
+- **Never assert on Storybook output in Jest tests** — they are separate concerns
+- Story title prefix: `"UI/"` for `src/components/ui/`, `"Shared/"` for `src/components/shared/`
