@@ -84,7 +84,7 @@ export function TrackRow({
       role="row"
       aria-selected={isSelected}
       className={cn(
-        "group flex h-[52px] cursor-pointer items-center gap-3 border-l-2 border-transparent px-4 transition-colors duration-100",
+        "group flex h-16 cursor-pointer items-center gap-3 border-l-2 border-transparent px-4 transition-colors duration-100",
         "hover:bg-track-row-hover",
         isSelected && "border-accent bg-track-row-selected",
         isError && "opacity-70",
@@ -114,13 +114,13 @@ export function TrackRow({
       </div>
 
       {/* Thumbnail */}
-      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-sm bg-surface-secondary">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-sm bg-surface-secondary">
         {metadata.artwork ? (
           <Image
             src={metadata.artwork}
             alt={`${title} ${ARTWORK_ALT_SUFFIX}`}
             fill
-            sizes="36px"
+            sizes="100px"
             className="object-cover"
           />
         ) : (
@@ -181,7 +181,7 @@ export function TrackRow({
       <span
         aria-label={COLUMN_LABELS.duration}
         className={cn(
-          "w-10 shrink-0 text-right text-xs font-mono",
+          "hidden lg:block w-10 shrink-0 text-right text-xs font-mono",
           durationText === EMPTY_VALUE ? "text-text-tertiary" : "text-text-secondary",
         )}
       >
