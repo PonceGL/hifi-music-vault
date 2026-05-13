@@ -18,3 +18,5 @@ export { DialogTitle } from "./dialog-title";
 export type { DialogTitleProps } from "./dialog-title";
 export { DialogDescription } from "./dialog-description";
 export type { DialogDescriptionProps } from "./dialog-description";
+export { DIALOG_VARIANTS } from "./dialog-constants";
+export type { DialogVariant } from "./dialog-constants";
