@@ -66,7 +66,7 @@ export function TrackCard({
       onClick={handleCardClick}
     >
       {/* Artwork */}
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary border border-green-500">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary">
         {metadata.artwork ? (
           <Image
             src={metadata.artwork}
