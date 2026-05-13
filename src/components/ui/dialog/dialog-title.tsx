@@ -11,7 +11,7 @@ export function DialogTitle({ className, ref, ...props }: DialogTitleProps): Rea
   return (
     <DialogPrimitive.Title
       ref={ref}
-      className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+      className={cn("text-lg font-semibold leading-none tracking-tight text-text-primary", className)}
       {...props}
     />
   );
