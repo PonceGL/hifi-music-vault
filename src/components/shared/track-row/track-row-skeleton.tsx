@@ -1,7 +1,10 @@
-import type { HTMLAttributes, ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { Skeleton } from "@/components/ui/skeleton/skeleton";
 
-export type TrackRowSkeletonProps = Pick<HTMLAttributes<HTMLDivElement>, "className" | "style">;
+export interface TrackRowSkeletonProps {
+  className?: string;
+  style?: CSSProperties;
+}
 
 export function TrackRowSkeleton({ className, style }: TrackRowSkeletonProps = {}): ReactElement {
   return (
