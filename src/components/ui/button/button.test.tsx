@@ -1,45 +1,133 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Button } from "./button";
 
 describe("Button", () => {
-  it("renders its text content", () => {
-    render(<Button>Save changes</Button>);
-    expect(
-      screen.getByRole("button", { name: /save changes/i }),
-    ).toBeInTheDocument();
+  describe("rendering", () => {
+    it("renders its text content", () => {
+      render(<Button>Save changes</Button>);
+      expect(
+        screen.getByRole("button", { name: /save changes/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("forwards native button props", () => {
+      render(<Button type="submit">Submit</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute("type", "submit");
+    });
+
+    it("forwards aria attributes", () => {
+      render(<Button aria-label="Close dialog">✕</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "aria-label",
+        "Close dialog",
+      );
+    });
   });
 
-  it("is disabled when the disabled prop is passed", () => {
-    render(<Button disabled>Save changes</Button>);
-    expect(screen.getByRole("button")).toBeDisabled();
+  describe("variants", () => {
+    it("uses the primary variant by default", () => {
+      render(<Button>Confirm</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "data-variant",
+        "primary",
+      );
+    });
+
+    it("applies the secondary variant", () => {
+      render(<Button variant="secondary">Cancel</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "data-variant",
+        "secondary",
+      );
+    });
+
+    it("applies the destructive variant", () => {
+      render(<Button variant="destructive">Delete</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "data-variant",
+        "destructive",
+      );
+    });
+
+    it("applies the ghost variant", () => {
+      render(<Button variant="ghost">More</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "data-variant",
+        "ghost",
+      );
+    });
+
+    it("applies the link variant", () => {
+      render(<Button variant="link">Learn more</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute(
+        "data-variant",
+        "link",
+      );
+    });
   });
 
-  it("uses the primary variant by default", () => {
-    render(<Button>Confirm</Button>);
-    expect(screen.getByRole("button")).toHaveAttribute(
-      "data-variant",
-      "primary",
-    );
+  describe("sizes", () => {
+    it("uses md size by default", () => {
+      render(<Button>Click</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute("data-size", "md");
+    });
+
+    it("applies sm size", () => {
+      render(<Button size="sm">Small</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute("data-size", "sm");
+    });
+
+    it("applies lg size", () => {
+      render(<Button size="lg">Large</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute("data-size", "lg");
+    });
+
+    it("applies icon size", () => {
+      render(<Button size="icon">✕</Button>);
+      expect(screen.getByRole("button")).toHaveAttribute("data-size", "icon");
+    });
   });
 
-  it("applies the secondary variant when specified", () => {
-    render(<Button variant="secondary">Cancel</Button>);
-    expect(screen.getByRole("button")).toHaveAttribute(
-      "data-variant",
-      "secondary",
-    );
+  describe("disabled state", () => {
+    it("is disabled when the disabled prop is passed", () => {
+      render(<Button disabled>Save changes</Button>);
+      expect(screen.getByRole("button")).toBeDisabled();
+    });
+
+    it("does not call onClick when disabled", () => {
+      const onClick = jest.fn();
+      render(
+        <Button disabled onClick={onClick}>
+          Delete
+        </Button>,
+      );
+      fireEvent.click(screen.getByRole("button"));
+      expect(onClick).not.toHaveBeenCalled();
+    });
   });
 
-  it("applies the destructive variant when specified", () => {
-    render(<Button variant="destructive">Delete</Button>);
-    expect(screen.getByRole("button")).toHaveAttribute(
-      "data-variant",
-      "destructive",
-    );
-  });
+  describe("isLoading state", () => {
+    it("disables the button when isLoading is true", () => {
+      render(<Button isLoading>Saving…</Button>);
+      expect(screen.getByRole("button")).toBeDisabled();
+    });
 
-  it("forwards native button props", () => {
-    render(<Button type="submit">Submit</Button>);
-    expect(screen.getByRole("button")).toHaveAttribute("type", "submit");
+    it("renders a spinner when isLoading is true", () => {
+      render(<Button isLoading>Saving…</Button>);
+      expect(
+        screen.getByRole("button").querySelector("[aria-hidden='true']"),
+      ).toBeInTheDocument();
+    });
+
+    it("does not call onClick when isLoading is true", () => {
+      const onClick = jest.fn();
+      render(
+        <Button isLoading onClick={onClick}>
+          Saving…
+        </Button>,
+      );
+      fireEvent.click(screen.getByRole("button"));
+      expect(onClick).not.toHaveBeenCalled();
+    });
   });
 });
