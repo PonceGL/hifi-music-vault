@@ -8,8 +8,8 @@ import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button/button";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
-import { Skeleton } from "@/components/ui/skeleton/skeleton";
 import { FormatBadge } from "@/components/shared/format-badge/format-badge";
+import { TrackRowSkeleton } from "./track-row-skeleton";
 import { HealthDot } from "@/components/shared/health-dot/health-dot";
 import {
   EMPTY_VALUE,
@@ -34,23 +34,6 @@ function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function TrackRowSkeleton(): ReactElement {
-  return (
-    <div className="flex h-[52px] items-center gap-3 px-4" aria-hidden="true">
-      <Skeleton className="h-4 w-4 shrink-0 rounded-sm" />
-      <Skeleton className="h-9 w-9 shrink-0 rounded-sm" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <Skeleton className="h-3.5 w-2/5 rounded" />
-        <Skeleton className="h-3 w-1/4 rounded" />
-      </div>
-      <Skeleton className="hidden h-3.5 w-28 rounded xl:block" />
-      <Skeleton className="hidden h-5 w-12 rounded-sm xl:block" />
-      <Skeleton className="h-3.5 w-10 rounded" />
-      <Skeleton className="h-5 w-5 rounded-sm" />
-    </div>
-  );
 }
 
 export function TrackRow({

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button/button";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { FormatBadge } from "@/components/shared/format-badge/format-badge";
 import { HealthDot } from "@/components/shared/health-dot/health-dot";
+import { TrackCardSkeleton } from "./track-card-skeleton";
 import {
   EMPTY_VALUE,
   ARTWORK_ALT_SUFFIX,
@@ -22,6 +23,7 @@ export interface TrackCardProps {
   trackHref?: string;
   artistHref?: string;
   isSelected?: boolean;
+  isLoading?: boolean;
   isSelectionActive?: boolean;
   onSelect?: (id: string) => void;
   onClick?: (id: string) => void;
@@ -32,10 +34,13 @@ export function TrackCard({
   trackHref,
   artistHref,
   isSelected = false,
+  isLoading = false,
   isSelectionActive = false,
   onSelect,
   onClick,
 }: TrackCardProps): ReactElement {
+  if (isLoading) return <TrackCardSkeleton />;
+
   const { id, metadata, healthStatus, format } = track;
   const title = metadata.title ?? EMPTY_VALUE;
   const artist = metadata.artist ?? EMPTY_VALUE;
@@ -66,7 +71,7 @@ export function TrackCard({
       onClick={handleCardClick}
     >
       {/* Artwork */}
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary border border-green-500">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-surface-secondary">
         {metadata.artwork ? (
           <Image
             src={metadata.artwork}
