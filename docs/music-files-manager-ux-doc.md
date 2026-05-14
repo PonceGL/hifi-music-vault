@@ -1,6 +1,7 @@
 # Music Files Manager — Documentación UX y Flujos Completos
-> Versión: MVP 1.0 | Plataforma: macOS + Windows | Stack: Next.js + Node.js local
-> **Perfil de usuario:** Dual (audiófilo no técnico + power user) | **MusicBrainz:** Obligatoria en MVP | **Confirmaciones:** Doble confirmación en toda acción destructiva | **Storage:** localStorage únicamente (sin SQLite en MVP)
+
+> **Versión:** 1.1 | **Plataforma:** Web (Desktop, Tablet, Mobile) | **Stack:** Next.js + Node.js local
+> **Interfaz:** Unificada (sin modos Simple/Avanzado) | **MusicBrainz:** Obligatoria en MVP | **Confirmaciones:** Doble confirmación en toda acción destructiva | **Storage:** localStorage únicamente (sin SQLite en MVP)
 
 ---
 
@@ -15,29 +16,41 @@
 7. [Flujo 4 — Gestión de Metadatos](#7-flujo-4--gestión-de-metadatos)
 8. [Flujo 5 — Playlists](#8-flujo-5--playlists)
 9. [Flujo 6 — Exportación y Conversión](#9-flujo-6--exportación-y-conversión)
-10. [Flujo 7 — Errores y Casos Borde](#10-flujo-7--errores-y-casos-borde)
-11. [Pantallas de Configuración (Settings)](#11-pantallas-de-configuración-settings)
-12. [Componentes Globales](#12-componentes-globales)
-13. [Inconsistencias del PRD y Decisiones Tomadas](#13-inconsistencias-del-prd-y-decisiones-tomadas)
-14. [Glosario](#14-glosario)
+10. [Flujo 7 — Optimización de Portadas](#10-flujo-7--optimización-de-portadas)
+11. [Flujo 8 — Errores y Casos Borde](#11-flujo-8--errores-y-casos-borde)
+12. [Pantallas de Configuración (Settings)](#12-pantallas-de-configuración-settings)
+13. [Componentes Globales](#13-componentes-globales)
+14. [Inconsistencias del PRD y Decisiones Tomadas](#14-inconsistencias-del-prd-y-decisiones-tomadas)
+15. [Glosario](#15-glosario)
 
 ---
 
 ## 1. Visión y Principios de Diseño
 
 ### Propósito
+
 Transformar carpetas de descargas caóticas en una biblioteca musical organizada, con metadatos limpios y playlists portables. El usuario **siempre tiene control total**; la app nunca hace cambios destructivos sin confirmación explícita.
 
+### Accesibilidad y Responsividad
+
+La aplicación es una herramienta web para gestión profesional de bibliotecas de música local. No es mobile-first, pero es completamente responsiva:
+
+- **Desktop:** Layout horizontal, aprovechando el ancho de pantalla. Onboarding sin scroll (Full Viewport).
+- **Tablet:** Sidebar colapsable, navegación adaptada.
+- **Mobile:** Layout vertical con scroll habilitado. Navegación simplificada mediante menús contextuales y barras de navegación en la parte inferior.
+
 ### Principios
-| # | Principio | Implicación en UI |
-|---|-----------|-------------------|
-| 1 | **Doble confirmación en todo lo destructivo** | Mover, eliminar, sobreescribir metadatos → siempre 2 pasos: preview + confirmación explícita. Sin excepciones. |
-| 2 | **El usuario ve antes de que pase** | Preview obligatorio antes de cualquier operación batch. |
-| 3 | **Transparencia de estado** | Siempre visible: cuántos archivos hay, su salud, qué está procesando. |
-| 4 | **Lossless primero** | FLAC/ALAC tienen prioridad visual, indicadores de calidad y opciones especiales. |
-| 5 | **Resiliencia de datos** | Borrar localStorage jamás toca los archivos físicos. La app vuelve al onboarding de configuración de carpetas, sin alterar nada en disco. |
-| 6 | **Dual-mode UX** | Modo simple (acciones con un clic, lenguaje natural) y modo avanzado (control granular, opciones técnicas). Adaptable por tipo de usuario. |
-| 7 | **MusicBrainz como backbone** | Toda sugerencia de metadatos viene de MusicBrainz. El usuario confirma campo por campo. Nunca se aplica automáticamente. |
+
+| #   | Principio                                     | Implicación en UI                                                                                                                                                                                                                                          |
+| --- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Doble confirmación en todo lo destructivo** | Mover, eliminar, sobreescribir metadatos → siempre 2 pasos: preview + confirmación explícita. Sin excepciones.                                                                                                                                             |
+| 2   | **El usuario ve antes de que pase**           | Preview obligatorio antes de cualquier operación batch.                                                                                                                                                                                                    |
+| 3   | **Transparencia de estado**                   | Siempre visible: cuántos archivos hay, su salud, qué está procesando.                                                                                                                                                                                      |
+| 4   | **Lossless primero**                          | FLAC/ALAC tienen prioridad visual, indicadores de calidad y opciones especiales.                                                                                                                                                                           |
+| 5   | **Resiliencia de datos**                      | Borrar localStorage jamás toca los archivos físicos. La app vuelve al onboarding de configuración de carpetas, sin alterar nada en disco. Al reconectar la ruta de Biblioteca, se realiza un escaneo para recuperar metadatos y listas `.m3u8` existentes. |
+| 6   | **Interfaz unificada**                        | No existen modos "Simple" o "Avanzado". La UI es fluida y limpia por defecto, pero expone herramientas potentes (APIs, edición profunda de metadatos) de forma contextual.                                                                                 |
+| 7   | **MusicBrainz como backbone**                 | Toda sugerencia de metadatos viene de MusicBrainz. El usuario confirma campo por campo. Nunca se aplica automáticamente.                                                                                                                                   |
+| 8   | **Wizard para flujos multi-paso**             | Cualquier flujo que requiera varias decisiones del usuario (batch, exportación, confirmaciones) se presenta como un wizard: un modal por paso, una sola decisión a la vez. Reduce la carga cognitiva y garantiza que no falta ningún paso obligatorio.     |
 
 ---
 
@@ -46,35 +59,20 @@ Transformar carpetas de descargas caóticas en una biblioteca musical organizada
 ```
 App
 ├── [ONBOARDING]          → Solo se muestra si no hay carpetas configuradas
-│   ├── Bienvenida
-│   ├── Selección de carpeta Descargas
-│   ├── Selección de carpeta Biblioteca
-│   └── Resumen y confirmación
+│   ├── Bienvenida        → Pantalla 1: nombre, slogan, funciones
+│   └── Configuración     → Pantalla 2: selección de carpetas (con transición lateral)
 │
 └── [APP PRINCIPAL]       → Panel lateral fijo + área de contenido
     ├── Biblioteca         → Vista de todos los archivos
     ├── Artistas           → Agrupación por artista
     ├── Álbumes            → Agrupación por álbum
-    ├── Playlists          → Gestión de .m3u8
+    ├── Playlists          → Gestión de .m3u8 (con contador de listas)
     ├── Salud              → Linter / archivos con problemas
     └── Configuración      → Ajustes globales
 ```
 
-### Modo Simple vs. Modo Avanzado (Dual UX)
-
-La app se adapta al perfil del usuario sin requerir configuración explícita. El modo se selecciona en Settings y puede cambiarse en cualquier momento.
-
-| Elemento | Modo Simple | Modo Avanzado |
-|----------|-------------|---------------|
-| Sincronización | Un botón [Sincronizar] | Preview detallado con tabla de acciones por archivo |
-| Edición de metadatos | "Completar con MusicBrainz" (1 clic) | Editor campo por campo con ✓/✗ individual |
-| Exportación | Flujo guiado de 3 pasos | Matriz completa de opciones (copy/move × estructura × formato) |
-| Salud | Resumen con "Reparar lo que se pueda" | Lista detallada con acción por archivo |
-| Mensajes de error | Lenguaje natural, acción sugerida | Ruta exacta + código de error + log descargable |
-
-> **Regla:** El modo nunca oculta información crítica. En modo simple, los detalles técnicos están un clic atrás (chevron "Ver detalles").
-
 ### Layout Principal (App Shell)
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │  [Logo]  Music Manager          [Buscar]  [Sincronizar] │  ← Topbar
@@ -96,6 +94,7 @@ La app se adapta al perfil del usuario sin requerir configuración explícita. E
 ```
 
 **Stats en footer del sidebar:**
+
 - Total de tracks
 - Total en FLAC/ALAC vs MP3
 - Espacio en disco usado
@@ -106,25 +105,58 @@ La app se adapta al perfil del usuario sin requerir configuración explícita. E
 
 **Trigger:** localStorage vacío O carpetas configuradas ya no existen en disco.
 
-> **Decisión de diseño:** El onboarding es mínimo y directo. Una pantalla de presentación rápida seguida inmediatamente de la selección de carpetas. Sin pasos extra, sin wizards largos.
+> **Decisión de diseño:** El onboarding está dividido en dos pantallas con transición animada entre ellas: una de bienvenida y presentación, y otra de configuración de carpetas. En Desktop ambas ocupan el 100% del viewport sin scroll. En Mobile el contenido tiene scroll vertical.
 
 ---
 
-### Pantalla 0.1 — Bienvenida + Configuración de Carpetas
+### Pantalla 0.1 — Bienvenida
 
-Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y solicita las dos rutas necesarias en el mismo lugar.
+Primera pantalla del onboarding. Presenta la app y sus funciones principales.
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
 │           🎵 Music Files Manager                    │
 │                                                     │
-│   Organiza tu música local automáticamente.         │
-│   Mueve archivos de tus Descargas a una             │
-│   Biblioteca ordenada, con metadatos limpios        │
-│   y playlists portables en formato .m3u8.           │
+│   Tu biblioteca musical, perfectamente organizada.  │
 │                                                     │
-│   ─── Configura tus carpetas ─────────────────────  │
+│   ──────────────────────────────────────────────    │
+│                                                     │
+│   📚  Gestión de biblioteca                         │
+│       Organiza tus archivos por Artista/Álbum/Año  │
+│       automáticamente a partir de sus metadatos.   │
+│                                                     │
+│   🎵  Playlists portables                          │
+│       Crea y gestiona playlists en formato .m3u8   │
+│       compatible con cualquier reproductor.        │
+│                                                     │
+│   🏷️  Metadatos precisos                           │
+│       Enriquece tus archivos con MusicBrainz.      │
+│       Tú decides qué aplicas y qué no.             │
+│                                                     │
+│   ─ Desktop: botón centrado bajo el texto ──────── │
+│                                                     │
+│                   [Comenzar →]                      │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**Comportamientos:**
+
+- Desktop: Full Viewport, sin scroll. Botón "Comenzar" centrado bajo el contenido.
+- Mobile: scroll vertical habilitado. Botón al final del contenido.
+- Al hacer clic en [Comenzar →], se realiza una transición de desplazamiento lateral hacia la siguiente pantalla.
+
+---
+
+### Pantalla 0.2 — Configuración de Carpetas
+
+Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para que la app funcione.
+
+```
+┌─────────────────────────────────────────────────────┐
+│                                                     │
+│   ─── Configura tus carpetas ───────────────────── │
 │                                                     │
 │   📥 Carpeta de Descargas                           │
 │   ┌─────────────────────────────────────────────┐  │
@@ -148,12 +180,26 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 ```
 
 **Comportamientos:**
-- Cada [Elegir] abre el selector nativo del sistema operativo (Finder en macOS, Explorer en Windows).
+
+- Cada [Elegir] abre el selector nativo del sistema operativo (Finder en macOS, Explorer en Windows). **Ver nota técnica abajo.**
 - Al seleccionar la carpeta de Descargas, la app hace un escaneo superficial inmediato (sin mover nada) y muestra el conteo de archivos de audio encontrados.
 - [Comenzar →] se habilita solo cuando ambas carpetas están seleccionadas y válidas.
 - Las preferencias (tema, paginación) tienen sus valores por defecto y el usuario las ajusta en Settings después de entrar.
 
+> **Nota técnica — Selector de carpetas:**
+> El botón [Elegir] **no** usa `showDirectoryPicker()` ni ninguna API del navegador. El browser no expone el path absoluto del sistema de archivos — solo devuelve un `FileSystemDirectoryHandle` sandboxeado, inutilizable para operaciones de Node.js (ffprobe, ffmpeg, mover archivos).
+>
+> El flujo correcto es: el botón llama a `POST /api/fs/open-dialog` → Node.js abre el diálogo nativo del OS vía `child_process` → el OS muestra el Finder/Explorer nativo → el usuario selecciona la carpeta → Node.js recibe el path absoluto como string directamente.
+>
+> Implementación por OS:
+>
+> - **macOS:** `osascript -e 'POSIX path of (choose folder with prompt "...")'` → devuelve `/Users/juan/Downloads/Música`
+> - **Windows:** PowerShell con `FolderBrowserDialog` nativo
+>
+> Si el usuario cancela el diálogo del OS, el endpoint devuelve `{ path: null }` — no se trata como error. El resultado visual es idéntico para el usuario (ve el Finder o Explorer nativo), pero Node.js tiene el path absoluto desde el primer momento, sin ninguna limitación del browser.
+
 **Validaciones en tiempo real:**
+
 - ✅ Carpeta existe y tiene permisos de escritura
 - ✅ Espacio disponible en disco de Biblioteca
 - ❌ Ambas carpetas son la misma → mensaje de error inline, bloquea [Comenzar]
@@ -191,8 +237,6 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 
 ---
 
----
-
 ## 4. Flujo 1 — Motor de Ingesta (Sincronización)
 
 **Trigger:** Usuario hace clic en [Sincronizar] en la topbar.
@@ -204,13 +248,16 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 > **Principio central:** La sincronización es un proceso 100% automático que corre sin intervención del usuario una vez confirmado el inicio. No pregunta por cada archivo. Si algo necesita revisión posterior, queda marcado en Salud para que el usuario lo atienda cuando quiera — ese es un flujo completamente aparte.
 
 1. Escanea recursivamente la carpeta de Descargas buscando archivos de audio.
-2. Lee los metadatos embebidos de cada archivo (título, artista, álbum, año).
-3. Con esos metadatos, construye la ruta de destino: `/Artista/Álbum [Año]/## - Título.ext`
-4. Mueve el archivo a esa ruta dentro de la Biblioteca.
-5. Detecta carpetas `[Tag]` y asigna los archivos a las playlists correspondientes.
-6. Sanitiza nombres de carpetas y archivos según el OS de destino.
+2. Verifica si cada archivo ya existe en la Biblioteca (por metadatos coincidentes o nombre de archivo). Si existe, lo omite silenciosamente — nunca se moverá un duplicado.
+3. Lee los metadatos embebidos de cada archivo nuevo (título, artista, álbum, año).
+4. Con esos metadatos, construye la ruta de destino: `/Artista/Álbum [Año]/## - Título.ext`
+5. Mueve el archivo a esa ruta dentro de la Biblioteca.
+6. Detecta carpetas `[Tag]` y asigna los archivos a las playlists correspondientes.
+7. Sanitiza nombres de carpetas y archivos según el OS de destino.
 
 > La sincronización **no edita metadatos**. Solo los lee para organizar. Si un archivo tiene metadatos incompletos, se mueve igual con la información disponible y queda marcado en Salud para revisión posterior.
+>
+> **Sobre duplicados:** El sistema está diseñado para que los duplicados nunca ocurran. La validación del paso 2 garantiza que un archivo ya presente en la Biblioteca no se vuelva a mover. Por eso el resultado de sincronización no muestra un contador de "duplicados" — si el archivo ya existía, sencillamente no aparece en el proceso.
 
 ---
 
@@ -254,16 +301,21 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 │     No cierres la app ni apagues el equipo          │
 │     mientras este proceso esté en curso.            │
 │                                                     │
+│     [Si el destino es disco externo:]               │
+│     No desconectes el almacenamiento externo.       │
+│                                                     │
 │                    [Cancelar]                       │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Comportamientos:**
+
 - La pantalla ocupa el área de contenido completa. El sidebar está deshabilitado.
 - El único elemento interactivo es [Cancelar].
 - Si el usuario intenta cerrar la ventana → dialog de advertencia (ver Componentes Globales).
 - El porcentaje se calcula sobre el total de archivos encontrados al inicio.
+- Si el destino es una unidad de almacenamiento externo, se añade la advertencia específica de no desconectarla.
 
 **Estados de cancelación:** Si el usuario cancela a mitad del proceso, la app muestra cuántos archivos fueron movidos con éxito y cuántos quedaron en Descargas sin tocar. Los archivos ya movidos permanecen en la Biblioteca — no se revierten.
 
@@ -273,14 +325,14 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ✅ Sincronización completada                        │
+│  ✅ Sincronización completada                       │
 │                                                     │
-│  ┌──────────┬──────────┬──────────┬──────────┐     │
-│  │  231     │  12      │  4       │  0       │     │
-│  │ Movidos  │Duplicados│Con avisos│ Errores  │     │
-│  └──────────┴──────────┴──────────┴──────────┘     │
+│  ┌──────────┬──────────┬──────────┐                 │
+│  │  231     │  4       │  0       │                 │
+│  │ Movidos  │Con avisos│ Errores  │                 │
+│  └──────────┴──────────┴──────────┘                 │
 │                                                     │
-│  Playlists actualizadas: Rock (18) · Favoritos (6) │
+│  Playlists actualizadas: Rock (18) · Favoritos (6)  │
 │                                                     │
 │  ⚠️  4 archivos tienen metadatos incompletos:       │
 │  Se movieron a /Biblioteca/Unknown Artist/ y        │
@@ -304,9 +356,9 @@ Esta es la única pantalla de onboarding. Explica brevemente qué hace la app y 
 │  Disco afectado: /Users/juan/Music/                 │
 │                                                     │
 │  Estado al momento del error:                       │
-│  ✅ 143 archivos movidos con éxito (seguros)        │
-│  ⏸  88 archivos pendientes (intactos en Descargas) │
-│  ❌  1 archivo en proceso (puede estar incompleto) │
+│  ✅ 143 archivos movidos con éxito (seguros)         │
+│  ⏸  88 archivos pendientes (intactos en Descargas)  │
+│  ❌  1 archivo en proceso (puede estar incompleto)   │
 │                                                     │
 │  El archivo incompleto ha sido marcado en Salud     │
 │  como "Verificación requerida".                     │
@@ -325,6 +377,7 @@ El modal es bloqueante — el usuario no puede interactuar con nada más hasta r
 Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sigue el patrón `[NombrePlaylist]` o múltiples etiquetas `[Tag1][Tag2]`.
 
 **Ejemplo de estructura en Descargas:**
+
 ```
 📁 /Downloads/Música/
    ├── [Rock][Favoritos]/
@@ -336,12 +389,11 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 ```
 
 **Comportamiento:**
+
 - Si la playlist `Rock` no existe → se crea el archivo `/Biblioteca/Playlists/Rock.m3u8`
 - Si la playlist `Rock` ya existe → se agregan las canciones sin duplicar
 - La carpeta `[Tag]` en Descargas se elimina después de mover todos sus archivos (si quedó vacía)
 - Las canciones dentro de una carpeta `[Tag]` también siguen la estructura normal de la Biblioteca (`/Artista/Álbum/`)
-
----
 
 ---
 
@@ -372,6 +424,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 ```
 
 **Notas:**
+
 - Las secciones Artistas, Álbumes, Playlists también muestran este estado vacío si se navega a ellas.
 - La sección Salud muestra (0) en el sidebar y un estado vacío diferente: "No hay archivos que revisar".
 
@@ -412,7 +465,13 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 | 🔴 Rojo | Falta artista o título / archivo corrupto |
 
 **Columnas en Vista Lista:**
+
 - Checkbox de selección, Portada (miniatura), Título, Artista, Álbum, Año, Formato (badge: FLAC/MP3/ALAC), Duración, Salud (icono)
+
+**Controles:**
+
+- Paginación: 25, 50, 100, 200 elementos por página (configurable en Settings)
+- Ordenamiento: Ascendente/Descendente por Título, Artista o Álbum
 
 ---
 
@@ -441,37 +500,63 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 ---
 
-### Pantalla 3.3 — Selección Simple (Clic en un track)
+### Menú Contextual de Acciones (Universal)
 
-**Panel lateral derecho que se despliega:**
+> **Regla global:** Este menú flotante aparece en **cualquier vista donde haya canciones listadas** — Biblioteca (lista o grid), Artistas, Álbumes, Playlists o Salud. Las opciones que muestra dependen de **dos condiciones**, en este orden:
+>
+> 1. **Cantidad de archivos seleccionados:** individual vs. múltiple.
+> 2. **Vista actual:** si el usuario está dentro del detalle de una playlist específica, aparece la opción extra "Remover de esta playlist" que no existe en ninguna otra vista.
+
+**Trigger:** Clic en el botón `⋯` (MoreHorizontal) de cualquier fila o card.
+
+**Comportamiento del menú flotante:**
+
+- Aparece posicionado junto al botón `⋯` que lo disparó.
+- Consciente del viewport: si el botón está cerca del borde derecho, el menú abre hacia la izquierda; si está cerca del borde inferior, abre hacia arriba.
+- Altura máxima fija con scroll interno si las opciones lo requieren.
+- Se cierra al hacer clic fuera, al presionar Escape, o al seleccionar una opción.
+- En Mobile: se comporta como un **Bottom Sheet** (se desliza desde la parte inferior de la pantalla), más ergonómico para pantallas táctiles.
 
 ```
-┌──────────────────────────────────────┐
-│  [portada grande]                    │
-│                                      │
-│  Comfortably Numb                    │
-│  Pink Floyd                          │
-│  The Wall [1979]                     │
-│                                      │
-│  FLAC · 24bit/96kHz · 47.2 MB       │
-│  Duración: 6:23                      │
-│                                      │
-│  Salud: 🟡 Falta género              │
-│                                      │
-│  ─────────────────────────────────   │
-│  [✏️ Editar metadatos]               │
-│  [📂 Mostrar en Finder]              │
-│  [➕ Agregar a playlist]             │
-│  [📤 Exportar/Convertir]             │
-│  [🗑 Eliminar de biblioteca]         │
-└──────────────────────────────────────┘
+                              ┌─────────────────────────┐
+  [☐ 🟢 Comfortably Numb ···]│ ✏️  Editar metadatos     │
+                              │ 📂  Mostrar en Finder    │
+                              │ ➕  Agregar a playlist   │
+                              │ 📤  Exportar/Convertir   │
+                              │ ─────────────────────── │
+                              │ 🗑  Eliminar             │
+                              └─────────────────────────┘
+
+  [En detalle de playlist:]
+                              ┌─────────────────────────┐
+  [☐ 🟢 Comfortably Numb ···]│ ✏️  Editar metadatos     │
+                              │ 📂  Mostrar en Finder    │
+                              │ ➕  Agregar a playlist   │
+                              │ 📤  Exportar/Convertir   │
+                              │ ─────────────────────── │
+                              │ ↩️  Remover de playlist  │ ← solo aquí
+                              │ ─────────────────────── │
+                              │ 🗑  Eliminar             │
+                              └─────────────────────────┘
 ```
+
+**Tabla completa de opciones por contexto:**
+
+| Opción                     | 1 archivo       | Múltiples                     | Solo en playlist                           |
+| -------------------------- | --------------- | ----------------------------- | ------------------------------------------ |
+| Editar metadatos           | ✅ (individual) | ✅ (batch — 1 campo a la vez) | —                                          |
+| Mostrar en Finder/Explorer | ✅              | ❌                            | —                                          |
+| Agregar a playlist         | ✅              | ✅                            | —                                          |
+| Exportar/Convertir         | ✅              | ✅                            | —                                          |
+| Remover de esta playlist   | ✅              | ✅                            | ✅ solo dentro del detalle de una playlist |
+
+> **Remover de playlist:** "Remover" solo borra la referencia en el `.m3u8` — el archivo físico de musica permanece intacto en la Biblioteca.
 
 ---
 
 ### Pantalla 3.4 — Selección Múltiple
 
-**Barra de acciones batch que aparece abajo:**
+Cuando hay 2 o más archivos seleccionados, aparece una **barra de acciones** fija en la parte inferior del área de contenido:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -480,14 +565,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 └─────────────────────────────────────────────────────┘
 ```
 
-**Reglas de menú contextual:**
-| Acción | 1 archivo | Múltiples |
-|--------|-----------|-----------|
-| Mostrar en Finder/Explorer | ✅ | ❌ |
-| Editar metadatos | ✅ (quirúrgico) | ✅ (batch) |
-| Agregar a playlist | ✅ | ✅ |
-| Exportar/Convertir | ✅ | ✅ |
-| Eliminar | ✅ (con confirm) | ✅ (doble confirm) |
+El botón `⋯` sobre cualquier fila también funciona en selección múltiple y muestra las opciones disponibles para el lote. Ver la sección **Menú Contextual de Acciones (Universal)** arriba para la tabla completa de opciones.
 
 ---
 
@@ -521,35 +599,52 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 > **MusicBrainz es obligatoria en MVP.** Toda sugerencia de campo viene de su API. El usuario siempre confirma; la app nunca aplica cambios automáticamente.
 
-### Pantalla 4.1 — Editor Quirúrgico (1 archivo) — Modo Simple
+### 7.1 Edición Individual (1 archivo)
 
-**Trigger:** Clic en "Editar metadatos" con 1 archivo seleccionado, usuario en Modo Simple.
+**Trigger:** Clic en "Editar metadatos" con 1 archivo seleccionado.
+
+> **Principio de diseño:** Existe una única interfaz de edición. No hay pantallas distintas para "edición manual" vs "edición con MusicBrainz". Los campos de texto se pre-rellenan con los datos de MusicBrainz si hay un resultado, el usuario edita libremente cualquier campo, y confirma. La fuente del dato (MusicBrainz, escritura manual, o mezcla de ambos) no cambia la interfaz.
+
+Al abrir el editor, MusicBrainz se consulta automáticamente en segundo plano usando los metadatos existentes del archivo. Si hay resultado, los campos sugeridos se marcan visualmente. Si no hay resultado, los campos simplemente están vacíos (o con los valores actuales del archivo) listos para edición manual. El usuario puede buscar manualmente en MusicBrainz (con metadatos o con MBID) en cualquier momento sin cambiar de pantalla.
+[MusicBrainz Identifier](https://musicbrainz.org/doc/MusicBrainz_Identifier)
+[MusicBrainz Search](https://musicbrainz.org/search)
+
+---
+
+### Pantalla 4.1 — Editor Individual
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  ✏️  Completar metadatos — Comfortably Numb.flac      │
+│  ✏️  Editar metadatos — Comfortably Numb.flac         │
 │                                                      │
-│  [portada]  MusicBrainz encontró una coincidencia:  │
-│             Pink Floyd — The Wall (1979)             │
-│             Confianza: 98%  [Ver en MusicBrainz ↗]  │
+│  [portada]   Comfortably Numb.flac                  │
+│              Pink Floyd · The Wall · 1979            │
 │                                                      │
-│  ┌────────────────────────────────────────────────┐  │
-│  │  Título    Comfortably Numb          ✅ OK     │  │
-│  │  Artista   Pink Floyd                ✅ OK     │  │
-│  │  Álbum     The Wall                  ✅ OK     │  │
-│  │  Año       1979                      ✅ OK     │  │
-│  │  Género    — → Rock                  ⚠️ Falta  │  │
-│  │  Portada   — → [imagen encontrada]   ⚠️ Falta  │  │
-│  └────────────────────────────────────────────────┘  │
+│  ─── Resultado MusicBrainz ─────────────────────── │
+│  Pink Floyd — The Wall (1979)  Confianza: 98%       │
+│  ID: mb-3d374d  [Ver en MusicBrainz ↗]             │
+│  [🔍 Buscar otro resultado]                          │
 │                                                      │
-│  2 campos nuevos serán añadidos.                     │
-│  ¿Confirmas los cambios?                             │
+│  ─── Campos ────────────────────────────────────── │
+│  Título    [Comfortably Numb              ]          │
+│  Artista   [Pink Floyd                   ]          │
+│  Álbum     [The Wall                     ]          │
+│  Año       [1979]                                   │
+│  Género    [Rock ×          ✚ añadir género...]     │ ← sugerido por MusicBrainz
+│  Track #   [6   ]  Disco  [2  ]                     │ ← sugerido por MusicBrainz
+│  ISRC      [GBAYE...                     ]          │ ← sugerido por MusicBrainz
+│  Portada   [imagen actual]  [Usar de MusicBrainz]   │
 │                                                      │
-│  [Cancelar]   [Ver campo por campo]   [✅ Aplicar]   │
+│  ℹ️ Los campos con fondo destacado fueron sugeridos  │
+│     por MusicBrainz. Puedes editarlos libremente.   │
+│                                                      │
+│  [Cancelar]                       [Guardar cambios →]│
 └──────────────────────────────────────────────────────┘
 ```
 
-> [✅ Aplicar] en modo simple es el **primer paso**. Al hacer clic aparece la confirmación final (segundo paso):
+> **Sin resultado de MusicBrainz:** Los campos sugeridos aparecen vacíos (o con el valor actual del archivo). El aviso de MusicBrainz dice "Sin resultados — edita manualmente o busca con otro término". La interfaz es idéntica, solo cambia la presencia de datos pre-rellenados.
+
+**Paso 2 — Confirmación antes de escribir al archivo:**
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -559,6 +654,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 │  Comfortably Numb.flac                              │
 │                                                     │
 │  + Género: Rock                                     │
+│  + Track #: 6                                       │
 │  + Portada: (imagen de MusicBrainz)                 │
 │                                                     │
 │  Esta acción modifica el archivo. No se puede       │
@@ -570,119 +666,97 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 ---
 
-### Pantalla 4.1-B — Editor Quirúrgico — Modo Avanzado
+### 7.2 Edición por Lotes (Batch) — Wizard
 
-```
-┌──────────────────────────────────────────────────────┐
-│  ✏️  Editar metadatos — Comfortably Numb.flac         │
-│                                                      │
-│  ┌─────────┬──────────────────┬───────────┬────────┐ │
-│  │ CAMPO   │ VALOR ACTUAL     │ SUGERIDO  │ ACCIÓN │ │
-│  ├─────────┼──────────────────┼───────────┼────────┤ │
-│  │ Título  │ Comfortably Numb │ (igual)   │  —     │ │
-│  │ Artista │ Pink Floyd       │ (igual)   │  —     │ │
-│  │ Álbum   │ The Wall         │ (igual)   │  —     │ │
-│  │ Año     │ 1979             │ (igual)   │  —     │ │
-│  │ Género  │ —                │ Rock      │ [✓][✗] │ │
-│  │ Portada │ —                │ [thumb]   │ [✓][✗] │ │
-│  │ Track # │ —                │ 6         │ [✓][✗] │ │
-│  │ Disco   │ —                │ 2         │ [✓][✗] │ │
-│  │ ISRC    │ —                │ GBAYE...  │ [✓][✗] │ │
-│  └─────────┴──────────────────┴───────────┴────────┘ │
-│                                                      │
-│  Fuente: MusicBrainz ID mb-3d374d [Ver en web ↗]    │
-│  [🔍 Buscar otro resultado]  [✏️ Editar manualmente] │
-│                                                      │
-│  Campos seleccionados para aplicar: 2               │
-│  [Cancelar]            [Aplicar campos seleccionados]│
-└──────────────────────────────────────────────────────┘
-```
+**Regla estricta:** Solo se permite editar **un campo a la vez** para el lote seleccionado. Esta restricción es intencional para evitar errores masivos difíciles de revertir.
 
-> [Aplicar campos seleccionados] también dispara el **dialog de doble confirmación** antes de escribir al archivo.
+**Campos soportados en batch:** Artista, Álbum, Género, Año, Imagen de Portada.
+
+> **Patrón Wizard:** Este flujo —y cualquier flujo multi-paso de la app— se presenta como un wizard: una serie de modales donde cada paso muestra una sola pregunta o decisión. El usuario avanza paso a paso. Esto reduce la carga cognitiva: en lugar de ver un formulario complejo de una vez, el usuario responde una cosa, luego la siguiente, y así hasta la confirmación final. Todos los pasos son obligatorios, por lo que el wizard garantiza que no falta ninguno.
 
 ---
 
-### Pantalla 4.1-C — MusicBrainz sin resultados
+#### Paso 1 — ¿Qué campo modificar?
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  ✏️  Editar metadatos — unknown_001.mp3               │
+│  ✏️  Edición batch — 12 archivos    Paso 1 de 4      │
+│  ──────────────────────────────────────────────────  │
 │                                                      │
-│  🔍 MusicBrainz no encontró coincidencias para       │
-│     este archivo.                                    │
+│  ¿Qué campo deseas modificar en todos los archivos? │
 │                                                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ Buscar manualmente:                          │   │
-│  │ Artista  [_____________________]             │   │
-│  │ Título   [_____________________]  [Buscar]   │   │
-│  └──────────────────────────────────────────────┘   │
+│  ○ Artista                                          │
+│  ○ Álbum                                            │
+│  ○ Año                                              │
+│  ◉ Género                                           │
+│  ○ Portada                                          │
 │                                                      │
-│  — o bien —                                          │
-│                                                      │
-│  Editar campos directamente:                         │
-│  Título   [_______________________]                  │
-│  Artista  [_______________________]                  │
-│  Álbum    [_______________________]                  │
-│  Año      [______]  Género  [_____]                 │
-│                                                      │
-│  [Cancelar]                       [Guardar cambios]  │
+│  [Cancelar]                          [Siguiente →]  │
 └──────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Pantalla 4.2 — Editor Batch (Múltiples archivos)
+#### Paso 2 — ¿Cuál es el nuevo valor?
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  ✏️  Edición batch — 12 archivos seleccionados        │
+│  ✏️  Edición batch — 12 archivos    Paso 2 de 4      │
+│  ──────────────────────────────────────────────────  │
 │                                                      │
-│  ⚠️  Solo edita campos que sean iguales para todos.   │
-│  Los campos que dejes vacíos no se modificarán.      │
+│  Campo: Género                                      │
 │                                                      │
-│  Artista:  [________________________]                │
-│  Álbum:    [________________________]                │
-│  Año:      [____]                                    │
-│  Género:   [Rock               ▾]                    │
+│  [Rock × Jazz ×              ✚ añadir género...]    │
+│  Selecciona géneros existentes o escribe y presiona  │
+│  Enter para crear uno nuevo.                         │
 │                                                      │
-│  [Cancelar]                [Ver preview de cambios →]│
+│  [← Volver]                          [Siguiente →]  │
 └──────────────────────────────────────────────────────┘
 ```
 
-**Paso 2 — Preview antes de aplicar (primer confirm):**
+---
+
+#### Paso 3 — Preview de cambios (primer confirm)
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  📋 Preview — cambios en 12 archivos                 │
+│  ✏️  Edición batch — 12 archivos    Paso 3 de 4      │
+│  ──────────────────────────────────────────────────  │
 │                                                      │
-│  Campo que se modificará: Género → "Rock"            │
+│  Esto es lo que va a pasar:                         │
+│  Campo: Género → "Rock, Jazz"                        │
 │                                                      │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ ARCHIVO                   ANTES    DESPUÉS   │   │
-│  │ Comfortably Numb.flac     —        Rock      │   │
-│  │ Heroes.flac               —        Rock      │   │
-│  │ Paranoid.mp3              Metal    Rock      │   │ ← sobrescribirá
+│  │ Comfortably Numb.flac     —        Rock, Jazz│   │
+│  │ Heroes.flac               —        Rock, Jazz│   │
+│  │ Paranoid.mp3              Metal    Rock, Jazz│   │ ← sobrescribirá
 │  │ ... 9 más                                    │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                      │
 │  ⚠️  3 archivos ya tenían un género y será           │
 │     sobrescrito.                                     │
 │                                                      │
-│  [← Volver]               [Confirmar y aplicar →]   │
+│  [← Volver]                          [Confirmar →]  │
 └──────────────────────────────────────────────────────┘
 ```
 
-**Paso 3 — Confirmación final (segundo confirm):**
+---
+
+#### Paso 4 — Confirmación final (segundo confirm)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  ⚠️  Última confirmación                             │
-│                                                     │
-│  Se modificarán 12 archivos de audio físicamente.   │
+┌──────────────────────────────────────────────────────┐
+│  ✏️  Edición batch — 12 archivos    Paso 4 de 4      │
+│  ──────────────────────────────────────────────────  │
+│                                                      │
+│  Última confirmación                                 │
+│                                                      │
+│  Se modificarán físicamente 12 archivos de audio.   │
 │  Esta acción no se puede deshacer.                  │
-│                                                     │
+│                                                      │
 │  [Cancelar]              [Sí, modificar 12 archivos]│
-└─────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -716,6 +790,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 ```
 
 **Menú [▾ Opciones] por archivo corrupto:**
+
 - Conservar de todas formas (marcar como revisado)
 - Eliminar de biblioteca
 - Marcar para reemplazar (queda en lista de pendientes)
@@ -811,7 +886,8 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 │ Playlists│ ← Playlists / Favoritos                  │
 │          │                                          │
 │          │ 🎵 Favoritos                             │
-│          │ 32 tracks · 2h 14min · .m3u8 ✅ Válido  │
+│          │ 32 tracks · 2h 14min · 18 artistas       │
+│          │ .m3u8 ✅ Válido                          │
 │          │                                          │
 │          │ [+ Agregar tracks] [Exportar] [Eliminar] │
 │          │                                          │
@@ -829,9 +905,51 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 └──────────┴──────────────────────────────────────────┘
 ```
 
+> La acción "Remover" en un track solo borra la referencia en el archivo de `.m3u8`. El archivo de musica físico en la Biblioteca no se toca.
+
+**Datos del encabezado de playlist:**
+
+- Total de canciones
+- Tiempo total de reproducción
+- Número de artistas únicos
+
 ---
 
-### Pantalla 5.4 — Archivo Huérfano en Playlist
+### Pantalla 5.4 — Modal "Agregar a Playlist"
+
+**Trigger:** Clic en [Agregar a playlist] desde selección individual o múltiple.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  ➕ Agregar a playlist                               │
+│                                                      │
+│  🔍 [Buscar playlist...]                             │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐   │
+│  │ ✓ Favoritos              32 tracks           │   │
+│  │ ─ Rock Clásico           18 tracks           │   │
+│  │ 🚫 Sesión Nocturna  [ya está en esta lista]  │   │ ← si toggle duplicados OFF
+│  │ ─ Jazz & Soul            24 tracks           │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  [+ Crear nueva playlist]  ← on-the-fly             │
+│                                                      │
+│  [Cancelar]                     [Agregar a lista]   │
+└──────────────────────────────────────────────────────┘
+```
+
+**Comportamiento de duplicados:**
+
+- Si el toggle "No duplicados" está activo en Settings, las playlists donde la canción ya existe se muestran deshabilitadas con la etiqueta "ya está en esta lista".
+- Si el toggle está inactivo, todas las playlists son seleccionables sin restricción.
+
+**Creación on-the-fly:**
+
+- [+ Crear nueva playlist] expande un campo de nombre inline dentro del mismo modal, sin cerrar ni navegar. Al confirmar, la nueva playlist se crea y queda seleccionada automáticamente.
+
+---
+
+### Pantalla 5.5 — Archivo Huérfano en Playlist
 
 **Dialog modal al hacer clic en [Archivo faltante]:**
 
@@ -855,7 +973,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 ---
 
-### Pantalla 5.5 — Crear / Editar Playlist
+### Pantalla 5.6 — Crear / Editar Playlist
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -897,6 +1015,9 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 │                                                      │
 │  ─── Acción ─────────────────────────────────────── │
 │  ◉ Copiar   ○ Mover                                  │
+│    └─ Si se elige Mover:                             │
+│       ☐ Eliminar carpetas vacías en origen           │
+│          tras completar con éxito                    │
 │                                                      │
 │  ─── Estructura ─────────────────────────────────── │
 │  ◉ Mantener estructura  (/Artista/Álbum/Título)     │
@@ -905,6 +1026,8 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 │  ─── Formato ────────────────────────────────────── │
 │  ◉ Formato original (FLAC/MP3 sin cambios)          │
 │  ○ Convertir a MP3 320kbps (genera copia)           │
+│    └─ ☐ Redimensionar portada a 500×500px           │
+│          (mejora compatibilidad con reproductores)   │
 │                                                      │
 │  [Ver preview de estructura]                         │
 │                                                      │
@@ -912,6 +1035,8 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 │  [Cancelar]                    [Iniciar exportación] │
 └──────────────────────────────────────────────────────┘
 ```
+
+**Validación de espacio:** La app calcula el peso total antes de iniciar. Si el destino no tiene capacidad suficiente, bloquea el flujo antes de comenzar con el error de espacio insuficiente.
 
 ---
 
@@ -963,15 +1088,95 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 └──────────────────────────────────────────────────────┘
 ```
 
-**Nota:** Si se seleccionó "Mover" (no copiar), el proceso de exportación tiene una fase adicional de verificación de integridad antes de eliminar el origen.
+**Notas:**
+
+- Si se seleccionó "Mover", el proceso tiene una fase adicional de verificación de integridad antes de eliminar el origen.
+- Si se seleccionó conversión a MP3, los metadatos y portadas del archivo original se inyectan obligatoriamente al nuevo MP3.
+- Si un archivo falla durante la conversión, el proceso continúa con el resto y al finalizar se muestra un reporte con los archivos que fallaron.
 
 ---
 
-## 10. Flujo 7 — Errores y Casos Borde
+### Pantalla 6.4 — Reporte Final con Errores (Conversión)
+
+```
+┌──────────────────────────────────────────────────────┐
+│  📤 Exportación completada con advertencias          │
+│                                                      │
+│  ✅ 21 archivos exportados correctamente             │
+│  ❌  3 archivos fallaron durante la conversión:      │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐   │
+│  │ ARCHIVO              ERROR                   │   │
+│  │ Dark Side Part3.flac  Codec no compatible    │   │
+│  │ Live_Set_Raw.wav      Archivo dañado         │   │
+│  │ Bonus_Track.mp3       Error de lectura       │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  Los archivos que fallaron permanecen intactos       │
+│  en su ubicación original.                           │
+│                                                      │
+│  [Exportar reporte]           [Cerrar]               │
+└──────────────────────────────────────────────────────┘
+```
+
+---
+
+## 10. Flujo 7 — Optimización de Portadas (Finder/Explorer Fix)
+
+**Objetivo:** Corregir la visibilidad de carátulas en el sistema operativo (principalmente macOS Finder).
+
+**Problema:** macOS Finder no lee portadas en capas profundas de metadatos FLAC. La app normaliza la posición del frame de imagen (APIC) al primer nivel de lectura para que el sistema operativo las muestre correctamente.
+
+**Este flujo se activa desde Settings** (toggle "Normalización de portadas"). Una vez activado, la primera ejecución procesa toda la biblioteca. Ejecuciones posteriores solo procesan archivos nuevos o que no tengan imagen en el nivel superior.
+
+---
+
+### Pantalla 7.1 — Optimización en Progreso
+
+```
+┌──────────┬──────────────────────────────────────────┐
+│  TOPBAR  │ ⚙️ Optimizando portadas...  ████░░  67%  │  ← barra bajo Header
+├──────────┴──────────────────────────────────────────┤
+│          │                                          │
+│  SIDEBAR │           ÁREA DE CONTENIDO              │
+│          │       (navegable durante el proceso)     │
+│ Biblioteca│                                         │
+│ Artistas │   [Contenido normal de la vista actual]  │
+│ ...      │                                          │
+│          │                                          │
+└──────────┴──────────────────────────────────────────┘
+```
+
+**Comportamiento:**
+
+- La barra de progreso aparece fija bajo el Header. No ocupa el área de contenido.
+- El usuario puede navegar libremente entre secciones mientras el proceso corre.
+- Las acciones de escritura sobre archivos (editar metadatos, sincronizar, exportar) quedan bloqueadas hasta que finalice.
+- Otras acciones de lectura (ver biblioteca, buscar, filtrar) permanecen disponibles.
+
+---
+
+### Pantalla 7.2 — Optimización Completada
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ✅ Optimización de portadas completada             │
+│                                                     │
+│  Procesados: 1,847 archivos                         │
+│  Optimizados: 312 archivos (portada normalizada)    │
+│  Omitidos: 1,535 archivos (ya estaban correctos)   │
+│                                                     │
+│  [Cerrar]                                           │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 11. Flujo 8 — Errores y Casos Borde
 
 ### Catálogo de Mensajes de Error
 
-#### Error 7.1 — Ruta demasiado larga (>260 caracteres)
+#### Error 8.1 — Ruta demasiado larga (>260 caracteres)
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -994,7 +1199,7 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 ---
 
-#### Error 7.2 — Archivo sin metadatos
+#### Error 8.2 — Archivo sin metadatos
 
 ```
 Caso A: Sin metadatos NI nombre legible
@@ -1010,7 +1215,7 @@ Caso B: Solo tiene nombre de archivo
 
 ---
 
-#### Error 7.3 — Sin espacio suficiente
+#### Error 8.3 — Sin espacio suficiente
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -1029,7 +1234,7 @@ Caso B: Solo tiene nombre de archivo
 
 ---
 
-#### Error 7.4 — Caracteres prohibidos en nombre
+#### Error 8.4 — Caracteres prohibidos en nombre
 
 ```
 Acción automática (sin dialog):
@@ -1047,7 +1252,7 @@ El usuario puede ver todos los cambios de sanitización en el log de sincronizac
 
 ---
 
-#### Error 7.5 — Disco externo desconectado durante operación
+#### Error 8.5 — Disco externo desconectado durante operación
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -1072,7 +1277,7 @@ El usuario puede ver todos los cambios de sanitización en el log de sincronizac
 
 ---
 
-#### Error 7.6 — MusicBrainz sin resultados
+#### Error 8.6 — MusicBrainz sin resultados
 
 ```
 Estado en el editor de metadatos:
@@ -1085,9 +1290,17 @@ Estado en el editor de metadatos:
 
 ---
 
-## 11. Pantallas de Configuración (Settings)
+#### Error 8.7 — Borrado de localStorage
 
-### Pantalla 11.1 — Configuración General
+**Trigger:** El usuario borra el localStorage (desde Settings o desde el navegador directamente).
+
+La app regresa al Onboarding sin tocar ningún archivo físico en disco. Al completar el Onboarding nuevamente y reconectar la ruta de Biblioteca, la app realiza un escaneo automático para recuperar los metadatos de los archivos existentes y las playlists `.m3u8` presentes en la Biblioteca.
+
+---
+
+## 12. Pantallas de Configuración (Settings)
+
+### Pantalla 12.1 — Configuración General
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -1096,18 +1309,24 @@ Estado en el editor de metadatos:
 │  ─── Carpetas ───────────────────────────────────── │
 │  Descargas:  /Users/juan/Downloads/Música  [Cambiar] │
 │  Biblioteca: /Users/juan/Music/Biblioteca  [Cambiar] │
+│  ℹ️ Cambiar una ruta dispara una re-sincronización   │
 │                                                      │
 │  ─── Interfaz ───────────────────────────────────── │
 │  Tema:          ◉ Dark  ○ Light  ○ Sistema          │
 │  Paginación:    [50 ▾] elementos por página         │
 │  Vista default: ◉ Lista  ○ Grilla                   │
-│  Modo:          ◉ Simple  ○ Avanzado                │
 │                                                      │
-│  ─── Ingesta ────────────────────────────────────── │
-│  Fix portadas macOS: ☐ Desactivado                  │
-│    Duplica la portada en metadatos de nivel         │
-│    superior. Útil si tu reproductor no la muestra.  │
-│  Colisiones (modo aplanar): [Nombre de álbum ▾]     │
+│  ─── Playlists ──────────────────────────────────── │
+│  ☐ Bloquear canciones duplicadas en playlists       │
+│    Si está activo, no se podrá agregar un track a   │
+│    una playlist donde ya existe.                    │
+│                                                      │
+│  ─── Optimización ───────────────────────────────── │
+│  ☐ Normalización de portadas (fix Finder/Explorer)  │
+│    Mueve la imagen de portada al primer nivel de    │
+│    metadatos. Útil si tu reproductor no la muestra. │
+│  ☐ Redimensionar portadas a 500×500px al exportar  │
+│    Solo aplica al convertir a MP3.                  │
 │                                                      │
 │  ─── Datos ──────────────────────────────────────── │
 │  [Exportar configuración → config.json]             │
@@ -1115,19 +1334,21 @@ Estado en el editor de metadatos:
 │  [Borrar toda la configuración]  ← con confirmación │
 │                                                      │
 │  ─── Acerca de ──────────────────────────────────── │
-│  Music Files Manager v1.0.0                         │
+│  Music Files Manager v1.1.0                         │
 │  Next.js + Node.js · ffmpeg · MusicBrainz API       │
 └──────────────────────────────────────────────────────┘
 ```
 
 **Notas:**
-- **Fix portadas:** OFF por default. El usuario decide si activarlo según su reproductor — la app no lo fuerza nunca.
+
+- **Cambio de rutas:** Disparar una re-sincronización es automático. Si el usuario cambia la carpeta de Descargas o Biblioteca, la app re-valida la nueva ruta y actualiza los datos.
+- **Normalización de portadas:** OFF por default. El usuario decide si activarlo según su reproductor — la app nunca lo fuerza.
 - **Exportar/Importar configuración:** Guarda y restaura las rutas de carpetas y preferencias desde un `config.json`. Útil si se borra el localStorage o se migra a otro equipo.
 - **Borrar configuración:** Requiere doble confirmación. Borra el localStorage y regresa al onboarding. No toca los archivos de música en disco.
 
 ---
 
-## 12. Componentes Globales
+## 13. Componentes Globales
 
 ### Topbar
 
@@ -1138,7 +1359,9 @@ Estado en el editor de metadatos:
 ```
 
 **Botón [Sync ▾] despliega:**
+
 - Sincronizar ahora
+- Forzar re-validación completa de biblioteca (actualiza datos de salud y detecta cambios externos)
 - Ver última sincronización
 - Verificar integridad
 
@@ -1151,14 +1374,14 @@ Estado en el editor de metadatos:
 
 ### Indicadores de Salud — Reglas Completas
 
-| Prioridad | Campo | Peso | Impacto |
-|-----------|-------|------|---------|
-| 1 | Título | Crítico | Sin título → 🔴 |
-| 1 | Artista | Crítico | Sin artista → 🔴 |
-| 2 | Álbum | Alto | Sin álbum → 🟠 |
-| 3 | Portada | Medio | Sin portada → 🟡 |
-| 4 | Género | Bajo | Sin género → 🟡 |
-| — | Corrupción | Crítico | Corrupción → 🔴 |
+| Prioridad | Campo      | Peso    | Impacto          |
+| --------- | ---------- | ------- | ---------------- |
+| 1         | Título     | Crítico | Sin título → 🔴  |
+| 1         | Artista    | Crítico | Sin artista → 🔴 |
+| 2         | Álbum      | Alto    | Sin álbum → 🟠   |
+| 3         | Portada    | Medio   | Sin portada → 🟡 |
+| 4         | Género     | Bajo    | Sin género → 🟡  |
+| —         | Corrupción | Crítico | Corrupción → 🔴  |
 
 > Un archivo puede tener múltiples problemas. El color muestra el peor nivel.
 
@@ -1167,17 +1390,22 @@ Estado en el editor de metadatos:
 #### Durante operaciones en curso (sincronización, exportación)
 
 **Qué se bloquea:**
+
 - Sidebar de navegación completo
 - Búsqueda global
 - Selección de archivos y botones de acción
 - Botón [Sincronizar] en topbar
 
 **Qué permanece activo:**
+
 - Botón [Cancelar] del proceso
 - Indicador de progreso
 - Posibilidad de mover la ventana
 
+**Excepción — Optimización de Portadas:** Este proceso no bloquea la interfaz completa. El usuario puede navegar; solo se bloquean las acciones de escritura sobre archivos.
+
 **Intento de cierre de ventana durante operación:**
+
 ```
 ⚠️ Hay una operación en curso.
 Si cierras la app ahora el proceso se interrumpirá.
@@ -1191,12 +1419,12 @@ Los pendientes permanecerán en Descargas.
 
 #### Jerarquía de errores y su comportamiento de bloqueo
 
-| Nivel | Tipo de error | Comportamiento UI | Se desbloquea cuando |
-|-------|--------------|-------------------|----------------------|
-| 🔴 **Crítico** | Disco desconectado, sin permisos | Modal bloqueante sobre toda la app. No se puede hacer nada. | Usuario cierra el modal o resuelve el problema. |
-| 🟠 **Grave** | Espacio insuficiente, archivo corrupto encontrado | Modal bloqueante sobre el proceso en curso. El resto de la app queda accesible al cerrar. | Usuario cierra el modal (el proceso se detiene). |
-| 🟡 **Advertencia** | Ruta muy larga, nombre sanitizado, duplicado detectado | Notificación inline dentro del flujo. No bloquea. | Automático — el usuario puede ignorar o actuar. |
-| ℹ️ **Informativo** | Archivos ignorados, carpeta vacía | Toast en esquina inferior. Desaparece solo en 5 segundos. | Automático. |
+| Nivel              | Tipo de error                                          | Comportamiento UI                                                                         | Se desbloquea cuando                             |
+| ------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 🔴 **Crítico**     | Disco desconectado, sin permisos                       | Modal bloqueante sobre toda la app. No se puede hacer nada.                               | Usuario cierra el modal o resuelve el problema.  |
+| 🟠 **Grave**       | Espacio insuficiente, archivo corrupto encontrado      | Modal bloqueante sobre el proceso en curso. El resto de la app queda accesible al cerrar. | Usuario cierra el modal (el proceso se detiene). |
+| 🟡 **Advertencia** | Ruta muy larga, nombre sanitizado, duplicado detectado | Notificación inline dentro del flujo. No bloquea.                                         | Automático — el usuario puede ignorar o actuar.  |
+| ℹ️ **Informativo** | Archivos ignorados, carpeta vacía                      | Toast en esquina inferior. Desaparece solo en 5 segundos.                                 | Automático.                                      |
 
 #### Diseño del modal crítico (🔴)
 
@@ -1221,46 +1449,56 @@ Los pendientes permanecerán en Descargas.
 
 ---
 
-## 13. Inconsistencias del PRD y Decisiones Tomadas
+## 14. Inconsistencias del PRD y Decisiones Tomadas
 
-| # | Inconsistencia / Ambigüedad original | Decisión adoptada | Fuente |
-|---|--------------------------------------|-------------------|--------|
-| 1 | SQLite mencionado para historial de Undo | **Eliminado del MVP.** Solo localStorage para preferencias. Sin historial de Undo en v1. | Confirmado por producto |
-| 2 | "Fix de portadas macOS" — ¿activado o no por default? | **OFF por defecto.** El usuario decide activarlo si su reproductor lo necesita. | Confirmado por producto |
-| 3 | Motor de ingesta: ambigüedad entre movimiento automático y confirmación campo por campo | **Son dos flujos completamente distintos e independientes.** (1) Sincronización = proceso automático que mueve archivos de Descargas a Biblioteca usando los metadatos existentes como guía de organización. No edita nada, no pregunta por cada archivo. (2) Edición de metadatos = flujo separado que el usuario inicia voluntariamente cuando quiere corregir o completar tags, con MusicBrainz y doble confirmación. Un archivo puede estar en la Biblioteca sin metadatos perfectos — eso no impide su ingesta. | Confirmado por producto |
-| 4 | Estado de "sincronización en progreso" no definido | **Loading minimalista:** barra de progreso + texto de advertencia "no cierres la app". Sin detalle de archivos individuales por ahora. | Confirmado por producto |
-| 5 | "Flujo de bienvenida" no especificado | **Una sola pantalla** de presentación + selección de carpetas integrada. Sin wizard de múltiples pasos. | Confirmado por producto |
-| 6 | Carpetas `[Tag]` — funcionamiento no especificado | Carpetas creadas manualmente por el usuario en Descargas. El nombre dentro de `[]` es el nombre de la playlist. Una carpeta puede tener múltiples `[Tag]`. Los archivos dentro se asignan automáticamente al sincronizar. Si la playlist no existe, se crea. | Confirmado por producto |
-| 7 | ¿La app reproduce música? | **No en MVP.** Solo gestión. Reproductor planificado para siguiente fase. | Confirmado por producto |
-| 8 | Bloqueo de UI en errores — no definido | **Jerarquía de 4 niveles** definida: Crítico (modal bloqueante total) → Grave (modal bloqueante del proceso) → Advertencia (inline) → Informativo (toast). Cada modal de error crítico siempre muestra el estado de los archivos. | Definido en este documento |
-| 9 | Historial de Undo (SQLite) — sin flujo definido | **Fuera del MVP** junto con SQLite. | Confirmado por producto |
-| 10 | Selección de carpeta — método no especificado | Siempre selector nativo del OS (Finder/Explorer). La app no tiene explorador propio. | Inferido y documentado |
-| 11 | Usuario objetivo ambiguo | **Dual-mode UX:** Modo Simple y Modo Avanzado, switcheable en Settings. El modo simple nunca oculta información crítica. | Confirmado por producto |
-| 12 | MusicBrainz — MVP vs. futuro no claro | **Obligatoria en MVP.** Fuente primaria de sugerencias. El usuario siempre confirma campo por campo. Edición manual como fallback. | Confirmado por producto |
-| 13 | Nivel de confirmación en acciones destructivas | **Doble confirmación universal:** toda acción que modifica o elimina archivos requiere: (1) preview de lo que pasará, (2) confirmación final explícita. | Confirmado por producto |
+| #   | Inconsistencia / Ambigüedad original                                                    | Decisión adoptada                                                                                                                                                                                                                                                                                                                                  |
+| --- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | SQLite mencionado para historial de Undo                                                | **Eliminado del MVP.** Solo localStorage para preferencias. Sin historial de Undo en v1.                                                                                                                                                                                                                                                           |
+| 2   | "Fix de portadas macOS" — ¿activado o no por default?                                   | **OFF por defecto.** El usuario decide activarlo si su reproductor lo necesita.                                                                                                                                                                                                                                                                    |
+| 3   | Motor de ingesta: ambigüedad entre movimiento automático y confirmación campo por campo | **Son dos flujos completamente distintos e independientes.** (1) Sincronización = proceso automático que mueve archivos de Descargas a Biblioteca usando los metadatos existentes como guía de organización. No edita nada. (2) Edición de metadatos = flujo separado que el usuario inicia voluntariamente, con MusicBrainz y doble confirmación. |
+| 4   | Estado de "sincronización en progreso" no definido                                      | **Loading con barra de progreso + texto de advertencia "no cierres la app".** Sin detalle de archivos individuales.                                                                                                                                                                                                                                |
+| 5   | "Flujo de bienvenida" no especificado                                                   | **Dos pantallas** con transición lateral: (1) Presentación y funciones, (2) Selección de carpetas. Sin wizard de múltiples pasos adicionales.                                                                                                                                                                                                      |
+| 6   | Carpetas `[Tag]` — funcionamiento no especificado                                       | Carpetas creadas manualmente por el usuario en Descargas. El nombre dentro de `[]` es el nombre de la playlist. Una carpeta puede tener múltiples `[Tag]`. Los archivos dentro se asignan automáticamente al sincronizar. Si la playlist no existe, se crea.                                                                                       |
+| 7   | ¿La app reproduce música?                                                               | **No en MVP.** Solo gestión. Reproductor planificado para siguiente fase.                                                                                                                                                                                                                                                                          |
+| 8   | Bloqueo de UI en errores — no definido                                                  | **Jerarquía de 4 niveles:** Crítico → Grave → Advertencia → Informativo. Cada modal crítico siempre muestra el estado de los archivos. La Optimización de Portadas es excepción: no bloqueante total.                                                                                                                                              |
+| 9   | Historial de Undo (SQLite) — sin flujo definido                                         | **Fuera del MVP.**                                                                                                                                                                                                                                                                                                                                 |
+| 10  | Selección de carpeta — método no especificado                                           | Siempre selector nativo del OS (Finder/Explorer). La app no tiene explorador propio.                                                                                                                                                                                                                                                               |
+| 11  | Usuario objetivo ambiguo — Dual Mode Simple/Avanzado                                    | **Interfaz única.** Sin modos Simple/Avanzado. La UI es limpia por defecto y expone herramientas potentes de forma contextual. Todos los usuarios ven la misma interfaz.                                                                                                                                                                           |
+| 12  | MusicBrainz — MVP vs. futuro no claro                                                   | **Obligatoria en MVP.** Fuente primaria de sugerencias. El usuario siempre confirma campo por campo. Edición manual como fallback.                                                                                                                                                                                                                 |
+| 13  | Nivel de confirmación en acciones destructivas                                          | **Doble confirmación universal:** toda acción que modifica o elimina archivos requiere: (1) preview de lo que pasará, (2) confirmación final explícita.                                                                                                                                                                                            |
+| 14  | Edición batch — ¿cuántos campos a la vez?                                               | **Un campo por operación batch.** Restricción intencional para evitar errores masivos. El usuario lanza un batch por campo. Flujo como wizard de 4 pasos.                                                                                                                                                                                          |
+| 15  | Duplicados en playlists — ¿permitidos o no?                                             | **Configurable en Settings.** Toggle "Bloquear canciones duplicadas en playlists". El modal de selección de playlist muestra visualmente las listas donde la canción ya existe.                                                                                                                                                                    |
+| 16  | Exportación modo Mover — carpetas vacías en origen                                      | **Opción de limpieza.** Al elegir Mover, aparece el checkbox "Eliminar carpetas vacías en origen tras completar con éxito". No se activa por defecto.                                                                                                                                                                                              |
+| 17  | Selección de archivo — ¿panel lateral o menú contextual?                                | **Menú flotante contextual** junto al botón `⋯`. No hay panel lateral para acciones. En Mobile se comporta como Bottom Sheet. Aparece en cualquier vista con canciones; opciones varían por cantidad seleccionada (individual vs. múltiple) y por si se está dentro del detalle de una playlist (opción extra "Remover de esta playlist").         |
+| 18  | Editor individual — ¿flujos separados para MusicBrainz vs. manual?                      | **Una sola interfaz.** Los campos se pre-rellenan con datos de MusicBrainz cuando hay resultado. El usuario edita libremente. Sin resultado, los campos están vacíos listos para escritura. La fuente del dato no cambia la interfaz.                                                                                                              |
+| 19  | Selección de carpeta — ¿`showDirectoryPicker()` del browser?                            | **No.** El botón [Elegir] llama a `POST /api/fs/open-dialog`. Node.js abre el Finder/Explorer nativo vía `child_process` y devuelve el path absoluto directamente, sin restricciones del browser.                                                                                                                                                  |
 
 ---
 
-## 14. Glosario
+## 15. Glosario
 
-| Término | Definición |
-|---------|------------|
-| **Sincronización** | Proceso automático de mover archivos de la carpeta de Descargas a la Biblioteca, organizándolos por carpetas según sus metadatos. No edita metadatos. |
-| **Ingesta** | Sinónimo de Sincronización. El motor que ejecuta el movimiento y organización. |
-| **Edición de metadatos** | Flujo independiente de la sincronización. El usuario inicia este flujo manualmente para revisar y corregir los tags de los archivos ya en la Biblioteca, usando MusicBrainz como fuente de sugerencias. |
-| **Carpeta [Tag]** | Carpeta creada manualmente por el usuario dentro de Descargas cuyo nombre —o parte del nombre— está entre corchetes. Ese texto es el nombre de una playlist. Al sincronizar, los archivos dentro se asignan automáticamente a esa playlist. |
-| **Huérfano** | Entrada en una playlist `.m3u8` que apunta a un archivo que ya no existe en la Biblioteca. |
-| **Lossless** | Formato de audio sin pérdida de calidad (FLAC, ALAC). Opuesto a lossy (MP3). |
-| **Fix de Portadas** | Opción desactivada por defecto. Duplica la imagen de portada en los metadatos de nivel superior del archivo, útil para que ciertos reproductores de macOS la muestren correctamente en archivos FLAC/ALAC. |
-| **Batch** | Operación que aplica el mismo cambio a múltiples archivos simultáneamente. |
-| **Quirúrgico** | Edición de metadatos campo por campo con confirmación individual, contrapuesto a batch. |
-| **Sanitización** | Proceso automático de reemplazar caracteres prohibidos en nombres de archivos según el sistema operativo de destino (`:`, `?`, `*`, etc.). |
-| **m3u8** | Formato de archivo de playlist de texto plano, portable entre aplicaciones. |
-| **Modo Aplanar** | Exportación donde todos los archivos se copian/mueven a la raíz del destino sin mantener la estructura de carpetas. |
-| **Estado vacío** | Estado de una vista cuando no hay datos que mostrar. Siempre incluye una acción sugerida para el usuario. |
-| **Modo Simple** | Perfil de UI para usuarios no técnicos. Acciones con un clic, lenguaje natural, menos opciones visibles. Los detalles técnicos están a un clic de distancia. |
-| **Modo Avanzado** | Perfil de UI para power users. Expone control granular, opciones técnicas y campos extendidos de MusicBrainz. |
-| **MusicBrainz** | Base de datos abierta de metadatos musicales. Fuente primaria de sugerencias en el MVP. El usuario siempre confirma antes de aplicar cualquier dato. |
-| **Doble confirmación** | Patrón estándar para acciones destructivas: (1) preview de lo que va a ocurrir, (2) confirmación final explícita. Ningún archivo se modifica ni elimina con un solo clic. |
-| **Modo solo lectura** | Estado de la app cuando una carpeta configurada no está disponible. Permite ver la biblioteca pero bloquea sincronización, edición y exportación. |
-| **localStorage** | Mecanismo de almacenamiento del navegador donde se guardan las preferencias del usuario (rutas de carpetas, tema, paginación, modo). Si se borra, la app regresa al onboarding sin tocar los archivos físicos. |
+| Término                        | Definición                                                                                                                                                                                                                                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sincronización**             | Proceso automático de mover archivos de la carpeta de Descargas a la Biblioteca, organizándolos por carpetas según sus metadatos. No edita metadatos.                                                                                                                                              |
+| **Ingesta**                    | Sinónimo de Sincronización. El motor que ejecuta el movimiento y organización.                                                                                                                                                                                                                     |
+| **Re-validación**              | Proceso de verificación manual forzada de toda la biblioteca, iniciado por el usuario desde el botón Sync. Actualiza datos de salud y detecta cambios externos.                                                                                                                                    |
+| **Edición de metadatos**       | Flujo independiente de la sincronización. El usuario inicia este flujo manualmente para revisar y corregir los tags de los archivos ya en la Biblioteca, usando MusicBrainz como fuente de sugerencias.                                                                                            |
+| **Carpeta [Tag]**              | Carpeta creada manualmente por el usuario dentro de Descargas cuyo nombre —o parte del nombre— está entre corchetes. Ese texto es el nombre de una playlist. Al sincronizar, los archivos dentro se asignan automáticamente a esa playlist.                                                        |
+| **Huérfano**                   | Entrada en una playlist `.m3u8` que apunta a un archivo que ya no existe en la Biblioteca.                                                                                                                                                                                                         |
+| **Lossless**                   | Formato de audio sin pérdida de calidad (FLAC, ALAC). Opuesto a lossy (MP3).                                                                                                                                                                                                                       |
+| **Normalización de portadas**  | Opción desactivada por defecto. Mueve la imagen de portada al primer nivel de metadatos del archivo, para que macOS Finder u otros reproductores la muestren correctamente en archivos FLAC/ALAC.                                                                                                  |
+| **Batch**                      | Operación que aplica el mismo cambio a múltiples archivos simultáneamente. En esta app, un batch solo puede modificar un campo por operación.                                                                                                                                                      |
+| **Sanitización**               | Proceso automático de reemplazar caracteres prohibidos en nombres de archivos según el sistema operativo de destino (`:`, `?`, `*`, etc.).                                                                                                                                                         |
+| **m3u8**                       | Formato de archivo de playlist de texto plano, portable entre aplicaciones.                                                                                                                                                                                                                        |
+| **Modo Aplanar**               | Exportación donde todos los archivos se copian/mueven a la raíz del destino sin mantener la estructura de carpetas.                                                                                                                                                                                |
+| **Estado vacío**               | Estado de una vista cuando no hay datos que mostrar. Siempre incluye una acción sugerida para el usuario.                                                                                                                                                                                          |
+| **MusicBrainz**                | Base de datos abierta de metadatos musicales. Fuente primaria de sugerencias en el MVP. El usuario siempre confirma antes de aplicar cualquier dato.                                                                                                                                               |
+| **Doble confirmación**         | Patrón estándar para acciones destructivas: (1) preview de lo que va a ocurrir, (2) confirmación final explícita. Ningún archivo se modifica ni elimina con un solo clic.                                                                                                                          |
+| **Modo solo lectura**          | Estado de la app cuando una carpeta configurada no está disponible. Permite ver la biblioteca pero bloquea sincronización, edición y exportación.                                                                                                                                                  |
+| **localStorage**               | Mecanismo de almacenamiento del navegador donde se guardan las preferencias del usuario (rutas de carpetas, tema, paginación, preferencias). Si se borra, la app regresa al onboarding sin tocar los archivos físicos. Al reconectar la Biblioteca, se recuperan metadatos y playlists existentes. |
+| **Géneros estilo etiquetas**   | Forma de ingresar géneros: se seleccionan de un listado existente (autocompletado) o se crean nuevos escribiendo y presionando Enter. Cada género es una etiqueta independiente.                                                                                                                   |
+| **On-the-fly**                 | Creación de una nueva playlist directamente dentro del modal de selección, sin salir del flujo actual.                                                                                                                                                                                             |
+| **Menú contextual flotante**   | Menú de opciones que aparece junto al botón `⋯` que lo dispara. Consciente del viewport (se reposiciona automáticamente si está cerca de un borde). Aparece en cualquier vista con canciones listadas. En Mobile se muestra como Bottom Sheet.                                                     |
+| **Bottom Sheet**               | Componente de Mobile que se desliza desde la parte inferior de la pantalla. Reemplaza al menú flotante en pantallas táctiles para mejorar la ergonomía.                                                                                                                                            |
+| **Wizard**                     | Patrón de UI donde un flujo multi-paso se divide en modales secuenciales, mostrando una sola decisión por paso. Reduce la carga cognitiva y guía al usuario paso a paso sin formularios complejos.                                                                                                 |
+| **`POST /api/fs/open-dialog`** | Endpoint que abre el selector nativo de carpetas del OS vía `child_process` en Node.js. Devuelve el path absoluto como string. No usa APIs del browser.                                                                                                                                            |
