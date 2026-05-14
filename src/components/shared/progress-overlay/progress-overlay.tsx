@@ -24,6 +24,9 @@ export function ProgressOverlay({
   onCancel,
   onPause,
 }: ProgressOverlayProps): ReactElement {
+  // TODO(MFM-shell-store): replace this DOM manipulation with a Zustand store
+  // (useShellStore → isBlocked / setIsBlocked). AppShell will read isBlocked
+  // declaratively. Tracked in ÉPICA — Gestión de Estado Global.
   useEffect(() => {
     const elements = document.querySelectorAll(SHELL_BLOCKABLE_SELECTOR);
 
@@ -54,7 +57,7 @@ export function ProgressOverlay({
       )}
     >
       <div className="w-full max-w-md space-y-3">
-        <p className="text-center text-sm font-medium text-[var(--color-text-primary)]">
+        <p className="text-center text-sm font-medium text-text-primary">
           {label}
         </p>
 
@@ -64,7 +67,7 @@ export function ProgressOverlay({
         />
 
         {sublabel && (
-          <p className="text-center font-mono text-xs text-[var(--color-text-secondary)]">
+          <p className="text-center font-mono text-xs text-text-secondary">
             {sublabel}
           </p>
         )}
