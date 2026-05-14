@@ -1,11 +1,15 @@
 "use client";
 
-import type { CSSProperties, ReactElement, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import type { ReactElement, ReactNode } from "react";
+import { useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BottomSheet } from "./bottom-sheet";
 import { CONTEXT_MENU_ARIA_LABEL } from "./constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { useMenuPosition } from "@/hooks/useMenuPosition";
 
 export interface ContextMenuAction {
   label: string;
@@ -21,25 +25,6 @@ export interface FloatingContextMenuProps {
   onClose: () => void;
 }
 
-const MOBILE_BREAKPOINT = 640;
-const APPROX_ITEM_HEIGHT = 40;
-const APPROX_PADDING = 16;
-const MENU_WIDTH = 220;
-const MENU_GAP = 4;
-
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = (): void => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    check();
-    window.addEventListener("resize", check);
-    return (): void => window.removeEventListener("resize", check);
-  }, []);
-
-  return isMobile;
-}
-
 export function FloatingContextMenu({
   trigger,
   actions,
@@ -48,50 +33,12 @@ export function FloatingContextMenu({
 }: FloatingContextMenuProps): ReactElement {
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
+  
   const isMobile = useIsMobile();
+  const menuStyle = useMenuPosition(triggerRef, isOpen, isMobile, actions.length);
 
-  useEffect(() => {
-    if (!isOpen || isMobile || !triggerRef.current) return;
-
-    const rect = triggerRef.current.getBoundingClientRect();
-    const approxHeight = actions.length * APPROX_ITEM_HEIGHT + APPROX_PADDING;
-    const openUpward = rect.bottom + approxHeight > window.innerHeight;
-    const openLeft = rect.left + MENU_WIDTH > window.innerWidth;
-
-    setMenuStyle({
-      top: openUpward ? undefined : rect.bottom + MENU_GAP,
-      bottom: openUpward ? window.innerHeight - rect.top + MENU_GAP : undefined,
-      left: openLeft ? undefined : rect.left,
-      right: openLeft ? window.innerWidth - rect.right : undefined,
-    });
-  }, [isOpen, isMobile, actions.length]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return (): void => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (!isOpen || isMobile) return;
-
-    const handleMouseDown = (e: MouseEvent): void => {
-      const target = e.target as Node;
-      if (
-        !menuRef.current?.contains(target) &&
-        !triggerRef.current?.contains(target)
-      ) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleMouseDown);
-    return (): void => document.removeEventListener("mousedown", handleMouseDown);
-  }, [isOpen, isMobile, onClose]);
+  useEscapeKey(isOpen, onClose);
+  useClickOutside([menuRef, triggerRef], isOpen && !isMobile, onClose);
 
   if (isMobile) {
     return (
