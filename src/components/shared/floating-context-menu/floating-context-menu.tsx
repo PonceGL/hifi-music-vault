@@ -31,10 +31,10 @@ function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    const check = (): void => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     check();
     window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    return (): void => window.removeEventListener("resize", check);
   }, []);
 
   return isMobile;
@@ -70,17 +70,17 @@ export function FloatingContextMenu({
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return (): void => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen || isMobile) return;
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handleMouseDown = (e: MouseEvent): void => {
       const target = e.target as Node;
       if (
         !menuRef.current?.contains(target) &&
@@ -90,7 +90,7 @@ export function FloatingContextMenu({
       }
     };
     document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
+    return (): void => document.removeEventListener("mousedown", handleMouseDown);
   }, [isOpen, isMobile, onClose]);
 
   if (isMobile) {
@@ -113,7 +113,7 @@ export function FloatingContextMenu({
           style={{ position: "fixed", ...menuStyle }}
           className={cn(
             "z-50 min-w-[200px] overflow-hidden",
-            "rounded-md border border-[var(--color-border)] bg-[var(--color-surface-elevated)]",
+            "rounded-md border border-border bg-surface-elevated",
             "py-1 shadow-lg",
           )}
         >
@@ -131,11 +131,11 @@ export function FloatingContextMenu({
                 className={cn(
                   "flex w-full items-center gap-3 px-3 py-2 text-sm",
                   "transition-colors duration-100",
-                  "hover:bg-[var(--color-surface-secondary)]",
-                  "focus:outline-none focus-visible:bg-[var(--color-surface-secondary)]",
+                  "hover:bg-surface-secondary",
+                  "focus:outline-none focus-visible:bg-surface-secondary",
                   action.variant === "destructive"
-                    ? "text-[var(--color-health-red)]"
-                    : "text-[var(--color-text-primary)]",
+                    ? "text-health-red"
+                    : "text-text-primary",
                 )}
               >
                 {Icon && (
