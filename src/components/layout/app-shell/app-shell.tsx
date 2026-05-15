@@ -29,7 +29,7 @@ export function AppShell({
         data-shell-blockable
         aria-label={SIDEBAR_ARIA_LABEL}
         className={cn(
-          "hidden sm:flex flex-col flex-shrink-0 border-r border-border bg-sidebar-bg transition-opacity duration-200",
+          "hidden sm:flex flex-col shrink-0 border-r border-border bg-sidebar-bg transition-opacity duration-200",
           isBlocked && "opacity-40 pointer-events-none",
         )}
       >
@@ -42,7 +42,7 @@ export function AppShell({
         <header
           data-shell-blockable
           className={cn(
-            "flex-shrink-0 transition-opacity duration-200",
+            "shrink-0 transition-opacity duration-200",
             isBlocked && "opacity-40 pointer-events-none",
           )}
         >
@@ -51,7 +51,7 @@ export function AppShell({
 
         {/* Artwork optimization banner — non-blocking, slim strip */}
         {artworkBanner && (
-          <div className="flex-shrink-0">{artworkBanner}</div>
+          <div className="shrink-0">{artworkBanner}</div>
         )}
 
         {/* Content row: main area + optional detail panel */}
@@ -67,7 +67,7 @@ export function AppShell({
           {detailPanel && (
             <aside
               aria-label={DETAIL_PANEL_ARIA_LABEL}
-              className="hidden xl:flex w-80 flex-shrink-0 flex-col border-l border-border"
+              className="hidden xl:flex w-80 shrink-0 flex-col border-l border-border"
             >
               {detailPanel}
             </aside>
@@ -75,7 +75,7 @@ export function AppShell({
         </div>
 
         {/* Tab bar — mobile only (<640px) */}
-        <div className="flex-shrink-0 sm:hidden">{tabBar}</div>
+        <div className="shrink-0 sm:hidden">{tabBar}</div>
       </div>
     </div>
   );
