@@ -2,7 +2,7 @@
 
 import type { ReactElement } from "react";
 import { usePathname } from "next/navigation";
-import { TabBarItem } from "./TabBarItem";
+import { TabBarItem } from "@/components/layout/TabBarItem";
 import { TAB_ITEMS, TAB_BAR_ARIA_LABEL } from "./constants";
 
 export function TabBar(): ReactElement {
