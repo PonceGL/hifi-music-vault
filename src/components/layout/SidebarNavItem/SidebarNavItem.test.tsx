@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { Library } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarNavItem } from "./sidebar-nav-item";
+import { SidebarNavItem } from ".";
 
 const BASE_PROPS = {
   icon: Library,
