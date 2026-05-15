@@ -87,4 +87,28 @@ describe("Progress", () => {
       expect(screen.queryByText(/%/)).not.toBeInTheDocument();
     });
   });
+
+  describe("size prop", () => {
+    it("renders without errors with size=sm", () => {
+      render(<Progress value={50} size="sm" />);
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    });
+
+    it("renders without errors with size=md (default)", () => {
+      render(<Progress value={50} size="md" />);
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    });
+  });
+
+  describe("showPercentage prop", () => {
+    it("hides percentage text when showPercentage=false", () => {
+      render(<Progress value={60} showPercentage={false} />);
+      expect(screen.queryByText("60%")).not.toBeInTheDocument();
+    });
+
+    it("shows percentage text when showPercentage=true (default)", () => {
+      render(<Progress value={60} showPercentage />);
+      expect(screen.getByText("60%")).toBeInTheDocument();
+    });
+  });
 });

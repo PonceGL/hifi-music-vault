@@ -6,6 +6,8 @@ import { cn } from "@/lib/cn";
 
 export interface ProgressProps {
   value?: number;
+  size?: "sm" | "md";
+  showPercentage?: boolean;
   "aria-label"?: string;
   "aria-labelledby"?: string;
   className?: string;
@@ -13,6 +15,8 @@ export interface ProgressProps {
 
 export function Progress({
   value,
+  size = "md",
+  showPercentage = true,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
@@ -27,7 +31,10 @@ export function Progress({
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         data-mode={isDeterminate ? "determinate" : "indeterminate"}
-        className="relative h-2 w-full overflow-hidden rounded-full bg-surface-secondary"
+        className={cn(
+          "relative w-full overflow-hidden rounded-full bg-surface-secondary",
+          size === "sm" ? "h-1" : "h-2",
+        )}
       >
         {isDeterminate ? (
           <ProgressPrimitive.Indicator
@@ -44,7 +51,7 @@ export function Progress({
         )}
       </ProgressPrimitive.Root>
 
-      {isDeterminate && (
+      {isDeterminate && showPercentage && (
         <span className="shrink-0 font-mono text-xs tabular-nums text-text-secondary">
           {clamped}%
         </span>
