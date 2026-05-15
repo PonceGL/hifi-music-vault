@@ -4,9 +4,10 @@ import type { ReactElement } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSidebar } from "@/hooks/useSidebar";
-import { SidebarNavItem } from "./sidebar-nav-item/sidebar-nav-item";
+import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
 import {
   NAV_ITEMS,
   SIDEBAR_NAV_ARIA_LABEL,
@@ -66,16 +67,12 @@ export function Sidebar({ stats }: SidebarProps): ReactElement {
             </div>
           )}
 
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size={isCollapsed ? "icon" : "md"}
             onClick={toggle}
             aria-label={isCollapsed ? TOGGLE_EXPAND_LABEL : TOGGLE_COLLAPSE_LABEL}
-            className={cn(
-              "flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm",
-              "text-text-tertiary transition-colors duration-100",
-              "hover:bg-sidebar-hover hover:text-text-primary",
-              isCollapsed && "justify-center px-0",
-            )}
+            className={cn(!isCollapsed && "w-full justify-start gap-3")}
           >
             {isCollapsed ? (
               <PanelLeftOpen aria-hidden="true" className="size-4 shrink-0" />
@@ -85,7 +82,7 @@ export function Sidebar({ stats }: SidebarProps): ReactElement {
                 <span>{TOGGLE_COLLAPSE_LABEL}</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </nav>
     </TooltipProvider>
