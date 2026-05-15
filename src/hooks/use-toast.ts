@@ -4,6 +4,14 @@ import { DISMISS_DURATION, MAX_VISIBLE_TOASTS } from "@/components/ui/toast/cons
 interface ToastOptions {
   description?: string;
 }
+interface ToastReturn {
+    success: (title: string, options?: ToastOptions | undefined) => string | number;
+    info: (title: string, options?: ToastOptions) => string | number;
+    warning: (title: string, options?: ToastOptions) => string | number;
+    error: (title: string, options?: ToastOptions) => string | number;
+    dismiss: (id?: string | number) => void;
+    MAX_VISIBLE_TOASTS: number;
+}
 
 function success(title: string, options?: ToastOptions): string | number {
   return sonnerToast.success(title, {
@@ -37,6 +45,6 @@ function dismiss(id?: string | number): void {
   sonnerToast.dismiss(id);
 }
 
-export function useToast() {
+export function useToast(): ToastReturn {
   return { success, info, warning, error, dismiss, MAX_VISIBLE_TOASTS };
 }

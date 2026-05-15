@@ -1,10 +1,6 @@
 import { render } from "@testing-library/react";
 import { Toaster } from "./toaster";
 
-jest.mock("next-themes", () => ({
-  useTheme: () => ({ theme: "dark" }),
-}));
-
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query: string) => ({

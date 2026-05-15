@@ -19,6 +19,7 @@ npx shadcn-ui@latest init
 ```
 
 This creates a `components.json` file for configuration. Choose your framework:
+
 - **Next.js** (App Router recommended)
 - **Vite**
 - **Remix**
@@ -48,7 +49,9 @@ Or ask me directly to "add a login form" - I can use the MCP server to handle in
 ## Component Categories
 
 ### Form & Input Components
+
 **Use for**: Data collection, user input, validation
+
 - `form` - Complex forms with React Hook Form
 - `input` - Text fields
 - `textarea` - Multi-line text
@@ -60,7 +63,9 @@ Or ask me directly to "add a login form" - I can use the MCP server to handle in
 - `combobox` - Searchable select with autocomplete
 
 ### Layout & Navigation
+
 **Use for**: App structure, navigation flows, content organization
+
 - `sidebar` - Collapsible side navigation
 - `tabs` - Tabbed content
 - `accordion` - Collapsible sections
@@ -69,7 +74,9 @@ Or ask me directly to "add a login form" - I can use the MCP server to handle in
 - `scroll-area` - Custom scrollable regions
 
 ### Overlays & Dialogs
+
 **Use for**: Modals, confirmations, floating content
+
 - `dialog` - Modal dialogs
 - `alert-dialog` - Confirmation prompts
 - `drawer` - Mobile-friendly side panels
@@ -79,7 +86,9 @@ Or ask me directly to "add a login form" - I can use the MCP server to handle in
 - `context-menu` - Right-click menus
 
 ### Data Display
+
 **Use for**: Showing structured data
+
 - `table` - Basic HTML tables
 - `data-table` - Advanced tables with sorting/filtering/pagination
 - `avatar` - User profile images
@@ -87,7 +96,9 @@ Or ask me directly to "add a login form" - I can use the MCP server to handle in
 - `card` - Content containers
 
 ### Feedback & Status
+
 **Use for**: User feedback, loading states, alerts
+
 - `alert` - Alert messages
 - `toast` - Notifications
 - `progress` - Progress bars
@@ -124,25 +135,31 @@ Ask yourself these questions to choose the right component:
 ### Basic Form with Validation
 
 ```tsx
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-})
+});
 
 export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-  })
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    console.log(values);
   }
 
   return (
@@ -163,14 +180,14 @@ export function LoginForm() {
         <Button type="submit">Submit</Button>
       </form>
     </Form>
-  )
+  );
 }
 ```
 
 ### Dialog Pattern
 
 ```tsx
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -178,7 +195,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 export function DeleteDialog() {
   return (
@@ -189,9 +206,7 @@ export function DeleteDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone.
-          </DialogDescription>
+          <DialogDescription>This action cannot be undone.</DialogDescription>
         </DialogHeader>
         <div className="flex gap-3 justify-end">
           <Button variant="outline">Cancel</Button>
@@ -199,7 +214,7 @@ export function DeleteDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -208,14 +223,18 @@ export function DeleteDialog() {
 All components use **Tailwind CSS** for styling. Customize appearance through:
 
 ### 1. Tailwind Classes
+
 Add classes directly to components:
+
 ```tsx
 <Button className="w-full text-lg">Full Width</Button>
 <Input className="rounded-lg border-2" />
 ```
 
 ### 2. CSS Variables (Theme Colors)
+
 shadcn/ui uses CSS variables for theming. Edit `app/globals.css`:
+
 ```css
 @layer base {
   :root {
@@ -226,13 +245,17 @@ shadcn/ui uses CSS variables for theming. Edit `app/globals.css`:
 ```
 
 ### 3. Dark Mode
+
 Enable dark mode in your framework:
+
 - **Next.js**: Configure in `next.config.js`
 - **Vite**: Add dark class detection in `tailwind.config.js`
 - Components automatically respond to `dark` class
 
 ### 4. Component Variants
+
 Many components have built-in variants:
+
 ```tsx
 <Button variant="outline" />
 <Button variant="ghost" />
@@ -243,7 +266,9 @@ Many components have built-in variants:
 ## Composition & Best Practices
 
 ### 1. Composition Over Customization
+
 Combine small components rather than modifying large ones:
+
 ```tsx
 // ✅ Good: Compose components
 <Card>
@@ -260,18 +285,22 @@ Combine small components rather than modifying large ones:
 ```
 
 ### 2. Use Type Safety
+
 Leverage TypeScript for prop safety:
+
 ```tsx
-import { Button } from "@/components/ui/button"
-import type { ButtonProps } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import type { ButtonProps } from "@/components/ui/button";
 
 type CustomButtonProps = ButtonProps & {
-  label: string
-}
+  label: string;
+};
 ```
 
 ### 3. Accessibility Built-in
+
 shadcn/ui uses Radix UI primitives with accessibility built-in:
+
 - Keyboard navigation
 - ARIA attributes
 - Screen reader support
@@ -280,6 +309,7 @@ shadcn/ui uses Radix UI primitives with accessibility built-in:
 Just use components correctly; accessibility comes free.
 
 ### 4. Performance
+
 - Components are small and modular
 - Tree-shakeable
 - No runtime overhead beyond Radix UI
@@ -288,48 +318,50 @@ Just use components correctly; accessibility comes free.
 ## Framework-Specific Notes
 
 ### Next.js
+
 - Use `shadcn-ui@latest add form` for React Hook Form integration
 - Combine with Server Actions for form submissions
-- Dark mode works via `next-themes`
 
 ### Vite
+
 - Ensure `tailwind.config.js` includes component paths
 - Use Vite's HMR for fast development
 
 ### Remix
+
 - Forms work with `remix` form actions
 - Use route transitions for optimistic updates
 
 ## Common Customization Tasks
 
 ### Changing Primary Color
+
 Edit `components.json` during init or manually update CSS variables in `globals.css`.
 
 ### Adding Custom Components
+
 Create your own components in `components/ui/` following shadcn/ui patterns:
+
 ```tsx
 // components/ui/my-component.tsx
-import * as React from "react"
+import * as React from "react";
 
-export interface MyComponentProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+export interface MyComponentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const MyComponent = React.forwardRef<HTMLDivElement, MyComponentProps>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={className}
-      {...props}
-    />
-  )
-)
-MyComponent.displayName = "MyComponent"
+    <div ref={ref} className={className} {...props} />
+  ),
+);
+MyComponent.displayName = "MyComponent";
 
-export { MyComponent }
+export { MyComponent };
 ```
 
 ### Theming for Multiple Brands
+
 Use CSS variable layers:
+
 ```css
 .brand-a {
   --primary: 220 90% 56%;
@@ -345,13 +377,17 @@ Use CSS variable layers:
 ## Validation & Forms
 
 ### With React Hook Form + Zod
+
 Best practice for complex forms with client-side validation:
+
 ```bash
 npm install react-hook-form zod @hookform/resolvers
 ```
 
 ### With TanStack Form
+
 Alternative for advanced form requirements:
+
 ```bash
 npm install @tanstack/react-form
 ```
@@ -361,21 +397,25 @@ Ask me for specific form patterns (login, signup, multi-step, etc.)
 ## Troubleshooting
 
 ### Components Not Styling Correctly
+
 - ✅ Verify Tailwind is configured in `tailwind.config.js`
 - ✅ Check `components.json` has correct `path` setting
 - ✅ Run `npm install` after adding components
 
 ### TypeScript Errors
+
 - ✅ Ensure components are imported from `/components/ui/name`
 - ✅ Components have proper TypeScript support built-in
 
 ### Form Validation Not Working
+
 - ✅ Install `zod` and `@hookform/resolvers`
 - ✅ Use `zodResolver` with `useForm`
 
 ## Next Steps
 
 For detailed guidance on specific tasks:
+
 - **[COMPONENT_GUIDE.md](COMPONENT_GUIDE.md)** - Deep dive into each component
 - **[FORMS_GUIDE.md](FORMS_GUIDE.md)** - Building complex forms
 - **[PATTERNS.md](PATTERNS.md)** - Common UI patterns and combinations

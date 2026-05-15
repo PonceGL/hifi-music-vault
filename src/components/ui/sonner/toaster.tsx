@@ -2,17 +2,17 @@
 
 import type { ComponentProps, ReactElement } from "react";
 import { CircleCheck, Info, LoaderCircle, OctagonX, TriangleAlert } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useTheme";
 import { Toaster as Sonner } from "sonner";
 
 export type ToasterProps = ComponentProps<typeof Sonner>;
 
 export function Toaster({ ...props }: ToasterProps): ReactElement {
-  const { theme = "system" } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       icons={{
         success: <CircleCheck className="h-4 w-4" />,
