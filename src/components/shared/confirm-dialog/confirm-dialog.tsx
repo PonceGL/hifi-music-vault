@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog/dialog";
 import { DialogContent } from "@/components/ui/dialog/dialog-content";
 import { DialogDescription } from "@/components/ui/dialog/dialog-description";

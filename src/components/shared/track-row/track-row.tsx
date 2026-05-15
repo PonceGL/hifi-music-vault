@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Music, MoreHorizontal } from "lucide-react";
 import type { Track } from "@/types/track";
 import { cn } from "@/lib/cn";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox/checkbox";
 import { FormatBadge } from "@/components/shared/format-badge/format-badge";
 import { TrackRowSkeleton } from "./track-row-skeleton";
