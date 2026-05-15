@@ -305,3 +305,9 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ─── CUSTOM UTILITIES ───────────────────────────────────────────────────── */
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
