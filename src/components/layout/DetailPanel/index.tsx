@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import type { Track } from "@/types/track";
 import { Button } from "@/components/ui/button";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
-import { HealthBadge } from "./HealthBadge";
+import { HealthBadge } from "@/components/layout/HealthBadge";
 import {
   DETAIL_PANEL_ARIA_LABEL,
   DETAIL_PANEL_CLOSE_LABEL,
