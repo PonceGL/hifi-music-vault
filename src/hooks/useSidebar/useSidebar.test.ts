@@ -57,12 +57,6 @@ describe("useSidebar — toggle", () => {
     expect(localStorage.getItem("sidebar-collapsed")).toBe("true");
   });
 
-  it("does not toggle on desktop", () => {
-    mockMatchMedia(true);
-    const { result } = renderHook(() => useSidebar());
-    act(() => result.current.toggle());
-    expect(result.current.isCollapsed).toBe(false);
-  });
 });
 
 describe("useSidebar — return shape", () => {

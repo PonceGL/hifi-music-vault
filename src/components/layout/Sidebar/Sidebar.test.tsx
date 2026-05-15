@@ -5,7 +5,7 @@ import {
   SIDEBAR_NAV_ARIA_LABEL,
   TOGGLE_COLLAPSE_LABEL,
   TOGGLE_EXPAND_LABEL,
-} from "./constants";
+} from "@/constants/navigation";
 
 jest.mock("@/hooks/useSidebar", () => ({
   useSidebar: jest.fn(() => ({ isCollapsed: false, toggle: jest.fn() })),

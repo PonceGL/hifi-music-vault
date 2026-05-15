@@ -31,7 +31,6 @@ export function useSidebar(): UseSidebarReturn {
   }, []);
 
   function toggle(): void {
-    if (window.matchMedia(DESKTOP_QUERY).matches) return;
     setIsCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem(STORAGE_KEY, String(next));

@@ -15,7 +15,7 @@ import {
   TOGGLE_EXPAND_LABEL,
   STATS_TRACKS_LABEL,
   STATS_SPACE_LABEL,
-} from "./constants";
+} from "@/constants/navigation";
 
 export interface SidebarStats {
   trackCount: number;
