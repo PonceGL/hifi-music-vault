@@ -36,7 +36,9 @@ export interface DetailPanelProps {
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+  const s = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, "0");
   return `${m}:${s}`;
 }
 
@@ -168,10 +170,7 @@ export function DetailPanel({
           label={LABEL_YEAR}
           value={metadata.year?.toString() ?? MISSING_VALUE}
         />
-        <MetaRow
-          label={LABEL_ALBUM}
-          value={metadata.album ?? MISSING_VALUE}
-        />
+        <MetaRow label={LABEL_ALBUM} value={metadata.album ?? MISSING_VALUE} />
         <MetaRow
           label={LABEL_ARTIST}
           value={metadata.artist ?? MISSING_VALUE}
@@ -179,26 +178,28 @@ export function DetailPanel({
       </dl>
 
       {/* Actions */}
-      <div className="mt-auto flex flex-col gap-1 border-t border-border px-4 py-3">
-        <Button
-          variant="ghost"
-          size="md"
-          className="w-full justify-start gap-3"
-          onClick={onEditMetadata}
-        >
-          <Pencil aria-hidden="true" className="size-4 shrink-0" />
-          {ACTION_EDIT_METADATA}
-        </Button>
-        <Button
-          variant="ghost"
-          size="md"
-          className="w-full justify-start gap-3"
-          onClick={onRevealInFinder}
-        >
-          <FolderOpen aria-hidden="true" className="size-4 shrink-0" />
-          {ACTION_REVEAL_IN_FINDER}
-        </Button>
-      </div>
+      {healthStatus !== "critical" && (
+        <div className="mt-auto flex flex-col gap-1 border-t border-border px-4 py-3">
+          <Button
+            variant="ghost"
+            size="md"
+            className="w-full justify-start gap-3"
+            onClick={onEditMetadata}
+          >
+            <Pencil aria-hidden="true" className="size-4 shrink-0" />
+            {ACTION_EDIT_METADATA}
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
+            className="w-full justify-start gap-3"
+            onClick={onRevealInFinder}
+          >
+            <FolderOpen aria-hidden="true" className="size-4 shrink-0" />
+            {ACTION_REVEAL_IN_FINDER}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
