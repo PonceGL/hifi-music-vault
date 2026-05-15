@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Sidebar } from "./sidebar";
+import { Sidebar } from ".";
 import {
   NAV_ITEMS,
   SIDEBAR_NAV_ARIA_LABEL,
