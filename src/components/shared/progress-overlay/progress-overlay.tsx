@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import { useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { Progress } from "@/components/ui/progress/progress";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { CANCEL_LABEL, PAUSE_LABEL, SHELL_BLOCKABLE_SELECTOR } from "./constants";
 
 export interface ProgressOverlayProps {

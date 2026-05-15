@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { CLEAR_SELECTION_LABEL, getSelectionLabel } from "./constants";
 
 export interface ActionBarAction {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { Dialog } from "./dialog";
 import { DialogContent } from "./dialog-content";
 import { DialogDescription } from "./dialog-description";

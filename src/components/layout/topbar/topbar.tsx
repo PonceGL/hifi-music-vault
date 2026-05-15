@@ -3,7 +3,7 @@
 import type { ReactElement } from "react";
 import { Music, Search, Settings, RefreshCw, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
