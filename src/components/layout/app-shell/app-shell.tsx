@@ -67,7 +67,7 @@ export function AppShell({
           {detailPanel && (
             <aside
               aria-label={DETAIL_PANEL_ARIA_LABEL}
-              className="hidden xl:flex w-80 shrink-0 flex-col border-l border-border"
+              className="hidden xl:flex w-80 shrink-0 flex-col overflow-hidden border-l border-border"
             >
               {detailPanel}
             </aside>
