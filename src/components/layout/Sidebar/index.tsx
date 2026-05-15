@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { Button } from "@/components/ui/button/button";
+import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSidebar } from "@/hooks/useSidebar";
 import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
