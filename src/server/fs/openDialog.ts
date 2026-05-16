@@ -1,10 +1,17 @@
 import { exec } from "child_process";
-import { UnsupportedPlatformError } from "../errors";
+import { UnsupportedPlatformError } from "@/server/errors";
+import {
+  openDialogBodyDto,
+  openDialogResponseDto,
+  type OpenDialogBodyDto,
+  type OpenDialogResponseDto,
+} from "@/app/api/fs/openDialog/dtos/openDialog.dto";
+import { ValidationError } from "@/server/errors";
 
 /**
  * Promise-based wrapper around child_process.exec.
- * Rejects with an error object that includes stdout and stderr,
- * so catch blocks can inspect both when deciding how to handle failures.
+ * Rejects with an error object that includes stdout and stderr so catch
+ * blocks can inspect both when deciding how to handle failures.
  */
 function execAsync(
   cmd: string
@@ -20,25 +27,6 @@ function execAsync(
   });
 }
 
-/**
- * Opens the native OS folder-picker dialog and returns the absolute path
- * selected by the user, or null if the user cancelled.
- *
- * Must be called from a server context — never from client-side code.
- *
- * @param prompt - Text displayed as the dialog title/description
- */
-export async function openFolderDialog(
-  prompt: string
-): Promise<string | null> {
-  const { platform } = process;
-
-  if (platform === "darwin") return openFolderDialogMacOS(prompt);
-  if (platform === "win32") return openFolderDialogWindows(prompt);
-
-  throw new UnsupportedPlatformError(platform);
-}
-
 // ─── macOS ────────────────────────────────────────────────────────────────────
 
 async function openFolderDialogMacOS(
@@ -51,8 +39,6 @@ async function openFolderDialogMacOS(
     const { stdout } = await execAsync(cmd);
     return stdout.trim() || null;
   } catch (error) {
-    // osascript exits with code 1 when the user clicks Cancel.
-    // stderr will contain "User canceled." — this is a normal flow, not an error.
     const err = error as { stderr?: string };
     if (err.stderr?.includes("User canceled")) return null;
     throw error;
@@ -64,11 +50,8 @@ async function openFolderDialogMacOS(
 async function openFolderDialogWindows(
   prompt: string
 ): Promise<string | null> {
-  // Single-quote escaping for PowerShell string literals
   const escaped = prompt.replace(/'/g, "''");
 
-  // Use -EncodedCommand to avoid shell quoting issues entirely.
-  // The script is Base64-encoded UTF-16LE, which PowerShell decodes natively.
   const script = [
     "Add-Type -AssemblyName System.Windows.Forms",
     "$d = New-Object System.Windows.Forms.FolderBrowserDialog",
@@ -84,9 +67,47 @@ async function openFolderDialogWindows(
     const { stdout } = await execAsync(cmd);
     return stdout.trim() || null;
   } catch (error) {
-    // An empty stderr means the dialog was cancelled without a process error.
     const err = error as { stderr?: string };
     if (!err.stderr?.trim()) return null;
     throw error;
   }
+}
+
+// ─── Public service ───────────────────────────────────────────────────────────
+
+/**
+ * Opens the native OS folder-picker dialog.
+ *
+ * Validates raw input with Zod before executing any OS command.
+ * Validates the output shape before returning, ensuring the response
+ * contract is always honored.
+ *
+ * @param rawInput - Unparsed request body from the route handler.
+ * @returns The selected absolute path, or null if the user cancelled.
+ * @throws {ValidationError} When the input fails schema validation.
+ * @throws {UnsupportedPlatformError} When running on an unsupported OS.
+ */
+export async function openFolderDialogService(
+  rawInput: unknown
+): Promise<OpenDialogResponseDto> {
+  const parsed = openDialogBodyDto.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(parsed.error.format());
+  }
+
+  const input: OpenDialogBodyDto = parsed.data;
+  const prompt = input.prompt ?? "Seleccionar carpeta";
+
+  const { platform } = process;
+
+  let path: string | null;
+  if (platform === "darwin") {
+    path = await openFolderDialogMacOS(prompt);
+  } else if (platform === "win32") {
+    path = await openFolderDialogWindows(prompt);
+  } else {
+    throw new UnsupportedPlatformError(platform);
+  }
+
+  return openDialogResponseDto.parse({ path });
 }
