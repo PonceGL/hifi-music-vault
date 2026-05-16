@@ -1,9 +1,17 @@
 import { act, renderHook } from "@testing-library/react";
 import { useOnboarding } from "./index";
 
+const mockPush = jest.fn();
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 describe("useOnboarding", () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.clearAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -83,5 +91,24 @@ describe("useOnboarding", () => {
 
     expect(result.current.step).toBe(0);
     expect(result.current.isTransitioning).toBe(false);
+  });
+
+  it("complete saves config to localStorage and redirects to /library", () => {
+    jest.useRealTimers();
+    const { result } = renderHook(() => useOnboarding());
+
+    act(() => {
+      result.current.complete({
+        downloadsPath: "/downloads",
+        libraryPath: "/library",
+      });
+    });
+
+    const stored = JSON.parse(
+      localStorage.getItem("folder-config") ?? "{}"
+    );
+    expect(stored.downloadsPath).toBe("/downloads");
+    expect(stored.libraryPath).toBe("/library");
+    expect(mockPush).toHaveBeenCalledWith("/library");
   });
 });

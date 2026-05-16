@@ -4,14 +4,10 @@ import { OnboardingLayout } from "./index";
 
 const mockGoNext = jest.fn();
 const mockGoBack = jest.fn();
-const mockPush = jest.fn();
+const mockComplete = jest.fn();
 
 let mockStep: 0 | 1 = 0;
 let mockIsTransitioning = false;
-
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
 
 jest.mock("@/hooks/useOnboarding", () => ({
   useOnboarding: () => ({
@@ -23,6 +19,7 @@ jest.mock("@/hooks/useOnboarding", () => ({
     get isTransitioning() {
       return mockIsTransitioning;
     },
+    complete: mockComplete,
   }),
 }));
 
@@ -58,7 +55,6 @@ jest.mock("../FolderConfigScreen", () => ({
 describe("OnboardingLayout — step 0", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorage.clear();
     mockStep = 0;
     mockIsTransitioning = false;
   });
@@ -100,7 +96,6 @@ describe("OnboardingLayout — step 0", () => {
 describe("OnboardingLayout — step 1", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorage.clear();
     mockStep = 1;
     mockIsTransitioning = false;
   });
@@ -128,19 +123,16 @@ describe("OnboardingLayout — step 1", () => {
 
   it("calls goBack when FolderConfigScreen's onBack is triggered", async () => {
     render(<OnboardingLayout />);
-    await userEvent.click(
-      screen.getByRole("button", { name: "Volver" })
-    );
+    await userEvent.click(screen.getByRole("button", { name: "Volver" }));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("saves config to localStorage and redirects on submit", async () => {
+  it("calls complete from hook when FolderConfigScreen submits", async () => {
     render(<OnboardingLayout />);
     await userEvent.click(screen.getByRole("button", { name: "Empezar" }));
-
-    const stored = JSON.parse(localStorage.getItem("folder-config") ?? "{}");
-    expect(stored.downloadsPath).toBe("/downloads");
-    expect(stored.libraryPath).toBe("/library");
-    expect(mockPush).toHaveBeenCalledWith("/library");
+    expect(mockComplete).toHaveBeenCalledWith({
+      downloadsPath: "/downloads",
+      libraryPath: "/library",
+    });
   });
 });
