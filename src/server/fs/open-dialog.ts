@@ -1,8 +1,24 @@
 import { exec } from "child_process";
-import { promisify } from "util";
 import { UnsupportedPlatformError } from "../errors";
 
-const execAsync = promisify(exec);
+/**
+ * Promise-based wrapper around child_process.exec.
+ * Rejects with an error object that includes stdout and stderr,
+ * so catch blocks can inspect both when deciding how to handle failures.
+ */
+function execAsync(
+  cmd: string
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        reject(Object.assign(error, { stdout, stderr }));
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
 
 /**
  * Opens the native OS folder-picker dialog and returns the absolute path
