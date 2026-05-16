@@ -4,8 +4,9 @@ import type { ReactElement } from "react";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ONBOARDING_STRINGS } from "../constants";
+import type { ValidationState } from "@/types/onboarding";
 
-export type ValidationState = "idle" | "loading" | "valid" | "error";
+export type { ValidationState };
 
 export interface FolderPickerFieldProps {
   label: string;
