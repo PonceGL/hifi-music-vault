@@ -3,6 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { FolderPickerField } from "./index";
 import { ONBOARDING_STRINGS } from "../constants";
 
+jest.mock("@/lib/folder-dialog", () => ({
+  openFolderDialog: jest.fn(),
+}));
+
+import { openFolderDialog } from "@/lib/folder-dialog";
+const mockOpenFolderDialog = openFolderDialog as jest.Mock;
+
 const defaultProps = {
   label: "Carpeta de Descargas",
   value: null,
@@ -14,7 +21,6 @@ const defaultProps = {
 describe("FolderPickerField", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    global.fetch = jest.fn();
   });
 
   it("renders label and choose button", () => {
@@ -35,13 +41,11 @@ describe("FolderPickerField", () => {
   it("shows placeholder when value is null and state is idle", () => {
     render(<FolderPickerField {...defaultProps} />);
     expect(
-      screen.getByText(
-        ONBOARDING_STRINGS.folderConfig.downloads.placeholder
-      )
+      screen.getByText(ONBOARDING_STRINGS.folderConfig.downloads.placeholder)
     ).toBeInTheDocument();
   });
 
-  it("shows path in mono font when value is set", () => {
+  it("shows path in mono font when value is set and state is valid", () => {
     render(
       <FolderPickerField
         {...defaultProps}
@@ -53,12 +57,8 @@ describe("FolderPickerField", () => {
   });
 
   it("shows spinner when validationState is loading", () => {
-    render(
-      <FolderPickerField {...defaultProps} validationState="loading" />
-    );
-    expect(
-      document.querySelector(".animate-spin")
-    ).toBeInTheDocument();
+    render(<FolderPickerField {...defaultProps} validationState="loading" />);
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
   it("shows validation message when state is valid", () => {
@@ -85,12 +85,9 @@ describe("FolderPickerField", () => {
     );
   });
 
-  it("calls onSelect with the returned path from open-dialog", async () => {
+  it("calls onSelect with the path returned by openFolderDialog", async () => {
     const onSelect = jest.fn();
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ path: "/Users/test/Downloads" }),
-    });
+    mockOpenFolderDialog.mockResolvedValueOnce("/Users/test/Downloads");
 
     render(<FolderPickerField {...defaultProps} onSelect={onSelect} />);
     await userEvent.click(screen.getByRole("button", { name: /Elegir/i }));
@@ -100,12 +97,9 @@ describe("FolderPickerField", () => {
     });
   });
 
-  it("does not call onSelect when OS dialog is cancelled (path: null)", async () => {
+  it("does not call onSelect when openFolderDialog returns null (dialog cancelled)", async () => {
     const onSelect = jest.fn();
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ path: null }),
-    });
+    mockOpenFolderDialog.mockResolvedValueOnce(null);
 
     render(<FolderPickerField {...defaultProps} onSelect={onSelect} />);
     await userEvent.click(screen.getByRole("button", { name: /Elegir/i }));
@@ -116,9 +110,7 @@ describe("FolderPickerField", () => {
   });
 
   it("disables the choose button when validationState is loading", () => {
-    render(
-      <FolderPickerField {...defaultProps} validationState="loading" />
-    );
+    render(<FolderPickerField {...defaultProps} validationState="loading" />);
     expect(screen.getByRole("button", { name: /Elegir/i })).toBeDisabled();
   });
 });

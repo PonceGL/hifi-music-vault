@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ONBOARDING_STRINGS } from "../constants";
 import type { ValidationState } from "@/types/onboarding";
+import { openFolderDialog } from "@/lib/folder-dialog";
 
 export type { ValidationState };
 
@@ -28,16 +29,8 @@ export function FolderPickerField({
   prompt,
 }: FolderPickerFieldProps): ReactElement {
   async function handleChoose(): Promise<void> {
-    const response = await fetch("/api/fs/open-dialog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
-    });
-
-    if (!response.ok) return;
-
-    const data = (await response.json()) as { path: string | null };
-    if (data.path) onSelect(data.path);
+    const path = await openFolderDialog(prompt);
+    if (path) onSelect(path);
   }
 
   return (
