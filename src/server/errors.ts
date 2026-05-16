@@ -1,28 +1,76 @@
+// ─── Standard error response shape ───────────────────────────────────────────
+
+export interface ApiErrorBody {
+  success: false;
+  error: {
+    message: string;
+    code: string;
+    statusCode: number;
+    details?: unknown;
+  };
+}
+
+// ─── Base error class ─────────────────────────────────────────────────────────
+
 /**
- * Base class for all server-side application errors.
- * Route handlers catch these and map them to the appropriate HTTP response.
+ * Base class for all server-side errors that map to an HTTP response.
+ *
+ * Throw an `HttpError` (or a subclass) anywhere in a server service.
+ * The `withErrorHandler` wrapper catches it and serializes it via `toJSON()`
+ * so every endpoint returns the exact same error shape.
  */
-export class AppError extends Error {
+export class HttpError extends Error {
   constructor(
     message: string,
-    public readonly statusCode: number = 500
+    public readonly statusCode: number,
+    public readonly code: string,
+    public readonly details?: unknown
   ) {
     super(message);
     this.name = this.constructor.name;
-    // Maintains proper prototype chain in transpiled code
     Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  toJSON(): ApiErrorBody {
+    return {
+      success: false,
+      error: {
+        message: this.message,
+        code: this.code,
+        statusCode: this.statusCode,
+        ...(this.details !== undefined && { details: this.details }),
+      },
+    };
+  }
+}
+
+// ─── Subclasses ───────────────────────────────────────────────────────────────
+
+/**
+ * Thrown when Zod schema validation fails on a request body or query params.
+ * Maps to HTTP 400.
+ */
+export class ValidationError extends HttpError {
+  constructor(details: unknown) {
+    super(
+      "Los datos de entrada no son válidos",
+      400,
+      "VALIDATION_ERROR",
+      details
+    );
   }
 }
 
 /**
- * Thrown when the server is running on an OS that the app does not support.
- * The app only supports macOS (darwin) and Windows (win32).
+ * Thrown when the server runs on an unsupported OS.
+ * Maps to HTTP 500.
  */
-export class UnsupportedPlatformError extends AppError {
+export class UnsupportedPlatformError extends HttpError {
   constructor(platform: string) {
     super(
-      `Platform '${platform}' is not supported. Only macOS (darwin) and Windows (win32) are supported.`,
-      500
+      `La plataforma '${platform}' no está soportada. Solo macOS (darwin) y Windows (win32) son compatibles.`,
+      500,
+      "UNSUPPORTED_PLATFORM"
     );
   }
 }
