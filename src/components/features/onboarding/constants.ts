@@ -1,4 +1,6 @@
-export const ONBOARDING_STRINGS = {
+import type { OnboardingStrings } from "@/types/onboarding";
+
+export const ONBOARDING_STRINGS: OnboardingStrings = {
   welcome: {
     appName: "Music Files Manager",
     tagline: "Tu biblioteca musical, perfectamente organizada",

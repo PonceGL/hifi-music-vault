@@ -3,11 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { FolderPickerField } from "./index";
 import { ONBOARDING_STRINGS } from "../constants";
 
-jest.mock("@/lib/folder-dialog", () => ({
+jest.mock("@/lib/openFolderDialog", () => ({
   openFolderDialog: jest.fn(),
 }));
 
-import { openFolderDialog } from "@/lib/folder-dialog";
+import { openFolderDialog } from "@/lib/openFolderDialog";
 const mockOpenFolderDialog = openFolderDialog as jest.Mock;
 
 const defaultProps = {
@@ -26,14 +26,15 @@ describe("FolderPickerField", () => {
   it("renders label and choose button", () => {
     render(<FolderPickerField {...defaultProps} />);
     expect(screen.getByText("Carpeta de Descargas")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Elegir/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Elegir/i })).toBeInTheDocument();
   });
 
   it("shows description when provided", () => {
     render(
-      <FolderPickerField {...defaultProps} description="Descripción de prueba" />
+      <FolderPickerField
+        {...defaultProps}
+        description="Descripción de prueba"
+      />,
     );
     expect(screen.getByText("Descripción de prueba")).toBeInTheDocument();
   });
@@ -41,7 +42,7 @@ describe("FolderPickerField", () => {
   it("shows placeholder when value is null and state is idle", () => {
     render(<FolderPickerField {...defaultProps} />);
     expect(
-      screen.getByText(ONBOARDING_STRINGS.folderConfig.downloads.placeholder)
+      screen.getByText(ONBOARDING_STRINGS.folderConfig.downloads.placeholder),
     ).toBeInTheDocument();
   });
 
@@ -51,7 +52,7 @@ describe("FolderPickerField", () => {
         {...defaultProps}
         value="/Users/test/Downloads"
         validationState="valid"
-      />
+      />,
     );
     expect(screen.getByText("/Users/test/Downloads")).toBeInTheDocument();
   });
@@ -67,9 +68,11 @@ describe("FolderPickerField", () => {
         {...defaultProps}
         validationState="valid"
         validationMessage="247 archivos de audio"
-      />
+      />,
     );
-    expect(screen.getByRole("status")).toHaveTextContent("247 archivos de audio");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "247 archivos de audio",
+    );
   });
 
   it("shows error message when state is error", () => {
@@ -78,10 +81,10 @@ describe("FolderPickerField", () => {
         {...defaultProps}
         validationState="error"
         validationMessage={ONBOARDING_STRINGS.validation.sameFolderError}
-      />
+      />,
     );
     expect(screen.getByRole("alert")).toHaveTextContent(
-      ONBOARDING_STRINGS.validation.sameFolderError
+      ONBOARDING_STRINGS.validation.sameFolderError,
     );
   });
 

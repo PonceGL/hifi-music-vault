@@ -2,23 +2,16 @@
 
 import { useState } from "react";
 import type { FolderConfig } from "@/types/settings";
-import type { ValidationState } from "@/types/onboarding";
-import { validateFolderPath } from "@/lib/validate-folder-path";
+import type {
+  DirectoryConfigValidationMessages,
+  ValidationState,
+} from "@/types/onboarding";
+import { validateFolderPath } from "@/lib/validateFolderPath";
 
 export interface FolderValidation {
   path: string | null;
   state: ValidationState;
   message: string | undefined;
-}
-
-// TODO: move to upper level and ONBOARDING_STRINGS should implements this, it's the only source of truth for strings
-export interface FolderConfigMessages {
-  sameFolderError: string;
-  libraryInsideDownloadsError: string;
-  noWritePermissionError: string;
-  validSuccess: string;
-  notFoundError: string;
-  notADirectoryError: string;
 }
 
 export interface UseFolderConfigReturn {
@@ -38,7 +31,7 @@ const INITIAL_VALIDATION: FolderValidation = {
 
 export function useFolderConfig(
   onSubmit: (config: FolderConfig) => void,
-  messages: FolderConfigMessages,
+  messages: DirectoryConfigValidationMessages,
 ): UseFolderConfigReturn {
   const [downloads, setDownloads] =
     useState<FolderValidation>(INITIAL_VALIDATION);

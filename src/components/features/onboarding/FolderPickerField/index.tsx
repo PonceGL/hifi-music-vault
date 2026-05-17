@@ -3,9 +3,9 @@
 import type { ReactElement } from "react";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ONBOARDING_STRINGS } from "../constants";
+import { ONBOARDING_STRINGS } from "@/components/features/onboarding/constants";
 import type { ValidationState } from "@/types/onboarding";
-import { openFolderDialog } from "@/lib/folder-dialog";
+import { openFolderDialog } from "@/lib/openFolderDialog";
 
 export type { ValidationState };
 
