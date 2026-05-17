@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({
       data-theme="dark"
     >
       <body className="min-h-full flex flex-col font-sans antialiased bg-background text-text-primary">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
