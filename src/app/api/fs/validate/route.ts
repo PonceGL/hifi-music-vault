@@ -1,6 +1,7 @@
 import { handleHttpError } from "@/lib/errorResponse";
 import { BadRequestError } from "@/lib/httpErrors";
 import { NextRequest, NextResponse } from "next/server";
+import { validateServer } from "@/app/api/fs/validate/validate.server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -10,11 +11,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       throw new BadRequestError("Se requiere el path para validar");
     }
 
+    const data = await validateServer.validate(path);
+
     return NextResponse.json(
       {
         success: true,
-        message: "Validate endpoint working",
-        data: "working",
+        message: "Path successfully validated",
+        data: data,
       },
       { status: 200 },
     );
