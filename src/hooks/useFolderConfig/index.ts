@@ -11,11 +11,14 @@ export interface FolderValidation {
   message: string | undefined;
 }
 
+// TODO: move to upper level and ONBOARDING_STRINGS should implements this, it's the only source of truth for strings
 export interface FolderConfigMessages {
   sameFolderError: string;
   libraryInsideDownloadsError: string;
   noWritePermissionError: string;
   validSuccess: string;
+  notFoundError: string;
+  notADirectoryError: string;
 }
 
 export interface UseFolderConfigReturn {
@@ -35,19 +38,18 @@ const INITIAL_VALIDATION: FolderValidation = {
 
 export function useFolderConfig(
   onSubmit: (config: FolderConfig) => void,
-  messages: FolderConfigMessages
+  messages: FolderConfigMessages,
 ): UseFolderConfigReturn {
   const [downloads, setDownloads] =
     useState<FolderValidation>(INITIAL_VALIDATION);
   const [library, setLibrary] = useState<FolderValidation>(INITIAL_VALIDATION);
 
-  const bothValid =
-    downloads.state === "valid" && library.state === "valid";
+  const bothValid = downloads.state === "valid" && library.state === "valid";
 
   async function validate(
     path: string,
     otherPath: string | null,
-    isLibrary: boolean
+    isLibrary: boolean,
   ): Promise<{ state: ValidationState; message: string | undefined }> {
     if (otherPath && path === otherPath) {
       return { state: "error", message: messages.sameFolderError };
@@ -59,7 +61,15 @@ export function useFolderConfig(
 
     const result = await validateFolderPath(path);
 
-    if (!result.valid || !result.writable) {
+    if (!result.exists) {
+      return { state: "error", message: messages.notFoundError };
+    }
+
+    if (!result.isDirectory) {
+      return { state: "error", message: messages.notADirectoryError };
+    }
+
+    if (!result.hasPermissions) {
       return { state: "error", message: messages.noWritePermissionError };
     }
 

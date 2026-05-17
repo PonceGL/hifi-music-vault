@@ -1,4 +1,7 @@
 const PREFIX = "/api";
+const FILESYSTEM_ROUTE = "/fs";
+const DIALOG_ROUTE = "/dialog";
+const VALIDATE_ROUTE = "/validate";
 /**
  * API route constants — single source of truth for every endpoint the
  * frontend calls. The frontend ONLY calls our own Next.js API (`/api/*`).
@@ -15,10 +18,10 @@ const PREFIX = "/api";
 export const API_ROUTES = {
   fs: {
     /** POST — opens the native OS folder-picker dialog */
-    dialog: `${PREFIX}/fs/dialog`,
+    dialog: `${PREFIX}${FILESYSTEM_ROUTE}${DIALOG_ROUTE}`,
 
     /** GET — validates a folder path: existence, permissions, disk space */
     validate: (path: string): string =>
-      `${PREFIX}/fs?${new URLSearchParams({ path }).toString()}`,
+      `${PREFIX}${FILESYSTEM_ROUTE}${VALIDATE_ROUTE}?${new URLSearchParams({ path }).toString()}`,
   },
 } as const;

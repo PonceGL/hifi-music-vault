@@ -41,6 +41,8 @@ export const ONBOARDING_STRINGS = {
       "La Biblioteca no puede ser una subcarpeta de Descargas",
     noWritePermissionError:
       "Sin permisos de escritura. En macOS: Ajustes del Sistema → Privacidad → Acceso a la carpeta. En Windows: Propiedades → Seguridad.",
+    notFoundError: "La ruta seleccionada no existe.",
+    notADirectoryError: "La ruta seleccionada no es una carpeta.",
     validSuccess: "Carpeta válida",
     chooseFolderButton: "Elegir",
   },

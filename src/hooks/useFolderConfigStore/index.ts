@@ -42,7 +42,7 @@ function clearConfiguredCookie(): void {
 export function useFolderConfigStore(): UseFolderConfigStoreReturn {
   const [stored, setStored, removeStored] = useLocalStorage<FolderConfig>(
     STORAGE_KEYS.folderConfig,
-    INITIAL_CONFIG
+    INITIAL_CONFIG,
   );
 
   const folderConfig: FolderConfig | null =

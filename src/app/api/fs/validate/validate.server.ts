@@ -1,53 +1,77 @@
-import { promises as fs } from "fs";
-import {
-  BadRequestError,
-  HttpError,
-  InternalServerErrorException,
-} from "@/lib/httpErrors";
+import { promises as fs, constants } from "fs";
+import path from "path";
+import { HttpError, InternalServerErrorException } from "@/lib/httpErrors";
 import { ZodError } from "zod";
 import {
   ValidateDto,
   validateDto,
 } from "@/app/api/fs/validate/dtos/validate.dto";
-import { ValidateFolderResult } from "@/app/api/fs/validate/type";
+import { ValidatePathResult } from "@/app/api/fs/validate/type";
 
 class ValidateServer {
-  public async validate(path: ValidateDto): Promise<ValidateFolderResult> {
+  public async validate(dto: ValidateDto): Promise<ValidatePathResult> {
     try {
-      const parsed = validateDto.parse(path);
+      const parsedPath = validateDto.parse(dto);
 
-      const directory = await this.checkIfExistAndPermission(parsed);
-
-      return {
-        path: parsed,
-        isValid: directory,
-      };
+      return await this.checkPath(parsedPath);
     } catch (error) {
       throw this.handleServiceError(error);
     }
   }
 
-  private async checkIfExistAndPermission(path: string): Promise<boolean> {
-    try {
-      const stats = await fs.stat(path);
-      if (!stats.isDirectory()) {
-        throw new BadRequestError("El path debe ser una carpeta");
-      }
+  /**
+   * Verifica la existencia, el tipo (archivo o directorio) y los permisos
+   * de lectura/escritura/ejecución para la ruta proporcionada.
+   */
+  public async checkPath(targetPath: string): Promise<ValidatePathResult> {
+    const result: ValidatePathResult = {
+      path: targetPath,
+      exists: false,
+      isDirectory: false,
+      isFile: false,
+      hasPermissions: false,
+    };
 
-      return true;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-        throw new BadRequestError("El archivo o directorio no existe.");
-      } else if ((error as NodeJS.ErrnoException).code === "EPERM") {
-        throw new BadRequestError(
-          "No tienes permisos para acceder a este archivo.",
+    try {
+      const stats = await fs.stat(targetPath);
+      result.exists = true;
+      result.isDirectory = stats.isDirectory();
+      result.isFile = stats.isFile();
+
+      if (result.isDirectory) {
+        // Validar Lectura, Escritura y Ejecución (atravesar carpetas)
+        await fs.access(
+          targetPath,
+          constants.R_OK | constants.W_OK | constants.X_OK,
         );
+
+        // Verificación robusta en directorios: intentamos crear y borrar un archivo temporal
+        const tempFile = path.join(targetPath, `.hmv_test_${Date.now()}`);
+        await fs.writeFile(tempFile, "test");
+        await fs.unlink(tempFile);
+
+        result.hasPermissions = true;
+      } else if (result.isFile) {
+        // Validar Lectura y Escritura en archivos
+        await fs.access(targetPath, constants.R_OK | constants.W_OK);
+        result.hasPermissions = true;
+      }
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === "ENOENT") {
+        result.exists = false;
+      } else if (code === "EPERM" || code === "EACCES" || code === "EROFS") {
+        result.hasPermissions = false;
       } else {
+        // Si es otro error del FS (ej. disco corrupto, symlink roto, etc.) lo lanzamos
         throw new InternalServerErrorException(
-          (error as Error).message ?? "Error desconocido",
+          (error as Error).message ??
+            "Error desconocido en el sistema de archivos.",
         );
       }
     }
+
+    return result;
   }
 
   private handleServiceError(

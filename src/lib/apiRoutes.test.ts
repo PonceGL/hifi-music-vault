@@ -19,7 +19,7 @@ describe("API_ROUTES", () => {
 
     it("starts with /api/fs", () => {
       const result = API_ROUTES.fs.validate("/any/path");
-      expect(result).toMatch(/^\/api\/fs\?/);
+      expect(result).toMatch(/^\/api\/fs\/validate\?/);
     });
 
     it("URL-encodes spaces in the path", () => {

@@ -1,16 +1,24 @@
+import { ValidatePathResult } from "@/app/api/fs/validate/type";
 import { API_ROUTES } from "@/lib/apiRoutes";
 
-export interface FolderPathResult {
-  valid: boolean;
-  writable: boolean;
-}
-
 export async function validateFolderPath(
-  path: string
-): Promise<FolderPathResult> {
-  const response = await fetch(API_ROUTES.fs.validate(path));
+  path: string,
+): Promise<ValidatePathResult> {
+  const URL = API_ROUTES.fs.validate(path);
 
-  if (!response.ok) return { valid: false, writable: false };
+  const response = await fetch(URL); // TODO: replace by axios adapter
 
-  return response.json() as Promise<FolderPathResult>;
+  const defaultResult: ValidatePathResult = {
+    path,
+    exists: false,
+    isDirectory: false,
+    isFile: false,
+    hasPermissions: false,
+  };
+
+  if (!response.ok) return defaultResult;
+
+  const json = (await response.json()) as { data: ValidatePathResult };
+
+  return json.data ?? defaultResult;
 }

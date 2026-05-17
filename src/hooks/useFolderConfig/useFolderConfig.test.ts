@@ -13,6 +13,8 @@ const messages = {
   libraryInsideDownloadsError:
     "La Biblioteca no puede ser una subcarpeta de Descargas",
   noWritePermissionError: "Sin permisos de escritura",
+  notFoundError: "La ruta seleccionada no existe.",
+  notADirectoryError: "La ruta seleccionada no es una carpeta.",
   validSuccess: "Carpeta válida",
 };
 
@@ -34,8 +36,9 @@ describe("useFolderConfig", () => {
 
   it("sets loading state immediately on folder select", async () => {
     mockValidateFolderPath.mockResolvedValueOnce({
-      valid: true,
-      writable: true,
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
     });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
@@ -50,8 +53,9 @@ describe("useFolderConfig", () => {
 
   it("sets valid state after successful API validation", async () => {
     mockValidateFolderPath.mockResolvedValueOnce({
-      valid: true,
-      writable: true,
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
     });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
@@ -68,8 +72,9 @@ describe("useFolderConfig", () => {
 
   it("sets error when API returns invalid", async () => {
     mockValidateFolderPath.mockResolvedValueOnce({
-      valid: false,
-      writable: false,
+      exists: true,
+      isDirectory: true,
+      hasPermissions: false,
     });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
@@ -83,10 +88,47 @@ describe("useFolderConfig", () => {
     expect(result.current.downloads.message).toBe(messages.noWritePermissionError);
   });
 
+  it("sets error when API returns not found", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: false,
+      isDirectory: false,
+      hasPermissions: false,
+    });
+    const { result } = renderHook(() =>
+      useFolderConfig(onSubmit, messages)
+    );
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/not-exists");
+    });
+
+    expect(result.current.downloads.state).toBe("error");
+    expect(result.current.downloads.message).toBe(messages.notFoundError);
+  });
+
+  it("sets error when API returns not a directory", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: false,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() =>
+      useFolderConfig(onSubmit, messages)
+    );
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/file.txt");
+    });
+
+    expect(result.current.downloads.state).toBe("error");
+    expect(result.current.downloads.message).toBe(messages.notADirectoryError);
+  });
+
   it("returns sameFolderError when both paths are identical", async () => {
     mockValidateFolderPath.mockResolvedValueOnce({
-      valid: true,
-      writable: true,
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
     });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
@@ -106,8 +148,9 @@ describe("useFolderConfig", () => {
 
   it("returns libraryInsideDownloadsError when library is inside downloads", async () => {
     mockValidateFolderPath.mockResolvedValueOnce({
-      valid: true,
-      writable: true,
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
     });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
@@ -128,7 +171,7 @@ describe("useFolderConfig", () => {
   });
 
   it("bothValid is true only when both fields are valid", async () => {
-    mockValidateFolderPath.mockResolvedValue({ valid: true, writable: true });
+    mockValidateFolderPath.mockResolvedValue({ exists: true, isDirectory: true, hasPermissions: true });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
     );
@@ -145,7 +188,7 @@ describe("useFolderConfig", () => {
   });
 
   it("handleSubmit calls onSubmit with both paths when bothValid", async () => {
-    mockValidateFolderPath.mockResolvedValue({ valid: true, writable: true });
+    mockValidateFolderPath.mockResolvedValue({ exists: true, isDirectory: true, hasPermissions: true });
     const { result } = renderHook(() =>
       useFolderConfig(onSubmit, messages)
     );

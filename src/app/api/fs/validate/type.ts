@@ -1,4 +1,7 @@
-export interface ValidateFolderResult {
+export interface ValidatePathResult {
   path: string;
-  isValid: boolean;
+  exists: boolean;
+  isDirectory: boolean;
+  isFile: boolean;
+  hasPermissions: boolean;
 }

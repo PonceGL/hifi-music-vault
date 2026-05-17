@@ -28,10 +28,11 @@ export function FolderPickerField({
   validationMessage,
   prompt,
 }: FolderPickerFieldProps): ReactElement {
-  async function handleChoose(): Promise<void> {
+  const handleChoose = async (): Promise<void> => {
     const path = await openFolderDialog(prompt);
     if (path) onSelect(path);
-  }
+    // TODO: check if is better idea lauch a toast notification here
+  };
 
   return (
     <div className="flex flex-col gap-1.5">
