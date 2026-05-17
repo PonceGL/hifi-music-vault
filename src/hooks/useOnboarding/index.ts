@@ -36,7 +36,7 @@ export function useOnboarding(): UseOnboardingReturn {
   }
 
   function complete(config: FolderConfig): void {
-    localStorage.setItem(FOLDER_CONFIG_STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(FOLDER_CONFIG_STORAGE_KEY, JSON.stringify(config)); // TODO: change to storage adapter by hook
     router.push(APP_ROUTES.library);
   }
 
