@@ -1,15 +1,19 @@
 /**
  * Cookie key names — single source of truth.
  *
- * Cookies are the only mechanism readable by both the server (middleware,
- * Server Components) and the client. They complement localStorage, which
- * is client-only.
+ * Cookies are the only mechanism readable by both the server (middleware)
+ * and the client. They complement localStorage, which is client-only.
  *
- * Rule: keep cookie values minimal. Store the full data in localStorage;
- * use cookies only for the flags that server-side route guards need to read.
+ * Rule: store only what the server-side route guard strictly needs to read.
+ * The full application state lives in localStorage; the cookie is its
+ * server-readable mirror for routing decisions.
  */
 export const COOKIE_KEYS = {
-  /** Set to "1" when both folder paths are configured. Cleared on reset. */
+  /**
+   * JSON-encoded `FolderConfig` { downloadsPath, libraryPath }.
+   * Middleware parses and validates both paths are non-empty before
+   * allowing access to any protected route. Cleared on config reset.
+   */
   folderConfigured: "folder-configured",
 } as const;
 
