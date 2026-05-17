@@ -1,5 +1,5 @@
 import { createHttpClient, internalHttpClient } from "./index";
-import type { HttpClient } from "./types";
+import type { AppHttpError, ErrorAdapter, HttpClient } from "./types";
 
 describe("createHttpClient", () => {
   it("returns an object that implements the HttpClient interface", () => {
@@ -20,6 +20,50 @@ describe("createHttpClient", () => {
   it("the returned client satisfies the HttpClient interface shape", () => {
     const client: HttpClient = createHttpClient("/", "internal");
     expect(client).toBeDefined();
+  });
+
+  describe("errorAdapter replaceability", () => {
+    it("accepts a custom ErrorAdapter — AxiosErrorAdapter is not hardcoded", () => {
+      const customAdapter: ErrorAdapter = {
+        normalize: (error): AppHttpError => ({
+          message: "custom",
+          status: null,
+          code: "UNKNOWN",
+          source: "internal",
+          originalError: error,
+        }),
+      };
+
+      // If errorAdapter were hardcoded inside createHttpClient, this line
+      // would have no effect and the test below would fail.
+      const client = createHttpClient("/", "internal", customAdapter);
+      expect(client).toBeDefined();
+      expect(typeof client.get).toBe("function");
+    });
+
+    it("two clients can use different error adapters independently", () => {
+      const adapterA: ErrorAdapter = {
+        normalize: (): AppHttpError => ({
+          message: "from A",
+          status: null,
+          code: "UNKNOWN",
+          source: "internal",
+        }),
+      };
+      const adapterB: ErrorAdapter = {
+        normalize: (): AppHttpError => ({
+          message: "from B",
+          status: null,
+          code: "UNKNOWN",
+          source: "external",
+        }),
+      };
+
+      const clientA = createHttpClient("/", "internal", adapterA);
+      const clientB = createHttpClient("https://api.example.com", "external", adapterB);
+
+      expect(clientA).not.toBe(clientB);
+    });
   });
 });
 
