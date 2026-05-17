@@ -6,17 +6,10 @@ jest.mock("@/lib/validate-folder-path", () => ({
 }));
 
 import { validateFolderPath } from "@/lib/validate-folder-path";
+import { ONBOARDING_STRINGS } from "@/components/features/onboarding/constants";
 const mockValidateFolderPath = validateFolderPath as jest.Mock;
 
-const messages = {
-  sameFolderError: "Las carpetas no pueden ser la misma ruta",
-  libraryInsideDownloadsError:
-    "La Biblioteca no puede ser una subcarpeta de Descargas",
-  noWritePermissionError: "Sin permisos de escritura",
-  notFoundError: "La ruta seleccionada no existe.",
-  notADirectoryError: "La ruta seleccionada no es una carpeta.",
-  validSuccess: "Carpeta válida",
-};
+const messages = ONBOARDING_STRINGS.validation;
 
 describe("useFolderConfig", () => {
   const onSubmit = jest.fn();
@@ -26,9 +19,7 @@ describe("useFolderConfig", () => {
   });
 
   it("initializes with both fields idle", () => {
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
     expect(result.current.downloads.state).toBe("idle");
     expect(result.current.library.state).toBe("idle");
     expect(result.current.bothValid).toBe(false);
@@ -40,9 +31,7 @@ describe("useFolderConfig", () => {
       isDirectory: true,
       hasPermissions: true,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     void act(() => {
       void result.current.handleDownloadsSelect("/downloads");
@@ -57,9 +46,7 @@ describe("useFolderConfig", () => {
       isDirectory: true,
       hasPermissions: true,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/downloads");
@@ -76,16 +63,16 @@ describe("useFolderConfig", () => {
       isDirectory: true,
       hasPermissions: false,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/no-access");
     });
 
     expect(result.current.downloads.state).toBe("error");
-    expect(result.current.downloads.message).toBe(messages.noWritePermissionError);
+    expect(result.current.downloads.message).toBe(
+      messages.noWritePermissionError,
+    );
   });
 
   it("sets error when API returns not found", async () => {
@@ -94,9 +81,7 @@ describe("useFolderConfig", () => {
       isDirectory: false,
       hasPermissions: false,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/not-exists");
@@ -112,9 +97,7 @@ describe("useFolderConfig", () => {
       isDirectory: false,
       hasPermissions: true,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/file.txt");
@@ -130,9 +113,7 @@ describe("useFolderConfig", () => {
       isDirectory: true,
       hasPermissions: true,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/music");
@@ -152,9 +133,7 @@ describe("useFolderConfig", () => {
       isDirectory: true,
       hasPermissions: true,
     });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/downloads");
@@ -166,15 +145,17 @@ describe("useFolderConfig", () => {
 
     expect(result.current.library.state).toBe("error");
     expect(result.current.library.message).toBe(
-      messages.libraryInsideDownloadsError
+      messages.libraryInsideDownloadsError,
     );
   });
 
   it("bothValid is true only when both fields are valid", async () => {
-    mockValidateFolderPath.mockResolvedValue({ exists: true, isDirectory: true, hasPermissions: true });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    mockValidateFolderPath.mockResolvedValue({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/downloads");
@@ -188,10 +169,12 @@ describe("useFolderConfig", () => {
   });
 
   it("handleSubmit calls onSubmit with both paths when bothValid", async () => {
-    mockValidateFolderPath.mockResolvedValue({ exists: true, isDirectory: true, hasPermissions: true });
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    mockValidateFolderPath.mockResolvedValue({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     await act(async () => {
       await result.current.handleDownloadsSelect("/downloads");
@@ -211,9 +194,7 @@ describe("useFolderConfig", () => {
   });
 
   it("handleSubmit does nothing when not bothValid", () => {
-    const { result } = renderHook(() =>
-      useFolderConfig(onSubmit, messages)
-    );
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
 
     act(() => {
       result.current.handleSubmit();
