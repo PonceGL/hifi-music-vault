@@ -3,7 +3,7 @@ import { TabBar } from ".";
 import { TAB_ITEMS, TAB_BAR_ARIA_LABEL } from "./constants";
 
 jest.mock("next/navigation", () => ({
-  usePathname: jest.fn(() => "/library"),
+  usePathname: jest.fn(() => "/"),
 }));
 
 import { usePathname } from "next/navigation";
@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 const mockUsePathname = usePathname as jest.Mock;
 
 beforeEach(() => {
-  mockUsePathname.mockReturnValue("/library");
+  mockUsePathname.mockReturnValue("/");
 });
 
 describe("TabBar — structure", () => {
@@ -41,7 +41,7 @@ describe("TabBar — structure", () => {
 
 describe("TabBar — active state", () => {
   it("marks the active route with aria-current=page", () => {
-    mockUsePathname.mockReturnValue("/library");
+    mockUsePathname.mockReturnValue("/");
     render(<TabBar />);
     expect(
       screen.getByRole("link", { name: /Biblioteca/i }),
@@ -49,7 +49,7 @@ describe("TabBar — active state", () => {
   });
 
   it("does not mark inactive tabs with aria-current", () => {
-    mockUsePathname.mockReturnValue("/library");
+    mockUsePathname.mockReturnValue("/");
     render(<TabBar />);
     expect(
       screen.getByRole("link", { name: /Artistas/i }),

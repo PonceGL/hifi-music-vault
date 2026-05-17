@@ -2,6 +2,7 @@
 
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
+import { COOKIE_KEYS } from "@/constants/cookieKeys";
 import type { FolderConfig } from "@/types/settings";
 
 const INITIAL_CONFIG: FolderConfig = {
@@ -12,21 +13,31 @@ const INITIAL_CONFIG: FolderConfig = {
 export interface UseFolderConfigStoreReturn {
   /** Stored config, or `null` if either path is missing. */
   folderConfig: FolderConfig | null;
-  /** Persists a complete config to localStorage. */
+  /** Persists config to localStorage AND signals middleware via cookie. */
   saveFolderConfig: (config: FolderConfig) => void;
-  /** Removes the config from localStorage, which sends the user back to /onboarding. */
+  /** Removes config from localStorage and clears the middleware cookie. */
   clearFolderConfig: () => void;
 }
 
+/** Sets the "folder-configured" cookie so middleware can read it server-side. */
+function setConfiguredCookie(): void {
+  document.cookie = `${COOKIE_KEYS.folderConfigured}=1; path=/; SameSite=Strict`;
+}
+
+/** Removes the "folder-configured" cookie, triggering onboarding redirect. */
+function clearConfiguredCookie(): void {
+  document.cookie = `${COOKIE_KEYS.folderConfigured}=; path=/; Max-Age=0; SameSite=Strict`;
+}
+
 /**
- * Reads and writes the folder configuration (downloads + library paths)
- * from localStorage. Returns reactive state via `useLocalStorage`.
+ * Reads and writes the folder configuration (downloads + library paths).
+ *
+ * Persists to localStorage (client-side reactive state) and syncs a cookie
+ * so Next.js middleware can protect routes server-side without accessing
+ * localStorage — which is not available in Server Components.
  *
  * Distinct from `useFolderConfig`, which manages the transient validation
  * UI state during the onboarding folder-picker flow.
- *
- * `folderConfig` is `null` when either path is absent — use it as a binary
- * "configured / not configured" signal in guards and redirect logic.
  */
 export function useFolderConfigStore(): UseFolderConfigStoreReturn {
   const [stored, setStored, removeStored] = useLocalStorage<FolderConfig>(
@@ -41,10 +52,12 @@ export function useFolderConfigStore(): UseFolderConfigStoreReturn {
 
   function saveFolderConfig(config: FolderConfig): void {
     setStored(config);
+    setConfiguredCookie();
   }
 
   function clearFolderConfig(): void {
     removeStored();
+    clearConfiguredCookie();
   }
 
   return { folderConfig, saveFolderConfig, clearFolderConfig };

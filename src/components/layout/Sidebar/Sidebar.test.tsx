@@ -12,7 +12,7 @@ jest.mock("@/hooks/useSidebar", () => ({
 }));
 
 jest.mock("next/navigation", () => ({
-  usePathname: jest.fn(() => "/library"),
+  usePathname: jest.fn(() => "/"),
 }));
 
 import { useSidebar } from "@/hooks/useSidebar";
@@ -23,7 +23,7 @@ const mockUsePathname = usePathname as jest.Mock;
 
 beforeEach(() => {
   mockUseSidebar.mockReturnValue({ isCollapsed: false, toggle: jest.fn() });
-  mockUsePathname.mockReturnValue("/library");
+  mockUsePathname.mockReturnValue("/");
 });
 
 describe("Sidebar — structure", () => {
@@ -44,14 +44,14 @@ describe("Sidebar — structure", () => {
   });
 
   it("marks the current route item as active", () => {
-    mockUsePathname.mockReturnValue("/library");
+    mockUsePathname.mockReturnValue("/");
     render(<Sidebar />);
     const activeLink = screen.getByRole("link", { name: /Biblioteca/i });
     expect(activeLink).toHaveAttribute("aria-current", "page");
   });
 
   it("does not mark other items as active", () => {
-    mockUsePathname.mockReturnValue("/library");
+    mockUsePathname.mockReturnValue("/");
     render(<Sidebar />);
     const artistsLink = screen.getByRole("link", { name: /Artistas/i });
     expect(artistsLink).not.toHaveAttribute("aria-current");

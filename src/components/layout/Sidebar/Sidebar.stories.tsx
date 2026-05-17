@@ -9,7 +9,7 @@ const meta = {
     layout: "fullscreen",
     nextjs: {
       navigation: {
-        pathname: "/library",
+        pathname: "/",
       },
     },
   },
