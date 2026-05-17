@@ -1,2 +1,2 @@
-export type { StorageAdapter } from "./types";
-export { storage } from "./localStorageAdapter";
+export type { StorageAdapter } from "@/lib/storage/types";
+export { storage } from "@/lib/storage/localStorageAdapter";

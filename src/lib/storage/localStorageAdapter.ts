@@ -1,4 +1,4 @@
-import type { StorageAdapter } from "./types";
+import type { StorageAdapter } from "@/lib/storage/types";
 
 class LocalStorageAdapter implements StorageAdapter {
   get<T>(key: string): T | null {
