@@ -20,11 +20,11 @@ function isPublicPath(pathname: string): boolean {
  * requests to `/onboarding` before any page renders.
  *
  * Why cookies and not localStorage:
- * Middleware runs on the Edge (server-side) before the page is rendered.
+ * Proxy runs server-side before the page is rendered.
  * localStorage only exists in the browser, so it is not accessible here.
  * The cookie acts as the server-readable signal that the user is configured.
  */
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
@@ -34,9 +34,7 @@ export function middleware(request: NextRequest): NextResponse {
   const isConfigured = request.cookies.has(COOKIE_KEYS.folderConfigured);
 
   if (!isConfigured) {
-    return NextResponse.redirect(
-      new URL(APP_ROUTES.onboarding, request.url)
-    );
+    return NextResponse.redirect(new URL(APP_ROUTES.onboarding, request.url));
   }
 
   return NextResponse.next();
@@ -49,7 +47,5 @@ export const config = {
    * - API routes (/api/*)
    * - Static files (favicon, images, fonts, etc.)
    */
-  matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|api/).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|api/).*)"],
 };
