@@ -40,8 +40,9 @@ function isFolderConfigured(request: NextRequest): boolean {
 /**
  * Global route guard — runs server-side before any protected page renders.
  *
- * Protected routes require a valid `folder-configured` cookie that contains
- * both folder paths. Requests without it are redirected to `/onboarding`.
+ * Two symmetric rules:
+ * 1. Already configured → visiting /onboarding is pointless; redirect to Library.
+ * 2. Not configured     → visiting any protected route redirects to /onboarding.
  *
  * Why cookies and not localStorage:
  * Middleware runs in Edge Runtime before the page is rendered.
@@ -49,12 +50,13 @@ function isFolderConfigured(request: NextRequest): boolean {
  */
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+  const configured = isFolderConfigured(request);
 
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
+  if (pathname.startsWith(APP_ROUTES.onboarding) && configured) {
+    return NextResponse.redirect(new URL(APP_ROUTES.library, request.url));
   }
 
-  if (!isFolderConfigured(request)) {
+  if (!isPublicPath(pathname) && !configured) {
     return NextResponse.redirect(new URL(APP_ROUTES.onboarding, request.url));
   }
 
