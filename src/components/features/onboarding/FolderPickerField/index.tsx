@@ -46,7 +46,7 @@ export function FolderPickerField({
 
       <div className="flex items-center gap-2">
         <div className="relative flex min-w-0 flex-1 items-center rounded-md border border-border bg-surface-primary px-3 py-2">
-          {validationState === "loading" ? (
+          {validationState === "loading" || isDialogOpen ? (
             <Loader2
               className="h-4 w-4 shrink-0 animate-spin text-text-secondary"
               aria-hidden="true"

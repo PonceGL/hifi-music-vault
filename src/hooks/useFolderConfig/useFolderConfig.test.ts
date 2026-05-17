@@ -149,6 +149,95 @@ describe("useFolderConfig", () => {
     );
   });
 
+  it("returns downloadsInsideLibraryError when downloads is inside library", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
+
+    await act(async () => {
+      await result.current.handleLibrarySelect("/library");
+    });
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/library/downloads");
+    });
+
+    expect(result.current.downloads.state).toBe("error");
+    expect(result.current.downloads.message).toBe(
+      messages.downloadsInsideLibraryError,
+    );
+  });
+
+  // ─── trailing slash variants (macOS osascript returns paths with a
+  //     trailing slash — these must be caught by the same guards) ──────────────
+
+  it("catches sameFolderError when both paths have trailing slashes", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/music/");
+    });
+
+    await act(async () => {
+      await result.current.handleLibrarySelect("/music/");
+    });
+
+    expect(result.current.library.state).toBe("error");
+    expect(result.current.library.message).toBe(messages.sameFolderError);
+  });
+
+  it("catches libraryInsideDownloadsError when paths from macOS have trailing slashes", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/downloads/");
+    });
+
+    await act(async () => {
+      await result.current.handleLibrarySelect("/downloads/library/");
+    });
+
+    expect(result.current.library.state).toBe("error");
+    expect(result.current.library.message).toBe(
+      messages.libraryInsideDownloadsError,
+    );
+  });
+
+  it("catches downloadsInsideLibraryError when paths from macOS have trailing slashes", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
+
+    await act(async () => {
+      await result.current.handleLibrarySelect("/library/");
+    });
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/library/downloads/");
+    });
+
+    expect(result.current.downloads.state).toBe("error");
+    expect(result.current.downloads.message).toBe(
+      messages.downloadsInsideLibraryError,
+    );
+  });
+
   it("bothValid is true only when both fields are valid", async () => {
     mockValidateFolderPath.mockResolvedValue({
       exists: true,

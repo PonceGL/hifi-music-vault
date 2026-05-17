@@ -44,12 +44,21 @@ export function useFolderConfig(
     otherPath: string | null,
     isLibrary: boolean,
   ): Promise<{ state: ValidationState; message: string | undefined }> {
-    if (otherPath && path === otherPath) {
+    // Normalize before comparisons: macOS osascript returns paths with a
+    // trailing slash (/Users/john/Downloads/), which breaks startsWith checks.
+    const p = path.replace(/\/+$/, "");
+    const other = otherPath ? otherPath.replace(/\/+$/, "") : null;
+
+    if (other && p === other) {
       return { state: "error", message: messages.sameFolderError };
     }
 
-    if (isLibrary && otherPath && path.startsWith(otherPath + "/")) {
+    if (isLibrary && other && p.startsWith(other + "/")) {
       return { state: "error", message: messages.libraryInsideDownloadsError };
+    }
+
+    if (!isLibrary && other && p.startsWith(other + "/")) {
+      return { state: "error", message: messages.downloadsInsideLibraryError };
     }
 
     const result = await validateFolderPath(path);
