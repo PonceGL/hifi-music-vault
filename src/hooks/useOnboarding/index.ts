@@ -36,7 +36,7 @@ export function useOnboarding(): UseOnboardingReturn {
 
   function complete(config: FolderConfig): void {
     localStorage.setItem(FOLDER_CONFIG_STORAGE_KEY, JSON.stringify(config));
-    router.push("/library");
+    router.push("/library"); // TODO: change magic string to a constant: src/constants/navigation.ts
   }
 
   return { step, goNext, goBack, isTransitioning, complete };
