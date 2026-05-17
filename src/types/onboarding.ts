@@ -23,6 +23,7 @@ export interface FolderConfig {
 export interface DirectoryConfigValidationMessages {
   sameFolderError: string;
   libraryInsideDownloadsError: string;
+  downloadsInsideLibraryError: string;
   noWritePermissionError: string;
   validSuccess: string;
   notFoundError: string;

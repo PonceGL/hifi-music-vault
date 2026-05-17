@@ -149,6 +149,28 @@ describe("useFolderConfig", () => {
     );
   });
 
+  it("returns downloadsInsideLibraryError when downloads is inside library", async () => {
+    mockValidateFolderPath.mockResolvedValueOnce({
+      exists: true,
+      isDirectory: true,
+      hasPermissions: true,
+    });
+    const { result } = renderHook(() => useFolderConfig(onSubmit, messages));
+
+    await act(async () => {
+      await result.current.handleLibrarySelect("/library");
+    });
+
+    await act(async () => {
+      await result.current.handleDownloadsSelect("/library/downloads");
+    });
+
+    expect(result.current.downloads.state).toBe("error");
+    expect(result.current.downloads.message).toBe(
+      messages.downloadsInsideLibraryError,
+    );
+  });
+
   it("bothValid is true only when both fields are valid", async () => {
     mockValidateFolderPath.mockResolvedValue({
       exists: true,

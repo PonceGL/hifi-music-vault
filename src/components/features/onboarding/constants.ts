@@ -41,6 +41,8 @@ export const ONBOARDING_STRINGS: OnboardingStrings = {
     sameFolderError: "Las carpetas no pueden ser la misma ruta",
     libraryInsideDownloadsError:
       "La Biblioteca no puede ser una subcarpeta de Descargas",
+    downloadsInsideLibraryError:
+      "Las Descargas no pueden ser una subcarpeta de la Biblioteca",
     noWritePermissionError:
       "Sin permisos de escritura. En macOS: Ajustes del Sistema → Privacidad → Acceso a la carpeta. En Windows: Propiedades → Seguridad.",
     notFoundError: "La ruta seleccionada no existe.",

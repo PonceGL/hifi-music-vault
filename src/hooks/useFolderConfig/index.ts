@@ -52,6 +52,10 @@ export function useFolderConfig(
       return { state: "error", message: messages.libraryInsideDownloadsError };
     }
 
+    if (!isLibrary && otherPath && path.startsWith(otherPath + "/")) {
+      return { state: "error", message: messages.downloadsInsideLibraryError };
+    }
+
     const result = await validateFolderPath(path);
 
     if (!result.exists) {

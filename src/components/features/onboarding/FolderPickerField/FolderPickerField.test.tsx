@@ -73,6 +73,13 @@ describe("FolderPickerField", () => {
     expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
+  it("shows spinner while the OS dialog is open (isDialogOpen)", () => {
+    mockUseOpenFolderDialog.mockReturnValue(buildMutation({ isPending: true }));
+
+    render(<FolderPickerField {...defaultProps} />);
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+  });
+
   it("shows validation message when state is valid", () => {
     render(
       <FolderPickerField
