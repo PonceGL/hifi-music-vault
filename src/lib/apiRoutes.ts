@@ -1,3 +1,4 @@
+const PREFIX = "/api";
 /**
  * API route constants — single source of truth for every endpoint the
  * frontend calls. The frontend ONLY calls our own Next.js API (`/api/*`).
@@ -14,10 +15,10 @@
 export const API_ROUTES = {
   fs: {
     /** POST — opens the native OS folder-picker dialog */
-    dialog: "/api/fs/dialog",
+    dialog: `${PREFIX}/fs/dialog`,
 
     /** GET — validates a folder path: existence, permissions, disk space */
     validate: (path: string): string =>
-      `/api/fs?${new URLSearchParams({ path }).toString()}`,
+      `${PREFIX}/fs?${new URLSearchParams({ path }).toString()}`,
   },
 } as const;

@@ -1,9 +1,9 @@
 import type { LucideIcon } from "lucide-react";
 import { Library, Users, Disc3, ListMusic, HeartPulse } from "lucide-react";
-import { APP_ROUTES } from "@/constants/appRoutes";
+import { APP_ROUTES, AppRoute } from "@/constants/appRoutes";
 
 export interface NavItem {
-  href: string;
+  href: AppRoute;
   icon: LucideIcon;
   label: string;
 }
