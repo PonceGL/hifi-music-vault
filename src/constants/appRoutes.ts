@@ -12,9 +12,8 @@
  * Never write route strings as literals in components, hooks, or layouts.
  */
 export const APP_ROUTES = {
-  home: "/",
   onboarding: "/onboarding",
-  library: "/library",
+  library: "/",
   artists: "/artists",
   albums: "/albums",
   playlists: "/playlists",

@@ -93,7 +93,7 @@ describe("useOnboarding", () => {
     expect(result.current.isTransitioning).toBe(false);
   });
 
-  it("complete saves config to localStorage and redirects to /library", () => {
+  it("complete saves config to localStorage and redirects to /", () => {
     jest.useRealTimers();
     const { result } = renderHook(() => useOnboarding());
 
@@ -109,6 +109,6 @@ describe("useOnboarding", () => {
     );
     expect(stored.downloadsPath).toBe("/downloads");
     expect(stored.libraryPath).toBe("/library");
-    expect(mockPush).toHaveBeenCalledWith("/library");
+    expect(mockPush).toHaveBeenCalledWith("/");
   });
 });

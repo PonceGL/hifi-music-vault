@@ -1,15 +1,16 @@
-import { redirect } from "next/navigation";
-import { APP_ROUTES } from "@/constants/appRoutes";
+import type { ReactElement } from "react";
 
 /**
- * Entry point.
+ * Library view — the root route of the app.
  *
- * By the time this page renders, middleware has already verified that the
- * user is configured (folder-configured cookie present). If they weren't,
- * they would have been redirected to /onboarding before reaching here.
- *
- * We simply forward them to the library view.
+ * Middleware already verified the folder-configured cookie before this
+ * page renders. If the cookie was absent, the user was redirected to
+ * /onboarding. Reaching here means the user is configured.
  */
-export default function Home(): never {
-  redirect(APP_ROUTES.library);
+export default function Home(): ReactElement {
+  return (
+    <main>
+      <p>Library</p>
+    </main>
+  );
 }
