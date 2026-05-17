@@ -1,14 +1,15 @@
-import { ValidatePathResult } from "@/app/api/fs/validate/type";
+import { internalHttpClient } from "@/lib/http";
 import { API_ROUTES } from "@/lib/apiRoutes";
+import type { ValidatePathResult } from "@/app/api/fs/validate/type";
+
+type ValidateApiResponse = {
+  data: ValidatePathResult;
+};
 
 export async function validateFolderPath(
   path: string,
 ): Promise<ValidatePathResult> {
-  const URL = API_ROUTES.fs.validate(path);
-
-  const response = await fetch(URL); // TODO: replace by axios adapter
-
-  const defaultResult: ValidatePathResult = {
+  const fallback: ValidatePathResult = {
     path,
     exists: false,
     isDirectory: false,
@@ -16,9 +17,12 @@ export async function validateFolderPath(
     hasPermissions: false,
   };
 
-  if (!response.ok) return defaultResult;
-
-  const json = (await response.json()) as { data: ValidatePathResult };
-
-  return json.data ?? defaultResult;
+  try {
+    const response = await internalHttpClient.get<ValidateApiResponse>(
+      API_ROUTES.fs.validate(path),
+    );
+    return response.data.data ?? fallback;
+  } catch {
+    return fallback;
+  }
 }

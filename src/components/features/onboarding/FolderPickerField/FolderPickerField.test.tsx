@@ -3,12 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { FolderPickerField } from "./index";
 import { ONBOARDING_STRINGS } from "../constants";
 
-jest.mock("@/lib/openFolderDialog", () => ({
-  openFolderDialog: jest.fn(),
+jest.mock("@/hooks/useOpenFolderDialog", () => ({
+  useOpenFolderDialog: jest.fn(),
 }));
 
-import { openFolderDialog } from "@/lib/openFolderDialog";
-const mockOpenFolderDialog = openFolderDialog as jest.Mock;
+import { useOpenFolderDialog } from "@/hooks/useOpenFolderDialog";
+const mockUseOpenFolderDialog = useOpenFolderDialog as jest.Mock;
 
 const defaultProps = {
   label: "Carpeta de Descargas",
@@ -18,9 +18,20 @@ const defaultProps = {
   prompt: "Selecciona carpeta",
 };
 
+function buildMutation(overrides?: {
+  mutateAsync?: jest.Mock;
+  isPending?: boolean;
+}) {
+  return {
+    mutateAsync: overrides?.mutateAsync ?? jest.fn().mockResolvedValue(null),
+    isPending: overrides?.isPending ?? false,
+  };
+}
+
 describe("FolderPickerField", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseOpenFolderDialog.mockReturnValue(buildMutation());
   });
 
   it("renders label and choose button", () => {
@@ -88,9 +99,13 @@ describe("FolderPickerField", () => {
     );
   });
 
-  it("calls onSelect with the path returned by openFolderDialog", async () => {
+  it("calls onSelect with the path returned by the dialog", async () => {
     const onSelect = jest.fn();
-    mockOpenFolderDialog.mockResolvedValueOnce("/Users/test/Downloads");
+    mockUseOpenFolderDialog.mockReturnValue(
+      buildMutation({
+        mutateAsync: jest.fn().mockResolvedValueOnce("/Users/test/Downloads"),
+      }),
+    );
 
     render(<FolderPickerField {...defaultProps} onSelect={onSelect} />);
     await userEvent.click(screen.getByRole("button", { name: /Elegir/i }));
@@ -100,9 +115,13 @@ describe("FolderPickerField", () => {
     });
   });
 
-  it("does not call onSelect when openFolderDialog returns null (dialog cancelled)", async () => {
+  it("does not call onSelect when the dialog returns null (user cancelled)", async () => {
     const onSelect = jest.fn();
-    mockOpenFolderDialog.mockResolvedValueOnce(null);
+    mockUseOpenFolderDialog.mockReturnValue(
+      buildMutation({
+        mutateAsync: jest.fn().mockResolvedValueOnce(null),
+      }),
+    );
 
     render(<FolderPickerField {...defaultProps} onSelect={onSelect} />);
     await userEvent.click(screen.getByRole("button", { name: /Elegir/i }));
@@ -114,6 +133,13 @@ describe("FolderPickerField", () => {
 
   it("disables the choose button when validationState is loading", () => {
     render(<FolderPickerField {...defaultProps} validationState="loading" />);
+    expect(screen.getByRole("button", { name: /Elegir/i })).toBeDisabled();
+  });
+
+  it("disables the choose button while the OS dialog is open (isPending)", () => {
+    mockUseOpenFolderDialog.mockReturnValue(buildMutation({ isPending: true }));
+
+    render(<FolderPickerField {...defaultProps} />);
     expect(screen.getByRole("button", { name: /Elegir/i })).toBeDisabled();
   });
 });

@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ONBOARDING_STRINGS } from "@/components/features/onboarding/constants";
 import type { ValidationState } from "@/types/onboarding";
-import { openFolderDialog } from "@/lib/openFolderDialog";
+import { useOpenFolderDialog } from "@/hooks/useOpenFolderDialog";
 
 export type { ValidationState };
 
@@ -28,10 +28,12 @@ export function FolderPickerField({
   validationMessage,
   prompt,
 }: FolderPickerFieldProps): ReactElement {
+  const { mutateAsync: openDialog, isPending: isDialogOpen } =
+    useOpenFolderDialog();
+
   const handleChoose = async (): Promise<void> => {
-    const path = await openFolderDialog(prompt);
+    const path = await openDialog(prompt);
     if (path) onSelect(path);
-    // TODO: check if is better idea lauch a toast notification here
   };
 
   return (
@@ -77,7 +79,7 @@ export function FolderPickerField({
           variant="secondary"
           size="sm"
           onClick={handleChoose}
-          disabled={validationState === "loading"}
+          disabled={validationState === "loading" || isDialogOpen}
           aria-label={`${ONBOARDING_STRINGS.validation.chooseFolderButton} ${label}`}
         >
           {ONBOARDING_STRINGS.validation.chooseFolderButton}
