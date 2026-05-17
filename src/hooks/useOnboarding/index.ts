@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FolderConfig } from "@/types/settings";
+import { APP_ROUTES } from "@/constants/appRoutes";
 
 const TRANSITION_DURATION_MS = 300;
 const FOLDER_CONFIG_STORAGE_KEY = "folder-config";
@@ -36,7 +37,7 @@ export function useOnboarding(): UseOnboardingReturn {
 
   function complete(config: FolderConfig): void {
     localStorage.setItem(FOLDER_CONFIG_STORAGE_KEY, JSON.stringify(config));
-    router.push("/library"); // TODO: change magic string to a constant: src/constants/navigation.ts
+    router.push(APP_ROUTES.library);
   }
 
   return { step, goNext, goBack, isTransitioning, complete };
