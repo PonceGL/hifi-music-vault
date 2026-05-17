@@ -1,12 +1,12 @@
 import { act, renderHook } from "@testing-library/react";
 import { useFolderConfig } from "./index";
+import { validateFolderPath } from "@/lib/validateFolderPath";
+import { ONBOARDING_STRINGS } from "@/components/features/onboarding/constants";
 
-jest.mock("@/lib/validate-folder-path", () => ({
+jest.mock("@/lib/validateFolderPath", () => ({
   validateFolderPath: jest.fn(),
 }));
 
-import { validateFolderPath } from "@/lib/validate-folder-path";
-import { ONBOARDING_STRINGS } from "@/components/features/onboarding/constants";
 const mockValidateFolderPath = validateFolderPath as jest.Mock;
 
 const messages = ONBOARDING_STRINGS.validation;

@@ -6,7 +6,7 @@ import type {
   DirectoryConfigValidationMessages,
   ValidationState,
 } from "@/types/onboarding";
-import { validateFolderPath } from "@/lib/validate-folder-path";
+import { validateFolderPath } from "@/lib/validateFolderPath";
 
 export interface FolderValidation {
   path: string | null;
