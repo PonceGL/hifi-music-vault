@@ -47,10 +47,10 @@ class ValidateServer {
 
         // Verificación robusta en directorios: intentamos crear y borrar un archivo temporal
         const tempFile = path.join(targetPath, `.hmv_test_${Date.now()}`);
-        await fs.writeFile(tempFile, "test");
-        await fs.unlink(tempFile);
-
+        await fs.writeFile(tempFile, "");
         result.hasPermissions = true;
+        // Cleanup best-effort: unlink failure does not invalidate the permission check
+        await fs.unlink(tempFile).catch(() => {});
       } else if (result.isFile) {
         // Validar Lectura y Escritura en archivos
         await fs.access(targetPath, constants.R_OK | constants.W_OK);
