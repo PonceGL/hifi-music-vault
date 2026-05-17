@@ -1,18 +1,19 @@
 import type { LucideIcon } from "lucide-react";
 import { Library, Users, Disc3, ListMusic, HeartPulse } from "lucide-react";
+import { APP_ROUTES, AppRoute } from "@/constants/appRoutes";
 
 export interface NavItem {
-  href: string;
+  href: AppRoute;
   icon: LucideIcon;
   label: string;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/library", icon: Library, label: "Biblioteca" },
-  { href: "/artists", icon: Users, label: "Artistas" },
-  { href: "/albums", icon: Disc3, label: "Álbumes" },
-  { href: "/playlists", icon: ListMusic, label: "Playlists" },
-  { href: "/health", icon: HeartPulse, label: "Health" },
+  { href: APP_ROUTES.library, icon: Library, label: "Biblioteca" },
+  { href: APP_ROUTES.artists, icon: Users, label: "Artistas" },
+  { href: APP_ROUTES.albums, icon: Disc3, label: "Álbumes" },
+  { href: APP_ROUTES.playlists, icon: ListMusic, label: "Playlists" },
+  { href: APP_ROUTES.health, icon: HeartPulse, label: "Health" },
 ] as const;
 
 export const SIDEBAR_NAV_ARIA_LABEL = "Navegación principal";

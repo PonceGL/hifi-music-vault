@@ -3,6 +3,7 @@
 import type { ReactElement } from "react";
 import { Music, Search, Settings, RefreshCw, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { APP_ROUTES } from "@/constants/appRoutes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -96,7 +97,7 @@ export function Topbar({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <a href="/settings">{SETTINGS_LABEL}</a>
+              <a href={APP_ROUTES.settings}>{SETTINGS_LABEL}</a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
