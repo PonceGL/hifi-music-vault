@@ -4,7 +4,7 @@ import type {
   HttpClient,
   HttpResponse,
   RequestConfig,
-} from "../types";
+} from "@/lib/http/types";
 
 function toAxiosConfig(config?: RequestConfig): AxiosRequestConfig {
   return {
@@ -16,14 +16,13 @@ function toAxiosConfig(config?: RequestConfig): AxiosRequestConfig {
 }
 
 function flattenHeaders(
-  headers: AxiosResponse["headers"]
+  headers: AxiosResponse["headers"],
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
     if (typeof value === "string") result[key] = value;
     else if (Array.isArray(value)) result[key] = value.join(", ");
-    else if (value !== undefined && value !== null)
-      result[key] = String(value);
+    else if (value !== undefined && value !== null) result[key] = String(value);
   }
   return result;
 }
@@ -50,12 +49,12 @@ export class AxiosHttpClient implements HttpClient {
   constructor(
     private readonly client: AxiosInstance,
     private readonly errorAdapter: ErrorAdapter,
-    private readonly source: "internal" | "external"
+    private readonly source: "internal" | "external",
   ) {}
 
   async get<T = unknown>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>> {
     try {
       const response = await this.client.get<T>(url, toAxiosConfig(config));
@@ -68,13 +67,13 @@ export class AxiosHttpClient implements HttpClient {
   async post<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>> {
     try {
       const response = await this.client.post<T>(
         url,
         data,
-        toAxiosConfig(config)
+        toAxiosConfig(config),
       );
       return toHttpResponse(response);
     } catch (error) {
@@ -85,13 +84,13 @@ export class AxiosHttpClient implements HttpClient {
   async put<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>> {
     try {
       const response = await this.client.put<T>(
         url,
         data,
-        toAxiosConfig(config)
+        toAxiosConfig(config),
       );
       return toHttpResponse(response);
     } catch (error) {
@@ -102,13 +101,13 @@ export class AxiosHttpClient implements HttpClient {
   async patch<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>> {
     try {
       const response = await this.client.patch<T>(
         url,
         data,
-        toAxiosConfig(config)
+        toAxiosConfig(config),
       );
       return toHttpResponse(response);
     } catch (error) {
@@ -118,13 +117,10 @@ export class AxiosHttpClient implements HttpClient {
 
   async delete<T = unknown>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>> {
     try {
-      const response = await this.client.delete<T>(
-        url,
-        toAxiosConfig(config)
-      );
+      const response = await this.client.delete<T>(url, toAxiosConfig(config));
       return toHttpResponse(response);
     } catch (error) {
       throw this.errorAdapter.normalize(error, this.source);

@@ -1,10 +1,14 @@
 import axios from "axios";
-import { AxiosHttpClient } from "./axios-adapter";
-import { AxiosErrorAdapter } from "./error-adapter";
-import type { HttpClient } from "./types";
+import { AxiosHttpClient } from "@/lib/http/axiosAdapter";
+import { AxiosErrorAdapter } from "@/lib/http/errorAdapter";
+import type { HttpClient } from "@/lib/http/types";
 
-export type { HttpClient, HttpResponse, RequestConfig } from "./types";
-export type { AppHttpError, HttpErrorCode, ErrorAdapter } from "./types";
+export type { HttpClient, HttpResponse, RequestConfig } from "@/lib/http/types";
+export type {
+  AppHttpError,
+  HttpErrorCode,
+  ErrorAdapter,
+} from "@/lib/http/types";
 
 /**
  * Factory that assembles a fully configured `HttpClient`.
@@ -21,7 +25,7 @@ export type { AppHttpError, HttpErrorCode, ErrorAdapter } from "./types";
  */
 export function createHttpClient(
   baseURL: string,
-  source: "internal" | "external"
+  source: "internal" | "external",
 ): HttpClient {
   const axiosInstance = axios.create({
     baseURL,
@@ -37,7 +41,4 @@ export function createHttpClient(
  * Pre-built client for calls to our own Next.js API routes (`/api/*`).
  * Errors are tagged `source: "internal"`.
  */
-export const internalHttpClient: HttpClient = createHttpClient(
-  "/",
-  "internal"
-);
+export const internalHttpClient: HttpClient = createHttpClient("/", "internal");

@@ -1,5 +1,9 @@
 import axios, { type AxiosError } from "axios";
-import type { AppHttpError, ErrorAdapter, HttpErrorCode } from "../types";
+import type {
+  AppHttpError,
+  ErrorAdapter,
+  HttpErrorCode,
+} from "@/lib/http/types";
 
 function resolveCodeFromStatus(status: number): HttpErrorCode {
   if (status === 400) return "HTTP_400";
@@ -44,10 +48,7 @@ function extractMessage(error: AxiosError): string {
  * replaced, only this file changes — not a single call site in the app.
  */
 export class AxiosErrorAdapter implements ErrorAdapter {
-  normalize(
-    error: unknown,
-    source: "internal" | "external"
-  ): AppHttpError {
+  normalize(error: unknown, source: "internal" | "external"): AppHttpError {
     if (axios.isAxiosError(error)) {
       return {
         message: extractMessage(error),
@@ -59,8 +60,7 @@ export class AxiosErrorAdapter implements ErrorAdapter {
     }
 
     // Non-Axios error (e.g. programming mistake, JSON parse error)
-    const message =
-      error instanceof Error ? error.message : "Unexpected error";
+    const message = error instanceof Error ? error.message : "Unexpected error";
 
     return {
       message,
