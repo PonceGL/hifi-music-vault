@@ -6,6 +6,7 @@ import {
   UnsupportedPlatformError,
   UserCanceledDialogException,
 } from "@/lib/httpErrors";
+import type { OpenDialogBodyDto } from "@/app/api/fs/dialog/dtos/dialog.dto";
 
 jest.mock("child_process", () => ({
   exec: jest.fn(),
@@ -39,6 +40,15 @@ describe("DialogServer", () => {
     it("should throw ZodError if input is invalid", async () => {
       await expect(
         dialogServer.openDialog({ prompt: "short" }),
+      ).rejects.toThrow(ZodError);
+    });
+
+    it("should throw ZodError if body has extra fields (strict schema)", async () => {
+      await expect(
+        dialogServer.openDialog({
+          prompt: "Select a valid folder",
+          extra: "field",
+        } as unknown as OpenDialogBodyDto),
       ).rejects.toThrow(ZodError);
     });
 
@@ -81,7 +91,7 @@ describe("DialogServer", () => {
       );
     });
 
-    it("should throw ZodError if returned path is null (validation failure)", async () => {
+    it("should throw ZodError when macOS returns null path (empty stdout)", async () => {
       setPlatform("darwin");
       mockExec.mockImplementation((cmd, callback) => {
         callback(null, "   \n", "");
@@ -91,10 +101,52 @@ describe("DialogServer", () => {
       ).rejects.toThrow(ZodError);
     });
 
-    it("should handle error thrown inside openDialog properly via handleServiceError", async () => {
+    it("should throw ZodError when Windows returns null path (user dismisses dialog)", async () => {
+      setPlatform("win32");
+      mockExec.mockImplementation((cmd, callback) => {
+        callback(null, "  \r\n", "");
+      });
+      await expect(
+        dialogServer.openDialog({ prompt: "Select a valid folder" }),
+      ).rejects.toThrow(ZodError);
+    });
+
+    it("should propagate UserCanceledDialogException when macOS user cancels", async () => {
+      setPlatform("darwin");
+      mockExec.mockImplementation((cmd, callback) => {
+        const error = new Error("Command failed");
+        callback(
+          Object.assign(error, { stderr: "User canceled the operation." }),
+          "",
+          "User canceled the operation.",
+        );
+      });
+
+      await expect(
+        dialogServer.openDialog({ prompt: "Select a valid folder" }),
+      ).rejects.toThrow(UserCanceledDialogException);
+    });
+
+    it("should throw InternalServerErrorException when macOS exec fails", async () => {
       setPlatform("darwin");
       mockExec.mockImplementation((cmd, callback) => {
         callback(new Error("Random exec failure"), "", "Random exec failure");
+      });
+
+      await expect(
+        dialogServer.openDialog({ prompt: "Select a valid folder" }),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it("should throw InternalServerErrorException when Windows exec fails with non-empty stderr", async () => {
+      setPlatform("win32");
+      mockExec.mockImplementation((cmd, callback) => {
+        const error = new Error("PowerShell access denied");
+        callback(
+          Object.assign(error, { stderr: "Access is denied." }),
+          "",
+          "Access is denied.",
+        );
       });
 
       await expect(
@@ -193,6 +245,17 @@ describe("DialogServer", () => {
         dialogServer["openFolderDialogMacOS"]("prompt"),
       ).rejects.toThrow("Command failed");
     });
+
+    it("should throw original error when error has no stderr property", async () => {
+      mockExec.mockImplementation((cmd, callback) => {
+        const error = new Error("No stderr attached");
+        callback(Object.assign(error, { stderr: undefined }), "", "");
+      });
+
+      await expect(
+        dialogServer["openFolderDialogMacOS"]("prompt"),
+      ).rejects.toThrow("No stderr attached");
+    });
   });
 
   describe("openFolderDialogWindows", () => {
@@ -239,6 +302,16 @@ describe("DialogServer", () => {
       await expect(
         dialogServer["openFolderDialogWindows"]("prompt"),
       ).rejects.toThrow("Failed completely");
+    });
+
+    it("should return null when exec fails and error has no stderr property", async () => {
+      mockExec.mockImplementation((cmd, callback) => {
+        const error = new Error("Failed");
+        callback(Object.assign(error, { stderr: undefined }), "", "");
+      });
+
+      const result = await dialogServer["openFolderDialogWindows"]("prompt");
+      expect(result).toBeNull();
     });
   });
 
