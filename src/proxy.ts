@@ -13,16 +13,39 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
- * Global route guard.
+ * Returns true only when the cookie carries a valid FolderConfig — both
+ * `downloadsPath` and `libraryPath` are non-empty strings.
  *
- * Reads the `folder-configured` cookie — set by `useFolderConfigStore`
- * when the user completes onboarding — and redirects unauthenticated
- * requests to `/onboarding` before any page renders.
+ * The cookie value is a JSON-encoded FolderConfig written by
+ * `useFolderConfigStore.saveFolderConfig`. Checking only cookie *existence*
+ * is not enough: if localStorage is cleared the cookie can still be present
+ * but the app would have no paths to work with.
+ */
+function isFolderConfigured(request: NextRequest): boolean {
+  const raw = request.cookies.get(COOKIE_KEYS.folderConfigured)?.value;
+  if (!raw) return false;
+  try {
+    const config = JSON.parse(decodeURIComponent(raw)) as Record<string, unknown>;
+    return (
+      typeof config.downloadsPath === "string" &&
+      config.downloadsPath.length > 0 &&
+      typeof config.libraryPath === "string" &&
+      config.libraryPath.length > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Global route guard — runs server-side before any protected page renders.
+ *
+ * Protected routes require a valid `folder-configured` cookie that contains
+ * both folder paths. Requests without it are redirected to `/onboarding`.
  *
  * Why cookies and not localStorage:
- * Proxy runs server-side before the page is rendered.
- * localStorage only exists in the browser, so it is not accessible here.
- * The cookie acts as the server-readable signal that the user is configured.
+ * Middleware runs in Edge Runtime before the page is rendered.
+ * localStorage is browser-only and unavailable here.
  */
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
@@ -31,9 +54,7 @@ export function proxy(request: NextRequest): NextResponse {
     return NextResponse.next();
   }
 
-  const isConfigured = request.cookies.has(COOKIE_KEYS.folderConfigured);
-
-  if (!isConfigured) {
+  if (!isFolderConfigured(request)) {
     return NextResponse.redirect(new URL(APP_ROUTES.onboarding, request.url));
   }
 

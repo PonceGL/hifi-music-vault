@@ -13,28 +13,57 @@ const INITIAL_CONFIG: FolderConfig = {
 export interface UseFolderConfigStoreReturn {
   /** Stored config, or `null` if either path is missing. */
   folderConfig: FolderConfig | null;
-  /** Persists config to localStorage AND signals middleware via cookie. */
+  /** Persists config to localStorage AND syncs the middleware cookie. */
   saveFolderConfig: (config: FolderConfig) => void;
   /** Removes config from localStorage and clears the middleware cookie. */
   clearFolderConfig: () => void;
 }
 
-/** Sets the "folder-configured" cookie so middleware can read it server-side. */
-function setConfiguredCookie(): void {
-  document.cookie = `${COOKIE_KEYS.folderConfigured}=1; path=/; SameSite=Strict`;
+/**
+ * Writes the full FolderConfig as a JSON-encoded cookie so middleware can
+ * validate both paths server-side on every request.
+ */
+function setConfiguredCookie(config: FolderConfig): void {
+  document.cookie = `${COOKIE_KEYS.folderConfigured}=${encodeURIComponent(JSON.stringify(config))}; path=/; SameSite=Strict`;
 }
 
-/** Removes the "folder-configured" cookie, triggering onboarding redirect. */
+/** Clears the middleware cookie, triggering an onboarding redirect. */
 function clearConfiguredCookie(): void {
   document.cookie = `${COOKIE_KEYS.folderConfigured}=; path=/; Max-Age=0; SameSite=Strict`;
 }
 
 /**
+ * Reads the folder config back from the cookie (client-side).
+ *
+ * Used as the `initialValue` fallback for `useLocalStorage` so that if
+ * localStorage is cleared while the cookie is still valid, the in-memory
+ * state is immediately populated — preventing a spurious redirect to
+ * onboarding on the next render cycle.
+ */
+function parseFolderConfigFromCookie(): FolderConfig | null {
+  if (typeof document === "undefined") return null;
+  const entry = document.cookie
+    .split("; ")
+    .find((c) => c.startsWith(`${COOKIE_KEYS.folderConfigured}=`));
+  if (!entry) return null;
+  try {
+    const raw = entry.slice(COOKIE_KEYS.folderConfigured.length + 1);
+    const parsed = JSON.parse(decodeURIComponent(raw)) as FolderConfig;
+    return parsed.downloadsPath && parsed.libraryPath ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Reads and writes the folder configuration (downloads + library paths).
  *
- * Persists to localStorage (client-side reactive state) and syncs a cookie
- * so Next.js middleware can protect routes server-side without accessing
- * localStorage — which is not available in Server Components.
+ * **Storage strategy — two layers, one source of truth:**
+ * - `localStorage` is the primary client-side store (reactive, fast reads).
+ * - Cookie mirrors the config so middleware can protect routes server-side.
+ * - If localStorage is cleared but the cookie is intact, the config is
+ *   restored from the cookie as the `useLocalStorage` initial value —
+ *   synchronously, with no extra render or effect needed.
  *
  * Distinct from `useFolderConfig`, which manages the transient validation
  * UI state during the onboarding folder-picker flow.
@@ -42,7 +71,7 @@ function clearConfiguredCookie(): void {
 export function useFolderConfigStore(): UseFolderConfigStoreReturn {
   const [stored, setStored, removeStored] = useLocalStorage<FolderConfig>(
     STORAGE_KEYS.folderConfig,
-    INITIAL_CONFIG,
+    parseFolderConfigFromCookie() ?? INITIAL_CONFIG,
   );
 
   const folderConfig: FolderConfig | null =
@@ -52,7 +81,7 @@ export function useFolderConfigStore(): UseFolderConfigStoreReturn {
 
   function saveFolderConfig(config: FolderConfig): void {
     setStored(config);
-    setConfiguredCookie();
+    setConfiguredCookie(config);
   }
 
   function clearFolderConfig(): void {
