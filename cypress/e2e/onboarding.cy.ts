@@ -122,10 +122,29 @@ describe("Onboarding flow", () => {
       cy.visit("/onboarding");
     });
 
-    it("renders app name, tagline and start button");
-    it("renders exactly 3 feature items");
-    it("advances to FolderConfigScreen when start button is clicked");
-    it("navigates back to WelcomeScreen when back button is clicked");
+    it("renders app name, tagline and start button", () => {
+      cy.contains("h1", ONBOARDING.appName).should("exist");
+      cy.contains(ONBOARDING.tagline).should("exist");
+      cy.contains("button", ONBOARDING.startButton).should("not.be.disabled");
+    });
+
+    it("renders exactly 3 feature items", () => {
+      cy.get('[aria-label="Funcionalidades"]').within(() => {
+        cy.get("li").should("have.length", 3);
+      });
+    });
+
+    it("advances to FolderConfigScreen when start button is clicked", () => {
+      cy.contains("button", ONBOARDING.startButton).click();
+      cy.contains("h1", ONBOARDING.configureTitle).should("exist");
+      cy.url().should("include", "/onboarding");
+    });
+
+    it("navigates back to WelcomeScreen when back button is clicked", () => {
+      cy.contains("button", ONBOARDING.startButton).click();
+      cy.contains("button", ONBOARDING.backButton).click();
+      cy.contains("h1", ONBOARDING.appName).should("exist");
+    });
   });
 
   describe("FolderConfigScreen", () => {
