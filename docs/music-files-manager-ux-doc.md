@@ -19,9 +19,10 @@
 10. [Flujo 7 — Optimización de Portadas](#10-flujo-7--optimización-de-portadas)
 11. [Flujo 8 — Errores y Casos Borde](#11-flujo-8--errores-y-casos-borde)
 12. [Pantallas de Configuración (Settings)](#12-pantallas-de-configuración-settings)
-13. [Componentes Globales](#13-componentes-globales)
-14. [Inconsistencias del PRD y Decisiones Tomadas](#14-inconsistencias-del-prd-y-decisiones-tomadas)
-15. [Glosario](#15-glosario)
+13. [Re-validación y Watcher de Biblioteca](#13-re-validación-y-watcher-de-biblioteca)
+14. [Componentes Globales](#14-componentes-globales)
+15. [Inconsistencias del PRD y Decisiones Tomadas](#15-inconsistencias-del-prd-y-decisiones-tomadas)
+16. [Glosario](#16-glosario)
 
 ---
 
@@ -243,27 +244,69 @@ Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para
 
 > **Aclaración crítica de diseño:** La sincronización y la edición de metadatos son **dos flujos completamente independientes**. La sincronización mueve y organiza los archivos físicamente de forma automática. La edición de metadatos es una acción separada que el usuario inicia cuando quiere, sobre archivos que ya están en la biblioteca.
 
+### Campos mínimos requeridos para sincronización
+
+Para que un archivo sea movido a la Biblioteca necesita los siguientes metadatos embebidos:
+
+| Campo | Obligatorio | Uso |
+|---|---|---|
+| Artista | ✅ Sí | Nombre de la carpeta de artista |
+| Álbum | ✅ Sí | Nombre de la carpeta de álbum |
+| Título | ✅ Sí | Nombre del archivo final |
+| Año | ❌ Opcional | Sufijo `[Año]` en la carpeta de álbum |
+| Número de track | ❌ Opcional | Prefijo `##` en el nombre del archivo |
+
+**Archivos con campos obligatorios faltantes → ignorados.** No se mueven a la Biblioteca ni a ninguna carpeta temporal. Aparecen en el resultado de sincronización como "ignorados por metadatos incompletos". La resolución es usar el flujo de edición de metadatos (ver Flujo 4) para completar los campos y volver a sincronizar.
+
+**Path generado según campos disponibles:**
+
+| Campos presentes | Ruta de destino |
+|---|---|
+| Artista + Álbum + Año + Track + Título | `/Artista/Álbum [Año]/## - Título.ext` |
+| Artista + Álbum + Título (sin año, sin track) | `/Artista/Álbum/Título.ext` |
+| Artista + Álbum + Track + Título (sin año) | `/Artista/Álbum/## - Título.ext` |
+| Artista + Álbum + Año + Título (sin track) | `/Artista/Álbum [Año]/Título.ext` |
+
+---
+
 ### Qué hace la sincronización automáticamente
 
-> **Principio central:** La sincronización es un proceso 100% automático que corre sin intervención del usuario una vez confirmado el inicio. No pregunta por cada archivo. Si algo necesita revisión posterior, queda marcado en Salud para que el usuario lo atienda cuando quiera — ese es un flujo completamente aparte.
+> **Principio central:** La sincronización es un proceso 100% automático que corre sin intervención del usuario una vez confirmado el inicio. No pregunta por cada archivo. Los archivos ignorados quedan documentados en el resultado para que el usuario los atienda cuando quiera — ese es un flujo completamente aparte.
 
-1. Escanea recursivamente la carpeta de Descargas buscando archivos de audio.
-2. Verifica si cada archivo ya existe en la Biblioteca (por metadatos coincidentes o nombre de archivo). Si existe, lo omite silenciosamente — nunca se moverá un duplicado.
-3. Lee los metadatos embebidos de cada archivo nuevo (título, artista, álbum, año).
-4. Con esos metadatos, construye la ruta de destino: `/Artista/Álbum [Año]/## - Título.ext`
+1. Escanea recursivamente la carpeta de Descargas buscando archivos de audio, hasta un máximo de **5 niveles de profundidad**.
+2. Verifica que cada archivo tenga los metadatos mínimos requeridos (Artista, Álbum, Título). Si faltan campos obligatorios, el archivo se ignora y se registra en el resultado.
+3. Verifica si el archivo ya existe en la Biblioteca comprobando si la ruta de destino generada (incluyendo extensión) ya existe. Si existe, se ignora silenciosamente.
+4. Con los metadatos disponibles, construye la ruta de destino según la tabla de campos anterior.
 5. Mueve el archivo a esa ruta dentro de la Biblioteca.
 6. Detecta carpetas `[Tag]` y asigna los archivos a las playlists correspondientes.
 7. Sanitiza nombres de carpetas y archivos según el OS de destino.
 
-> La sincronización **no edita metadatos**. Solo los lee para organizar. Si un archivo tiene metadatos incompletos, se mueve igual con la información disponible y queda marcado en Salud para revisión posterior.
+> La sincronización **no edita metadatos**. Solo los lee para organizar.
 >
-> **Sobre duplicados:** El sistema está diseñado para que los duplicados nunca ocurran. La validación del paso 2 garantiza que un archivo ya presente en la Biblioteca no se vuelva a mover. Por eso el resultado de sincronización no muestra un contador de "duplicados" — si el archivo ya existía, sencillamente no aparece en el proceso.
+> **Sobre duplicados:** La detección de duplicados se basa en la **ruta de destino completa incluyendo la extensión**. Dos archivos con los mismos metadatos pero distinta extensión (ej. `Heroes.flac` y `Heroes.mp3`) generan rutas distintas y no son considerados duplicados — ambos se importan. Un archivo se ignora como duplicado únicamente cuando la ruta generada coincide exactamente con una ya existente en la Biblioteca (mismo artista, álbum, título y extensión).
+>
+> **Colisión de nombre sin número de track:** Si dos canciones del mismo álbum comparten el título exacto y ninguna tiene número de track, generan la misma ruta. La segunda se ignora y se reporta en el resultado. La resolución es agregar el número de track vía el flujo de metadatos y re-sincronizar.
 
 ---
 
 ### Pantalla 1.1 — Confirmación de Inicio
 
-**La sincronización es automática.** No hay preview archivo por archivo. Solo se muestra un resumen de cuántos archivos se encontraron y se pide confirmación para arrancar.
+**La sincronización es automática.** No hay preview archivo por archivo. Al hacer clic en [Sincronizar], primero se ejecuta un pre-scan que muestra un estado de carga, y luego se muestra el resumen para pedir confirmación.
+
+**Estado de carga durante el pre-scan:**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  🔄 Analizando archivos...                           │
+│                                                     │
+│             ◌  (spinner)                            │
+│                                                     │
+│  Escaneando /Users/juan/Downloads/Música            │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**Una vez completado el pre-scan, se muestra el resumen:**
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -273,9 +316,18 @@ Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para
 │  📥 /Users/juan/Downloads/Música                    │
 │  → 📚 /Users/juan/Music/Biblioteca                  │
 │                                                     │
-│  Encontrados: 247 archivos de audio                 │
-│  Ignorados:     12 (ya existen en biblioteca)       │
+│  A mover:   235 archivos de audio                   │
+│  Ignorados:  12 (ya existen en biblioteca)          │
+│  Sin metadatos requeridos: 4 (serán ignorados)      │
 │  Carpetas [Tag] detectadas: [Rock] [Favoritos]      │
+│                                                     │
+│  [Si hay archivos más profundos de 5 niveles:]      │
+│  ⚠️  3 archivos superan el límite de profundidad    │
+│     (5 niveles) y serán ignorados.                  │
+│                                                     │
+│  [Si hay rutas que superan 260 caracteres:]         │
+│  ⚠️  2 archivos generarían rutas demasiado largas.  │
+│     Se truncará el nombre del álbum automáticamente.│
 │                                                     │
 │  Los archivos serán movidos y organizados           │
 │  automáticamente. Esta acción no se puede           │
@@ -284,6 +336,13 @@ Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para
 │  [Cancelar]              [Sí, sincronizar →]        │
 └─────────────────────────────────────────────────────┘
 ```
+
+**Casos especiales que bloquean la confirmación (el modal muestra el error y no permite avanzar):**
+
+- Sin archivos de audio en Descargas → "No se encontraron archivos de audio en [ruta]"
+- Todos los archivos ya existen en Biblioteca → "No hay archivos nuevos para sincronizar"
+- Espacio insuficiente en disco → ver Error 8.3
+- Sin permisos en la carpeta de Biblioteca → error crítico con instrucciones
 
 > Esta pantalla es la **única confirmación** antes de que arranque el proceso. Una vez confirmado, la sincronización corre sola.
 
@@ -317,7 +376,21 @@ Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para
 - El porcentaje se calcula sobre el total de archivos encontrados al inicio.
 - Si el destino es una unidad de almacenamiento externo, se añade la advertencia específica de no desconectarla.
 
-**Estados de cancelación:** Si el usuario cancela a mitad del proceso, la app muestra cuántos archivos fueron movidos con éxito y cuántos quedaron en Descargas sin tocar. Los archivos ya movidos permanecen en la Biblioteca — no se revierten.
+**Cancelación:** Al hacer clic en [Cancelar], aparece un dialog de confirmación antes de detener el proceso:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ⚠️  ¿Cancelar sincronización?                       │
+│                                                     │
+│  143 archivos ya fueron movidos a la Biblioteca.    │
+│  Esta acción no se puede revertir.                  │
+│  Los archivos pendientes permanecerán en Descargas. │
+│                                                     │
+│  [Seguir sincronizando]      [Cancelar de todas formas] │
+└─────────────────────────────────────────────────────┘
+```
+
+Si confirma la cancelación, se muestra la Pantalla 1.3 con los resultados parciales. Los archivos ya movidos permanecen en la Biblioteca — no se revierten.
 
 ---
 
@@ -327,20 +400,31 @@ Segunda pantalla del onboarding. El usuario define las dos rutas necesarias para
 ┌─────────────────────────────────────────────────────┐
 │  ✅ Sincronización completada                       │
 │                                                     │
-│  ┌──────────┬──────────┬──────────┐                 │
-│  │  231     │  4       │  0       │                 │
-│  │ Movidos  │Con avisos│ Errores  │                 │
-│  └──────────┴──────────┴──────────┘                 │
+│  ┌──────────┬──────────────────────┬──────────┐     │
+│  │  231     │  16                  │  0       │     │
+│  │ Movidos  │ Ignorados            │ Errores  │     │
+│  └──────────┴──────────────────────┴──────────┘     │
+│                                                     │
+│  Ignorados:                                         │
+│    12 ya existían en Biblioteca                     │
+│     4 no se importaron — metadatos incompletos      │
 │                                                     │
 │  Playlists actualizadas: Rock (18) · Favoritos (6)  │
 │                                                     │
-│  ⚠️  4 archivos tienen metadatos incompletos:       │
-│  Se movieron a /Biblioteca/Unknown Artist/ y        │
-│  están marcados en Salud para revisión.             │
-│                                                     │
-│  [Ver archivos con avisos]       [Ir a Biblioteca →]│
+│                              [Ir a Biblioteca →]    │
 └─────────────────────────────────────────────────────┘
 ```
+
+**Caso — todos los archivos fallaron (0 movidos):**
+Se muestra el mismo modal con `Movidos: 0`. Al cerrarlo, la app regresa al estado exacto en que se encontraba antes de iniciar la sincronización — ya sea la biblioteca vacía o la biblioteca con los archivos de sincronizaciones anteriores.
+
+**Contadores:**
+
+| Contador | Qué incluye |
+|---|---|
+| **Movidos** | Archivos procesados y movidos con éxito |
+| **Ignorados** | Ya existían en Biblioteca + metadatos obligatorios faltantes + profundidad > 5 niveles + archivos no-audio en carpetas `[Tag]` |
+| **Errores** | Fallos técnicos al intentar mover (permisos, disco lleno a mitad del proceso, etc.) |
 
 ---
 
@@ -381,10 +465,16 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 ```
 📁 /Downloads/Música/
    ├── [Rock][Favoritos]/
-   │   ├── Paranoid.mp3       → Biblioteca + Playlists: Rock, Favoritos
-   │   └── Heroes.flac        → Biblioteca + Playlists: Rock, Favoritos
+   │   ├── Paranoid.mp3            → Biblioteca + Playlists: Rock, Favoritos
+   │   └── Heroes.flac             → Biblioteca + Playlists: Rock, Favoritos
    ├── [Jazz]/
-   │   └── So What.flac       → Biblioteca + Playlist: Jazz
+   │   └── So What.flac            → Biblioteca + Playlist: Jazz
+   ├── [Rock]/
+   │   └── [Favoritos]/
+   │       └── Space Oddity.flac   → Biblioteca + Playlists: Rock, Favoritos (equivalente al caso anterior)
+   ├── [Rock]/
+   │   └── SubCarpeta/
+   │       └── Starman.flac        → Biblioteca + Playlist: Rock (SubCarpeta sin corchetes se ignora)
    └── Dark Side of the Moon.flac  → Biblioteca (sin playlist)
 ```
 
@@ -392,8 +482,41 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 - Si la playlist `Rock` no existe → se crea el archivo `/Biblioteca/Playlists/Rock.m3u8`
 - Si la playlist `Rock` ya existe → se agregan las canciones sin duplicar
-- La carpeta `[Tag]` en Descargas se elimina después de mover todos sus archivos (si quedó vacía)
+- La carpeta `[Tag]` en Descargas se elimina después de mover todos sus archivos **solo si quedó completamente vacía**
+- Si la carpeta `[Tag]` contiene archivos no-audio, no se elimina (los archivos no-audio se cuentan como ignorados)
 - Las canciones dentro de una carpeta `[Tag]` también siguen la estructura normal de la Biblioteca (`/Artista/Álbum/`)
+- Los tags son **case-sensitive**: `[rock]` y `[Rock]` crean dos playlists distintas
+
+**Reglas de anidamiento de `[Tag]`:**
+
+| Estructura | Resultado |
+|---|---|
+| `[Rock][Favoritos]/cancion.flac` | Canción en playlists Rock y Favoritos |
+| `[Rock]/[Favoritos]/cancion.flac` | Equivalente — canción en playlists Rock y Favoritos |
+| `[Rock]/SubCarpeta/cancion.flac` | Canción en playlist Rock; SubCarpeta (sin corchetes) se ignora |
+| `[Rock]/[Favoritos]/SubCarpeta/cancion.flac` | Canción en playlists Rock y Favoritos; SubCarpeta se ignora |
+
+**Límite de profundidad de escaneo:**
+
+El escaneo recursivo de la carpeta de Descargas tiene un máximo de **5 niveles de profundidad**. Los archivos en niveles más profundos son ignorados y reportados en el pre-scan (Pantalla 1.1) y en el resultado final.
+
+Ejemplo de conteo de niveles desde la raíz de Descargas:
+```
+nivel 1: /Downloads/Música/cancion.flac
+nivel 2: /Downloads/Música/[Rock]/cancion.flac
+nivel 3: /Downloads/Música/[Rock]/Artista/cancion.flac
+nivel 4: /Downloads/Música/[Rock]/Artista/Álbum/cancion.flac
+nivel 5: /Downloads/Música/[Rock]/Artista/Álbum/Disco1/cancion.flac
+         → ignorado si hay más profundidad
+```
+
+**Duplicados dentro de la misma sesión de sync con múltiples `[Tag]`:**
+
+Si la misma canción aparece en múltiples carpetas `[Tag]` (ej. `[Rock]/Heroes.flac` y `[Favoritos]/Heroes.flac` con metadatos idénticos), ambas generan la misma ruta de destino. El archivo se mueve una sola vez, pero **todos los tags de ambas fuentes se procesan**: la canción queda en `Rock.m3u8` y en `Favoritos.m3u8`.
+
+**Sanitización del nombre de tag:**
+
+El nombre del tag se usa como nombre de la playlist y como nombre del archivo `.m3u8`. Se aplica la misma sanitización de caracteres prohibidos que al resto de nombres de archivos (ver Error 8.4), especialmente relevante para compatibilidad cross-platform (macOS → Windows).
 
 ---
 
@@ -401,31 +524,64 @@ Durante la sincronización, la app detecta carpetas en Descargas cuyo nombre sig
 
 **Trigger:** Biblioteca configurada pero sin archivos procesados todavía.
 
-### Pantalla 2.1 — Estado Vacío Principal
+### Estados iniciales al cargar la pantalla
+
+Al entrar a la app (o al navegar a Biblioteca), se realiza una llamada ligera a la API que devuelve el conteo de archivos en ambas carpetas: `{ downloads: { count, byFormat }, library: { count, byFormat } }`. Con esa respuesta se determina cuál de los cuatro estados mostrar:
+
+| Estado | Descargas | Biblioteca | UI mostrada |
+|---|---|---|---|
+| **A — Primera sync** | Con archivos | Vacía | Pantalla 2.1 con CTA de sync |
+| **B — Uso habitual** | Con archivos nuevos | Con archivos | Biblioteca normal + botón sync en Header |
+| **C — Sin pendientes** | Vacía | Con archivos | Biblioteca normal + botón sync en Header (re-validación disponible) |
+| **D — Sin archivos** | Vacía | Vacía | Pantalla 2.2 informativa |
+
+**Visibilidad del botón [Sincronizar] en el Header:**
+- **Estado A (primera sync):** el botón **no** aparece en el Header. El único CTA de sync está en el contenido de la pantalla vacía.
+- **Estados B y C:** el botón **siempre** aparece en el Header (para sync de archivos nuevos o para forzar re-validación).
+
+---
+
+### Pantalla 2.1 — Estado Vacío con Descargas disponibles (Estado A)
 
 ```
 ┌──────────┬──────────────────────────────────────────┐
 │ SIDEBAR  │                                          │
 │          │         📭 Tu biblioteca está vacía      │
 │ Biblioteca│                                         │
-│ Artistas │   Aún no has sincronizado ningún archivo. │
-│ Álbumes  │                                          │
-│ Playlists│   Para comenzar:                         │
-│          │   1. Coloca archivos de música en         │
-│ Salud(0) │      /Users/juan/Downloads/Música        │
-│          │   2. Haz clic en [Sincronizar]            │
-│          │                                          │
+│ Artistas │   Tienes 247 archivos listos para        │
+│ Álbumes  │   organizar en tu carpeta de Descargas.  │
+│ Playlists│                                          │
 │          │              [Sincronizar ahora]          │
-│          │                                          │
+│ Salud(0) │                                          │
 │          │   ─────────────────────────────────────  │
 │  0 tracks│   ¿Tienes música en otra carpeta?        │
 │  0 GB    │   [Cambiar carpeta de Descargas]          │
 └──────────┴──────────────────────────────────────────┘
 ```
 
-**Notas:**
+---
 
-- Las secciones Artistas, Álbumes, Playlists también muestran este estado vacío si se navega a ellas.
+### Pantalla 2.2 — Estado Vacío sin archivos en ninguna carpeta (Estado D)
+
+```
+┌──────────┬──────────────────────────────────────────┐
+│ SIDEBAR  │                                          │
+│          │         📭 Tu biblioteca está vacía      │
+│ Biblioteca│                                         │
+│ Artistas │   Agrega archivos a tu carpeta de        │
+│ Álbumes  │   Descargas para comenzar.               │
+│ Playlists│                                          │
+│          │   📥 /Users/juan/Downloads/Música        │
+│ Salud(0) │                                          │
+│          │   [Cambiar carpeta de Descargas]          │
+│  0 tracks│                                          │
+│  0 GB    │                                          │
+└──────────┴──────────────────────────────────────────┘
+```
+
+**Notas generales:**
+
+- Las secciones Artistas, Álbumes, Playlists también muestran un estado vacío si se navega a ellas.
 - La sección Salud muestra (0) en el sidebar y un estado vacío diferente: "No hay archivos que revisar".
 
 ---
@@ -1178,6 +1334,10 @@ Al abrir el editor, MusicBrainz se consulta automáticamente en segundo plano us
 
 #### Error 8.1 — Ruta demasiado larga (>260 caracteres)
 
+> **Timing:** Este error se detecta durante el **pre-scan**, antes de mostrar la Pantalla 1.1. Los archivos afectados se muestran como advertencia batch en el resumen de confirmación. No interrumpe el proceso archivo por archivo.
+
+
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │  ⚠️  Ruta de destino demasiado larga                  │
@@ -1199,19 +1359,20 @@ Al abrir el editor, MusicBrainz se consulta automáticamente en segundo plano us
 
 ---
 
-#### Error 8.2 — Archivo sin metadatos
+#### Error 8.2 — Archivo sin metadatos obligatorios
+
+Los campos **Artista**, **Álbum** y **Título** son obligatorios para importar un archivo a la Biblioteca. Si falta cualquiera de ellos, el archivo se ignora durante la sincronización.
 
 ```
-Caso A: Sin metadatos NI nombre legible
-→ Omitir silenciosamente. Aparece en el log de sincronización como "ignorado".
-
-Caso B: Solo tiene nombre de archivo
-→ Importar como:
-  Artista: Unknown Artist
-  Título:  [nombre_de_archivo_sin_extensión]
-  Estado:  🔴 Revisión urgente
-→ Aparece en Salud con prioridad alta.
+Cualquier archivo sin Artista, Álbum o Título:
+→ Ignorado. Aparece en el resultado de sincronización como
+  "no se importó — metadatos incompletos".
+→ No se mueve a ninguna carpeta temporal ni a "Unknown Artist".
+→ Resolución: usar el flujo de edición de metadatos (Flujo 4)
+  para completar los campos faltantes y volver a sincronizar.
 ```
+
+Los campos **Año** y **Número de track** son opcionales. Su ausencia no impide la importación — solo afecta el formato de la ruta de destino (ver tabla en "Campos mínimos requeridos").
 
 ---
 
@@ -1341,14 +1502,80 @@ La app regresa al Onboarding sin tocar ningún archivo físico en disco. Al comp
 
 **Notas:**
 
-- **Cambio de rutas:** Disparar una re-sincronización es automático. Si el usuario cambia la carpeta de Descargas o Biblioteca, la app re-valida la nueva ruta y actualiza los datos.
+- **Cambio de rutas:** El usuario debe confirmar el cambio de ruta (se le advierte que puede afectar a la biblioteca). Una vez confirmado, la app re-valida la nueva ruta y dispara una **re-validación automática** (no una sync — no se mueven archivos). Si el usuario quiere sincronizar archivos desde la nueva carpeta de Descargas, debe iniciar la sync manualmente. Al cambiar la ruta de la Biblioteca, el watcher de filesystem también migra a la nueva ruta.
 - **Normalización de portadas:** OFF por default. El usuario decide si activarlo según su reproductor — la app nunca lo fuerza.
 - **Exportar/Importar configuración:** Guarda y restaura las rutas de carpetas y preferencias desde un `config.json`. Útil si se borra el localStorage o se migra a otro equipo.
 - **Borrar configuración:** Requiere doble confirmación. Borra el localStorage y regresa al onboarding. No toca los archivos de música en disco.
 
 ---
 
-## 13. Componentes Globales
+## 13. Re-validación y Watcher de Biblioteca
+
+### Re-validación vs. Sincronización
+
+Son dos operaciones completamente distintas:
+
+| | Sincronización | Re-validación |
+|---|---|---|
+| **Trigger** | Manual — usuario hace clic en [Sincronizar] | Automático o manual |
+| **Mueve archivos** | ✅ Sí | ❌ Nunca |
+| **Lee Descargas** | ✅ Sí | ❌ No |
+| **Lee Biblioteca** | ✅ Sí (para detectar duplicados) | ✅ Sí (única operación) |
+| **Resultado** | Archivos movidos y organizados | Estado en memoria actualizado |
+
+### Qué produce la re-validación
+
+Lee todos los archivos en la carpeta de Biblioteca y reconstruye el estado en memoria que usa la app:
+
+- **Health status** por archivo (para los indicadores de color en la Biblioteca)
+- **Tiempo total de reproducción** y conteo de canciones (para el detalle de playlists)
+- **Lista de géneros únicos** en la biblioteca (para el autocompletado estilo Notion en el editor de metadatos)
+- **Playlists** (lee los archivos `.m3u8` y detecta entradas huérfanas)
+- **Artistas y Álbumes** (para las vistas de Artistas y Álbumes)
+
+### Cuándo se dispara la re-validación
+
+1. **Al cargar la app** — si la Biblioteca tiene archivos, corre automáticamente al montar la aplicación
+2. **Evento del watcher** — cuando se detecta un cambio externo en la carpeta de Biblioteca (ver sección siguiente)
+3. **Manual** — usuario selecciona "Forzar re-validación" en el dropdown de Sync
+
+### UX durante la re-validación
+
+A diferencia de la sincronización, la re-validación **no bloquea la interfaz**. El usuario puede navegar con normalidad. Solo se bloquean las operaciones de escritura (sync, edición de metadatos, exportación) para proteger la integridad de los datos mientras se reconstruye el índice.
+
+```
+┌─────────────────────────────────────────────────────┐
+│  🎵 Music Manager   [🔍 Búsqueda]     [⚙ Sync ▾]   │
+│  ████████████░░░░░░░░  Actualizando biblioteca...   │  ← barra bajo el Header
+├─────────────────────────────────────────────────────┤
+│  SIDEBAR  │      ÁREA DE CONTENIDO                  │
+│           │   (navegable durante el proceso)        │
+│           │                                         │
+└─────────────────────────────────────────────────────┘
+```
+
+### Mecanismo de bloqueo de operaciones de escritura
+
+El bloqueo durante sync y re-validación se gestiona de forma centralizada, **no botón por botón**:
+
+- **Zustand store** — campo `operationInProgress: 'sync' | 'revalidation' | null`
+- **Wrapper de API** — antes de ejecutar cualquier request de escritura (`POST`, `PATCH`, `DELETE`), comprueba el store. Si hay operación en curso, rechaza la llamada con un error específico que el UI maneja mostrando un toast: *"No se puede realizar esta acción mientras hay una operación en curso."*
+- Las requests de lectura (`GET`) nunca se bloquean
+
+### Watcher de Filesystem (chokidar)
+
+La app mantiene un watcher activo sobre la carpeta de Biblioteca usando **chokidar** (FSEvents en macOS, ReadDirectoryChangesW en Windows). Cuando el usuario modifica manualmente archivos en la Biblioteca desde Finder/Explorer con la app abierta, el watcher detecta los cambios y dispara una re-validación automática.
+
+**Arquitectura:**
+- `src/server/fs/watcher.ts` — instancia de chokidar con debounce de 1 segundo
+- `src/app/api/library/watch/route.ts` — SSE stream que emite eventos del watcher al cliente
+- `useLibraryWatcher.ts` — hook cliente que escucha el SSE y actualiza el estado vía Zustand
+
+**Al cambiar la ruta de Biblioteca en Settings**, el watcher migra automáticamente a la nueva ruta.
+
+---
+
+## 14. Componentes Globales
 
 ### Topbar
 
@@ -1358,10 +1585,12 @@ La app regresa al Onboarding sin tocar ningún archivo físico en disco. Al comp
 └─────────────────────────────────────────────────────┘
 ```
 
+**Visibilidad del botón [Sync ▾]:** solo aparece en el Header cuando la Biblioteca tiene archivos. En el estado de primera sync (Biblioteca vacía), no aparece — el CTA de sync está en el contenido de la pantalla vacía.
+
 **Botón [Sync ▾] despliega:**
 
 - Sincronizar ahora
-- Forzar re-validación completa de biblioteca (actualiza datos de salud y detecta cambios externos)
+- Forzar re-validación completa de biblioteca (ver sección Re-validación)
 - Ver última sincronización
 - Verificar integridad
 
@@ -1449,7 +1678,7 @@ Los pendientes permanecerán en Descargas.
 
 ---
 
-## 14. Inconsistencias del PRD y Decisiones Tomadas
+## 15. Inconsistencias del PRD y Decisiones Tomadas
 
 | #   | Inconsistencia / Ambigüedad original                                                    | Decisión adoptada                                                                                                                                                                                                                                                                                                                                  |
 | --- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1472,16 +1701,24 @@ Los pendientes permanecerán en Descargas.
 | 17  | Selección de archivo — ¿panel lateral o menú contextual?                                | **Menú flotante contextual** junto al botón `⋯`. No hay panel lateral para acciones. En Mobile se comporta como Bottom Sheet. Aparece en cualquier vista con canciones; opciones varían por cantidad seleccionada (individual vs. múltiple) y por si se está dentro del detalle de una playlist (opción extra "Remover de esta playlist").         |
 | 18  | Editor individual — ¿flujos separados para MusicBrainz vs. manual?                      | **Una sola interfaz.** Los campos se pre-rellenan con datos de MusicBrainz cuando hay resultado. El usuario edita libremente. Sin resultado, los campos están vacíos listos para escritura. La fuente del dato no cambia la interfaz.                                                                                                              |
 | 19  | Selección de carpeta — ¿`showDirectoryPicker()` del browser?                            | **No.** El botón [Elegir] llama a `POST /api/fs/open-dialog`. Node.js abre el Finder/Explorer nativo vía `child_process` y devuelve el path absoluto directamente, sin restricciones del browser.                                                                                                                                                  |
+| 20  | Archivos con metadatos incompletos — ¿se importan a "Unknown Artist"?                   | **No.** Artista, Álbum y Título son obligatorios. Si falta cualquiera, el archivo se ignora y se reporta en el resultado. Resolución: editar metadatos (Flujo 4) y re-sincronizar. Año y número de track son opcionales.                                                                                                                           |
+| 21  | Detección de duplicados — ¿por nombre o por metadatos?                                  | **Por ruta de destino completa incluyendo extensión.** Mismo artista + álbum + título pero distinta extensión (FLAC vs MP3) = rutas distintas = no duplicados. Misma ruta exacta = duplicado ignorado.                                                                                                                                             |
+| 22  | Re-validación — ¿mueve archivos?                                                        | **Nunca.** La re-validación solo lee la Biblioteca para reconstruir el estado en memoria. El único momento en que se mueven archivos es la sincronización manual.                                                                                                                                                                                  |
+| 23  | Bloqueo durante re-validación — ¿mismo mecanismo que sync?                              | **No.** Re-validación no bloquea la interfaz completa. Solo bloquea operaciones de escritura vía el store de Zustand (`operationInProgress`). El usuario puede navegar con normalidad.                                                                                                                                                             |
+| 24  | Profundidad del escaneo recursivo — ¿ilimitado?                                         | **Máximo 5 niveles** desde la raíz de Descargas. Archivos en niveles más profundos se ignoran y se reportan en el pre-scan.                                                                                                                                                                                                                       |
+| 25  | Carpetas `[Tag]` anidadas — ¿equivalentes a concatenadas?                               | **Sí.** `[Rock]/[Favoritos]/cancion.flac` es equivalente a `[Rock][Favoritos]/cancion.flac`. Subcarpetas sin corchetes se ignoran. Tags son case-sensitive: `[rock]` y `[Rock]` crean playlists distintas.                                                                                                                                        |
 
 ---
 
-## 15. Glosario
+## 16. Glosario
 
 | Término                        | Definición                                                                                                                                                                                                                                                                                         |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Sincronización**             | Proceso automático de mover archivos de la carpeta de Descargas a la Biblioteca, organizándolos por carpetas según sus metadatos. No edita metadatos.                                                                                                                                              |
 | **Ingesta**                    | Sinónimo de Sincronización. El motor que ejecuta el movimiento y organización.                                                                                                                                                                                                                     |
-| **Re-validación**              | Proceso de verificación manual forzada de toda la biblioteca, iniciado por el usuario desde el botón Sync. Actualiza datos de salud y detecta cambios externos.                                                                                                                                    |
+| **Re-validación**              | Proceso automático o manual que lee la carpeta de Biblioteca y reconstruye el estado en memoria (health status, playlists, géneros, artistas). **Nunca mueve archivos.** Se dispara al cargar la app, por eventos del watcher, o manualmente desde el dropdown de Sync.                            |
+| **Watcher de filesystem**      | Instancia de chokidar activa sobre la carpeta de Biblioteca. Detecta cambios externos (el usuario modifica archivos desde Finder/Explorer con la app abierta) y dispara una re-validación automática.                                                                                              |
+| **operationInProgress**        | Campo en el store de Zustand (`'sync' \| 'revalidation' \| null`) que centraliza el estado de operación activa. El wrapper de API lo consulta antes de ejecutar cualquier request de escritura.                                                                                                    |
 | **Edición de metadatos**       | Flujo independiente de la sincronización. El usuario inicia este flujo manualmente para revisar y corregir los tags de los archivos ya en la Biblioteca, usando MusicBrainz como fuente de sugerencias.                                                                                            |
 | **Carpeta [Tag]**              | Carpeta creada manualmente por el usuario dentro de Descargas cuyo nombre —o parte del nombre— está entre corchetes. Ese texto es el nombre de una playlist. Al sincronizar, los archivos dentro se asignan automáticamente a esa playlist.                                                        |
 | **Huérfano**                   | Entrada en una playlist `.m3u8` que apunta a un archivo que ya no existe en la Biblioteca.                                                                                                                                                                                                         |
