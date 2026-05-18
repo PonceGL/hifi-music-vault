@@ -152,17 +152,67 @@ describe("Onboarding flow", () => {
       navigateToFolderConfig();
     });
 
-    it("has submit button disabled when no folders are selected");
-    it("keeps field idle when folder picker dialog is canceled");
+    it("has submit button disabled when no folders are selected", () => {
+      cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+    });
+
+    it("keeps field idle when folder picker dialog is canceled", () => {
+      cy.intercept("POST", API.fs.dialog, {
+        statusCode: 409,
+        body: { success: false, data: null },
+      });
+      cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+      cy.get('[role="status"]').should("not.exist");
+      cy.get('[role="alert"]').should("not.exist");
+      cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+    });
 
     describe("client-side path validation", () => {
       beforeEach(() => {
         stubValidate();
       });
 
-      it("shows error when the same path is used for both folders");
-      it("shows error when library path is a subfolder of downloads");
-      it("shows error when downloads path is a subfolder of library");
+      it("shows error when the same path is used for both folders", () => {
+        const samePath = "/Users/test/Same/";
+        cy.intercept("POST", API.fs.dialog, {
+          body: { success: true, data: { path: samePath } },
+        });
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="status"]').should("contain", ONBOARDING.validSuccess);
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderLibraryAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.sameFolderError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
+
+      it("shows error when library path is a subfolder of downloads", () => {
+        // Downloads: /Users/test/Downloads/ → normalized /Users/test/Downloads
+        // Library:   /Users/test/Downloads/Music → startsWith("/Users/test/Downloads/") → error
+        stubDialog(DOWNLOADS_PATH, `${DOWNLOADS_PATH}Music`);
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="status"]').should("contain", ONBOARDING.validSuccess);
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderLibraryAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.libraryInsideDownloadsError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
+
+      it("shows error when downloads path is a subfolder of library", () => {
+        // Select library first, then downloads — the nesting check fires on
+        // handleDownloadsSelect when `other` (library) is already set.
+        // Library:   /Users/test/Music/Library
+        // Downloads: /Users/test/Music/Library/Downloads → startsWith(library + "/") → error
+        stubDialog(`${LIBRARY_PATH}/Downloads`, LIBRARY_PATH);
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderLibraryAriaLabel}"]`).click();
+        cy.get('[role="status"]').should("contain", ONBOARDING.validSuccess);
+
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.downloadsInsideLibraryError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
     });
 
     describe("server-side path validation", () => {
@@ -172,9 +222,26 @@ describe("Onboarding flow", () => {
         });
       });
 
-      it("shows error when path does not exist");
-      it("shows error when path is not a directory");
-      it("shows error when path has no write permissions");
+      it("shows error when path does not exist", () => {
+        stubValidate({ exists: false, isDirectory: false, hasPermissions: false });
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.notFoundError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
+
+      it("shows error when path is not a directory", () => {
+        stubValidate({ exists: true, isDirectory: false, hasPermissions: false });
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.notADirectoryError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
+
+      it("shows error when path has no write permissions", () => {
+        stubValidate({ exists: true, isDirectory: true, hasPermissions: false });
+        cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+        cy.get('[role="alert"]').should("contain", ONBOARDING.noWritePermissionError);
+        cy.contains("button", ONBOARDING.submitButton).should("be.disabled");
+      });
     });
   });
 
