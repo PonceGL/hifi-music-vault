@@ -78,11 +78,43 @@ describe("Onboarding flow", () => {
   });
 
   describe("Middleware — route protection", () => {
-    it("redirects to /onboarding when no cookie is set");
-    it("redirects configured user away from /onboarding to /");
-    it("stays on /onboarding when cookie JSON is malformed");
-    it("stays on /onboarding when cookie paths are empty strings");
-    it("redirects any protected route to /onboarding when not configured");
+    it("redirects to /onboarding when no cookie is set", () => {
+      cy.visit("/");
+      cy.url().should("include", "/onboarding");
+    });
+
+    it("redirects configured user away from /onboarding to /", () => {
+      stubConfig();
+      cy.fixture("folder-config.json").then(
+        (config: { downloadsPath: string; libraryPath: string }) => {
+          cy.setFolderConfigCookie(config);
+        }
+      );
+      cy.visit("/onboarding");
+      cy.url().should("eq", `${Cypress.config("baseUrl")}/`);
+    });
+
+    it("stays on /onboarding when cookie JSON is malformed", () => {
+      cy.setCookie(COOKIE.folderConfigured, "not%%valid%%json");
+      cy.visit("/onboarding");
+      cy.url().should("include", "/onboarding");
+    });
+
+    it("stays on /onboarding when cookie paths are empty strings", () => {
+      cy.setCookie(
+        COOKIE.folderConfigured,
+        encodeURIComponent(
+          JSON.stringify({ downloadsPath: "", libraryPath: "" })
+        )
+      );
+      cy.visit("/onboarding");
+      cy.url().should("include", "/onboarding");
+    });
+
+    it("redirects any protected route to /onboarding when not configured", () => {
+      cy.visit("/settings");
+      cy.url().should("include", "/onboarding");
+    });
   });
 
   describe("WelcomeScreen", () => {
