@@ -246,6 +246,35 @@ describe("Onboarding flow", () => {
   });
 
   describe("Happy path — complete onboarding", () => {
-    it("saves config to cookie and redirects to /");
+    it("saves config to cookie and redirects to /", () => {
+      stubDialog();
+      stubValidate();
+      stubConfig();
+
+      cy.visit("/onboarding");
+      cy.contains("button", ONBOARDING.startButton).click();
+
+      cy.get(`[aria-label="${ONBOARDING.chooseFolderDownloadsAriaLabel}"]`).click();
+      cy.get('[role="status"]').first().should("contain", ONBOARDING.validSuccess);
+
+      cy.get(`[aria-label="${ONBOARDING.chooseFolderLibraryAriaLabel}"]`).click();
+      cy.get('[role="status"]').should("have.length", 2);
+
+      cy.contains("button", ONBOARDING.submitButton)
+        .should("not.be.disabled")
+        .click();
+
+      cy.url().should("eq", `${Cypress.config("baseUrl")}/`);
+
+      cy.getCookie(COOKIE.folderConfigured).then((cookie) => {
+        expect(cookie).not.to.be.null;
+        const config = JSON.parse(
+          decodeURIComponent(cookie!.value)
+        ) as { downloadsPath: string; libraryPath: string };
+        expect(config.downloadsPath).to.not.be.empty;
+        expect(config.libraryPath).to.not.be.empty;
+        expect(config.downloadsPath).to.not.equal(config.libraryPath);
+      });
+    });
   });
 });
