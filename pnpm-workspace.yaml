@@ -1,5 +1,6 @@
 allowBuilds:
   core-js-pure: true
+  cypress: true
   esbuild: true
   sharp: false
   unrs-resolver: true
