@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["cypress"],
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}
