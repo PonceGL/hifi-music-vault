@@ -1,0 +1,51 @@
+name: E2E
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_IS_E2E: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ""
+
+      - name: Cypress E2E
+        uses: cypress-io/github-action@v6
+        with:
+          start: pnpm start
+          wait-on: "http://localhost:3000"
+          command: pnpm exec cypress run --e2e
+          install: false
+
+      - name: Upload Cypress artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts-${{ github.run_id }}
+          path: |
+            cypress/screenshots
+            cypress/videos
+          retention-days: 7
