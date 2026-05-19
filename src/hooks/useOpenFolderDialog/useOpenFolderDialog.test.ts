@@ -15,7 +15,11 @@ function makeWrapper() {
     defaultOptions: { mutations: { retry: false } },
   });
   return function Wrapper({ children }: PropsWithChildren) {
-    return createElement(QueryClientProvider, { client: queryClient }, children);
+    return createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      children,
+    );
   };
 }
 

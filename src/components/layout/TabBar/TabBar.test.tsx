@@ -43,25 +43,27 @@ describe("TabBar — active state", () => {
   it("marks the active route with aria-current=page", () => {
     mockUsePathname.mockReturnValue("/");
     render(<TabBar />);
-    expect(
-      screen.getByRole("link", { name: /Biblioteca/i }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Biblioteca/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   it("does not mark inactive tabs with aria-current", () => {
     mockUsePathname.mockReturnValue("/");
     render(<TabBar />);
-    expect(
-      screen.getByRole("link", { name: /Artistas/i }),
-    ).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: /Artistas/i })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
   it("marks the correct tab active when on /artists", () => {
     mockUsePathname.mockReturnValue("/artists");
     render(<TabBar />);
-    expect(
-      screen.getByRole("link", { name: /Artistas/i }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /Artistas/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(
       screen.getByRole("link", { name: /Biblioteca/i }),
     ).not.toHaveAttribute("aria-current");

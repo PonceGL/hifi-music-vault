@@ -1,6 +1,16 @@
-export type SyncPhase = 'scanning' | 'organizing' | 'moving' | 'updating-playlists';
+export type SyncPhase =
+  | "scanning"
+  | "organizing"
+  | "moving"
+  | "updating-playlists";
 
-export type SyncStatus = 'idle' | 'confirming' | 'running' | 'completed' | 'cancelled' | 'error';
+export type SyncStatus =
+  | "idle"
+  | "confirming"
+  | "running"
+  | "completed"
+  | "cancelled"
+  | "error";
 
 export interface SyncProgress {
   phase: SyncPhase;

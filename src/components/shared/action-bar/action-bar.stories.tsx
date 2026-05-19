@@ -8,7 +8,12 @@ const DEFAULT_ACTIONS: ActionBarAction[] = [
   { label: "Exportar", icon: Download, onClick: () => {}, variant: "default" },
   { label: "Mover", icon: FolderInput, onClick: () => {}, variant: "default" },
   { label: "Etiquetar", icon: Tag, onClick: () => {}, variant: "default" },
-  { label: "Eliminar", icon: Trash2, onClick: () => {}, variant: "destructive" },
+  {
+    label: "Eliminar",
+    icon: Trash2,
+    onClick: () => {},
+    variant: "destructive",
+  },
 ];
 
 const meta = {
@@ -45,7 +50,12 @@ export const Hidden: Story = {
 export const DestructiveOnly: Story = {
   args: {
     actions: [
-      { label: "Eliminar", icon: Trash2, onClick: () => {}, variant: "destructive" },
+      {
+        label: "Eliminar",
+        icon: Trash2,
+        onClick: () => {},
+        variant: "destructive",
+      },
     ],
   },
 };

@@ -104,9 +104,7 @@ describe("useOnboarding", () => {
       });
     });
 
-    const stored = JSON.parse(
-      localStorage.getItem("folder-config") ?? "{}"
-    );
+    const stored = JSON.parse(localStorage.getItem("folder-config") ?? "{}");
     expect(stored.downloadsPath).toBe("/downloads");
     expect(stored.libraryPath).toBe("/library");
     expect(mockPush).toHaveBeenCalledWith("/");

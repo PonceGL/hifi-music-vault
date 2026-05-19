@@ -42,7 +42,9 @@ export const AllVariants: Story = {
         <Topbar {...args} />
       </div>
       <div>
-        <p className="mb-2 text-xs text-text-tertiary">Bloqueado (sync / export activo)</p>
+        <p className="mb-2 text-xs text-text-tertiary">
+          Bloqueado (sync / export activo)
+        </p>
         <Topbar {...args} isBlocked />
       </div>
     </div>

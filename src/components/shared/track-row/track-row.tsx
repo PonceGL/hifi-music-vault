@@ -63,7 +63,8 @@ export function TrackRow({
       target.closest("[data-checkbox]") ||
       target.closest("[data-more-menu]") ||
       target.closest("a")
-    ) return;
+    )
+      return;
     onClick?.(id);
   };
 
@@ -127,7 +128,9 @@ export function TrackRow({
         <span
           className={cn(
             "truncate text-sm font-medium leading-tight",
-            title === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-primary",
+            title === EMPTY_VALUE
+              ? "font-mono text-text-tertiary"
+              : "text-text-primary",
           )}
         >
           {trackHref && title !== EMPTY_VALUE ? (
@@ -138,12 +141,16 @@ export function TrackRow({
             >
               {title}
             </Link>
-          ) : title}
+          ) : (
+            title
+          )}
         </span>
         <span
           className={cn(
             "truncate text-xs leading-tight",
-            artist === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
+            artist === EMPTY_VALUE
+              ? "font-mono text-text-tertiary"
+              : "text-text-secondary",
           )}
         >
           {artistHref && artist !== EMPTY_VALUE ? (
@@ -154,7 +161,9 @@ export function TrackRow({
             >
               {artist}
             </Link>
-          ) : artist}
+          ) : (
+            artist
+          )}
         </span>
       </div>
 
@@ -163,7 +172,9 @@ export function TrackRow({
         aria-label={COLUMN_LABELS.album}
         className={cn(
           "hidden w-36 truncate text-sm xl:block",
-          album === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
+          album === EMPTY_VALUE
+            ? "font-mono text-text-tertiary"
+            : "text-text-secondary",
         )}
       >
         {album}
@@ -174,7 +185,9 @@ export function TrackRow({
         aria-label={COLUMN_LABELS.year}
         className={cn(
           "hidden w-10 text-right text-xs xl:block",
-          year === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
+          year === EMPTY_VALUE
+            ? "font-mono text-text-tertiary"
+            : "text-text-secondary",
         )}
       >
         {year}
@@ -190,7 +203,9 @@ export function TrackRow({
         aria-label={COLUMN_LABELS.duration}
         className={cn(
           "hidden lg:block w-10 shrink-0 text-right text-xs font-mono",
-          durationText === EMPTY_VALUE ? "text-text-tertiary" : "text-text-secondary",
+          durationText === EMPTY_VALUE
+            ? "text-text-tertiary"
+            : "text-text-secondary",
         )}
       >
         {durationText}

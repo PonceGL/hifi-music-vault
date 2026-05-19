@@ -55,11 +55,33 @@ export const Error: Story = {
 
 export const AllVariants: Story = {
   render: (args) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "380px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        maxWidth: "380px",
+      }}
+    >
       <Toast {...args} variant="success" title="Guardado correctamente" />
-      <Toast {...args} variant="info" title="Información del sistema" description="Actualización disponible" />
-      <Toast {...args} variant="warning" title="Advertencia" description="Espacio en disco bajo" />
-      <Toast {...args} variant="error" title="Error crítico" description="La operación no se pudo completar" />
+      <Toast
+        {...args}
+        variant="info"
+        title="Información del sistema"
+        description="Actualización disponible"
+      />
+      <Toast
+        {...args}
+        variant="warning"
+        title="Advertencia"
+        description="Espacio en disco bajo"
+      />
+      <Toast
+        {...args}
+        variant="error"
+        title="Error crítico"
+        description="La operación no se pudo completar"
+      />
     </div>
   ),
 };

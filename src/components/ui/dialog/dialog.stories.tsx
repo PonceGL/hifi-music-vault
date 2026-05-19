@@ -65,12 +65,20 @@ function DialogDemo({
           </DialogHeader>
           <DialogFooter>
             {showCloseAction ? (
-              <Button variant="secondary" onClick={() => setOpen(false)} autoFocus>
+              <Button
+                variant="secondary"
+                onClick={() => setOpen(false)}
+                autoFocus
+              >
                 Cerrar
               </Button>
             ) : (
               <>
-                <Button variant="secondary" autoFocus onClick={() => setOpen(false)}>
+                <Button
+                  variant="secondary"
+                  autoFocus
+                  onClick={() => setOpen(false)}
+                >
                   Cancelar
                 </Button>
                 {actionLabel && (
@@ -162,7 +170,9 @@ export const InProgress: Story = {
 export const AllVariants: Story = {
   render: (args) => (
     <div className="flex flex-col gap-3">
-      {(["informative", "confirmation", "critical", "in-progress"] as const).map((variant) => (
+      {(
+        ["informative", "confirmation", "critical", "in-progress"] as const
+      ).map((variant) => (
         <DialogDemo
           key={variant}
           args={{ ...args, variant }}

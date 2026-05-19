@@ -11,7 +11,10 @@ function getCookieValue(): string | null {
   return decodeURIComponent(entry.slice(COOKIE_NAME.length + 1));
 }
 
-function setCookie(config: { downloadsPath: string; libraryPath: string }): void {
+function setCookie(config: {
+  downloadsPath: string;
+  libraryPath: string;
+}): void {
   document.cookie = `${COOKIE_NAME}=${encodeURIComponent(JSON.stringify(config))}; path=/`;
 }
 
@@ -60,8 +63,14 @@ describe("useFolderConfigStore", () => {
   });
 
   it("prefers localStorage over cookie when both are present", () => {
-    const lsConfig = { downloadsPath: "/ls-downloads", libraryPath: "/ls-music" };
-    const cookieConfig = { downloadsPath: "/cookie-downloads", libraryPath: "/cookie-music" };
+    const lsConfig = {
+      downloadsPath: "/ls-downloads",
+      libraryPath: "/ls-music",
+    };
+    const cookieConfig = {
+      downloadsPath: "/cookie-downloads",
+      libraryPath: "/cookie-music",
+    };
     localStorage.setItem("folder-config", JSON.stringify(lsConfig));
     setCookie(cookieConfig);
 

@@ -60,7 +60,11 @@ describe("createHttpClient", () => {
       };
 
       const clientA = createHttpClient("/", "internal", adapterA);
-      const clientB = createHttpClient("https://api.example.com", "external", adapterB);
+      const clientB = createHttpClient(
+        "https://api.example.com",
+        "external",
+        adapterB,
+      );
 
       expect(clientA).not.toBe(clientB);
     });

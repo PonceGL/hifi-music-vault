@@ -35,7 +35,9 @@ describe("LocalStorageAdapter", () => {
   describe("set", () => {
     it("stores the value serialized as JSON", () => {
       storage.set("config", { path: "/home" });
-      expect(localStorage.getItem("config")).toBe(JSON.stringify({ path: "/home" }));
+      expect(localStorage.getItem("config")).toBe(
+        JSON.stringify({ path: "/home" }),
+      );
     });
 
     it("overwrites an existing value", () => {

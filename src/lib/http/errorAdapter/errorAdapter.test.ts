@@ -6,7 +6,7 @@ const adapter = new AxiosErrorAdapter();
 function makeAxiosError(
   status: number | undefined,
   responseData: unknown = {},
-  axiosCode?: string
+  axiosCode?: string,
 ) {
   const error = new axios.AxiosError(
     "Request failed",
@@ -21,7 +21,7 @@ function makeAxiosError(
           config: {},
           statusText: String(status),
         } as never)
-      : undefined
+      : undefined,
   );
   return error;
 }
@@ -40,18 +40,12 @@ describe("AxiosErrorAdapter.normalize", () => {
       [502, "HTTP_502"],
       [503, "HTTP_503"],
       [504, "HTTP_5XX"],
-    ] as const)(
-      "maps HTTP %i to code '%s'",
-      (status, expectedCode) => {
-        const result = adapter.normalize(
-          makeAxiosError(status),
-          "internal"
-        );
-        expect(result.code).toBe(expectedCode);
-        expect(result.status).toBe(status);
-        expect(result.source).toBe("internal");
-      }
-    );
+    ] as const)("maps HTTP %i to code '%s'", (status, expectedCode) => {
+      const result = adapter.normalize(makeAxiosError(status), "internal");
+      expect(result.code).toBe(expectedCode);
+      expect(result.status).toBe(status);
+      expect(result.source).toBe("internal");
+    });
   });
 
   describe("network-level errors", () => {

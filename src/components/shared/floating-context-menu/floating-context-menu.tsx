@@ -33,9 +33,14 @@ export function FloatingContextMenu({
 }: FloatingContextMenuProps): ReactElement {
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  
+
   const isMobile = useIsMobile();
-  const menuStyle = useMenuPosition(triggerRef, isOpen, isMobile, actions.length);
+  const menuStyle = useMenuPosition(
+    triggerRef,
+    isOpen,
+    isMobile,
+    actions.length,
+  );
 
   useEscapeKey(isOpen, onClose);
   useClickOutside([menuRef, triggerRef], isOpen && !isMobile, onClose);

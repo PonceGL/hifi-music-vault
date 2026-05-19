@@ -20,8 +20,12 @@ describe("Toast", () => {
     });
 
     it("renders the description when provided", () => {
-      render(<Toast {...BASE_PROPS} description="Se guardó en la biblioteca" />);
-      expect(screen.getByText("Se guardó en la biblioteca")).toBeInTheDocument();
+      render(
+        <Toast {...BASE_PROPS} description="Se guardó en la biblioteca" />,
+      );
+      expect(
+        screen.getByText("Se guardó en la biblioteca"),
+      ).toBeInTheDocument();
     });
 
     it("does not render description when omitted", () => {
@@ -63,14 +67,18 @@ describe("Toast", () => {
     it("calls onClose with the toast id when close is clicked", () => {
       const onClose = jest.fn();
       render(<Toast {...BASE_PROPS} id="abc-123" onClose={onClose} />);
-      fireEvent.click(screen.getByRole("button", { name: /cerrar notificación/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /cerrar notificación/i }),
+      );
       expect(onClose).toHaveBeenCalledWith("abc-123");
     });
 
     it("calls onClose exactly once", () => {
       const onClose = jest.fn();
       render(<Toast {...BASE_PROPS} onClose={onClose} />);
-      fireEvent.click(screen.getByRole("button", { name: /cerrar notificación/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /cerrar notificación/i }),
+      );
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });

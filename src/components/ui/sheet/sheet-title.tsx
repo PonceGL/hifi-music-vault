@@ -5,9 +5,15 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 
 import { cn } from "@/lib/cn";
 
-export type SheetTitleProps = ComponentPropsWithRef<typeof SheetPrimitive.Title>;
+export type SheetTitleProps = ComponentPropsWithRef<
+  typeof SheetPrimitive.Title
+>;
 
-export function SheetTitle({ className, ref, ...props }: SheetTitleProps): ReactElement {
+export function SheetTitle({
+  className,
+  ref,
+  ...props
+}: SheetTitleProps): ReactElement {
   return (
     <SheetPrimitive.Title
       ref={ref}

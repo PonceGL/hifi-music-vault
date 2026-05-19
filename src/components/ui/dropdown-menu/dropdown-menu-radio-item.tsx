@@ -6,15 +6,22 @@ import { Circle } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
-export type DropdownMenuRadioItemProps = ComponentPropsWithRef<typeof DropdownMenuPrimitive.RadioItem>;
+export type DropdownMenuRadioItemProps = ComponentPropsWithRef<
+  typeof DropdownMenuPrimitive.RadioItem
+>;
 
-export function DropdownMenuRadioItem({ className, children, ref, ...props }: DropdownMenuRadioItemProps): ReactElement {
+export function DropdownMenuRadioItem({
+  className,
+  children,
+  ref,
+  ...props
+}: DropdownMenuRadioItemProps): ReactElement {
   return (
     <DropdownMenuPrimitive.RadioItem
       ref={ref}
       className={cn(
         "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-surface-elevated focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        className
+        className,
       )}
       {...props}
     >

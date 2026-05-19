@@ -17,7 +17,9 @@ function TestMenuOpen() {
         <DropdownMenuSeparator />
         <DropdownMenuItem>Profile</DropdownMenuItem>
         <DropdownMenuItem>Settings</DropdownMenuItem>
-        <DropdownMenuCheckboxItem checked>Notifications</DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked>
+          Notifications
+        </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -74,7 +76,7 @@ describe("DropdownMenu", () => {
         <DropdownMenuContent>
           <DropdownMenuItem onClick={onClick}>Profile</DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu>,
     );
     fireEvent.click(screen.getByText("Profile"));
     expect(onClick).toHaveBeenCalledTimes(1);

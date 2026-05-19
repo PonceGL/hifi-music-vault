@@ -2,7 +2,11 @@
 
 import type { PropsWithChildren, ReactElement, ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { DETAIL_PANEL_ARIA_LABEL, SIDEBAR_ARIA_LABEL, MAIN_CONTENT_LABEL } from "./constants";
+import {
+  DETAIL_PANEL_ARIA_LABEL,
+  SIDEBAR_ARIA_LABEL,
+  MAIN_CONTENT_LABEL,
+} from "./constants";
 
 export interface AppShellProps extends PropsWithChildren {
   sidebar: ReactNode;
@@ -50,9 +54,7 @@ export function AppShell({
         </header>
 
         {/* Artwork optimization banner — non-blocking, slim strip */}
-        {artworkBanner && (
-          <div className="shrink-0">{artworkBanner}</div>
-        )}
+        {artworkBanner && <div className="shrink-0">{artworkBanner}</div>}
 
         {/* Content row: main area + optional detail panel */}
         <div className="flex flex-1 overflow-hidden">

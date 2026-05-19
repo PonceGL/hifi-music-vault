@@ -18,17 +18,29 @@ describe("Badge", () => {
   });
 
   it("renders the secondary variant without errors", () => {
-    render(<Badge variant="secondary" data-testid="badge">Secondary</Badge>);
+    render(
+      <Badge variant="secondary" data-testid="badge">
+        Secondary
+      </Badge>,
+    );
     expect(screen.getByTestId("badge")).toBeInTheDocument();
   });
 
   it("renders the destructive variant without errors", () => {
-    render(<Badge variant="destructive" data-testid="badge">Error</Badge>);
+    render(
+      <Badge variant="destructive" data-testid="badge">
+        Error
+      </Badge>,
+    );
     expect(screen.getByTestId("badge")).toBeInTheDocument();
   });
 
   it("renders the outline variant without errors", () => {
-    render(<Badge variant="outline" data-testid="badge">Outline</Badge>);
+    render(
+      <Badge variant="outline" data-testid="badge">
+        Outline
+      </Badge>,
+    );
     expect(screen.getByTestId("badge")).toBeInTheDocument();
   });
 

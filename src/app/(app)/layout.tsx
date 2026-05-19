@@ -15,7 +15,9 @@ import { useFolderConfigGuard } from "@/hooks/useFolderConfigGuard";
  * The route group `(app)` is transparent to URLs: a page at
  * `(app)/library/page.tsx` is still served at `/library`.
  */
-export default function AppLayout({ children }: PropsWithChildren): ReactElement {
+export default function AppLayout({
+  children,
+}: PropsWithChildren): ReactElement {
   useFolderConfigGuard();
   return <>{children}</>;
 }

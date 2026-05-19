@@ -21,24 +21,20 @@ describe("useClickOutside", () => {
 
   it("should call onClickOutside when clicking outside all refs", () => {
     const onClickOutside = jest.fn();
-    const refs = [
-      { current: element1 },
-      { current: element2 },
-    ];
+    const refs = [{ current: element1 }, { current: element2 }];
 
     renderHook(() => useClickOutside(refs, true, onClickOutside));
 
-    outsideElement.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    outsideElement.dispatchEvent(
+      new MouseEvent("mousedown", { bubbles: true }),
+    );
 
     expect(onClickOutside).toHaveBeenCalledTimes(1);
   });
 
   it("should not call onClickOutside when clicking inside a ref", () => {
     const onClickOutside = jest.fn();
-    const refs = [
-      { current: element1 },
-      { current: element2 },
-    ];
+    const refs = [{ current: element1 }, { current: element2 }];
 
     renderHook(() => useClickOutside(refs, true, onClickOutside));
 
@@ -50,14 +46,13 @@ describe("useClickOutside", () => {
 
   it("should not call onClickOutside when isActive is false", () => {
     const onClickOutside = jest.fn();
-    const refs = [
-      { current: element1 },
-      { current: element2 },
-    ];
+    const refs = [{ current: element1 }, { current: element2 }];
 
     renderHook(() => useClickOutside(refs, false, onClickOutside));
 
-    outsideElement.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    outsideElement.dispatchEvent(
+      new MouseEvent("mousedown", { bubbles: true }),
+    );
 
     expect(onClickOutside).not.toHaveBeenCalled();
   });

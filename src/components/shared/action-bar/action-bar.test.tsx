@@ -67,8 +67,12 @@ describe("ActionBar — selection count label", () => {
 describe("ActionBar — actions", () => {
   it("renders all action buttons", () => {
     renderActionBar();
-    expect(screen.getByRole("button", { name: "Exportar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Exportar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Eliminar" }),
+    ).toBeInTheDocument();
   });
 
   it("calls the action onClick when clicked", () => {
@@ -93,7 +97,9 @@ describe("ActionBar — actions", () => {
 
   it("calls onClearSelection when cancel button is clicked", () => {
     const { onClearSelection } = renderActionBar();
-    fireEvent.click(screen.getByRole("button", { name: CLEAR_SELECTION_LABEL }));
+    fireEvent.click(
+      screen.getByRole("button", { name: CLEAR_SELECTION_LABEL }),
+    );
     expect(onClearSelection).toHaveBeenCalledTimes(1);
   });
 });

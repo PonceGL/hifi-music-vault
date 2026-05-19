@@ -51,14 +51,18 @@ describe("Topbar — callbacks", () => {
   it("calls onSearchOpen when search trigger is clicked", () => {
     const onSearchOpen = jest.fn();
     render(<Topbar onSearchOpen={onSearchOpen} />);
-    fireEvent.click(screen.getByRole("button", { name: SEARCH_TRIGGER_ARIA_LABEL }));
+    fireEvent.click(
+      screen.getByRole("button", { name: SEARCH_TRIGGER_ARIA_LABEL }),
+    );
     expect(onSearchOpen).toHaveBeenCalledTimes(1);
   });
 
   it("does not throw when onSearchOpen is not provided and search trigger is clicked", () => {
     render(<Topbar />);
     expect(() =>
-      fireEvent.click(screen.getByRole("button", { name: SEARCH_TRIGGER_ARIA_LABEL })),
+      fireEvent.click(
+        screen.getByRole("button", { name: SEARCH_TRIGGER_ARIA_LABEL }),
+      ),
     ).not.toThrow();
   });
 

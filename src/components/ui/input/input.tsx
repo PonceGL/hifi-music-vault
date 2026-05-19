@@ -15,8 +15,9 @@ function resolveState(error?: string, warning?: string): InputState {
 }
 
 const STATE_BORDER: Record<InputState, string> = {
-  default: "border-[var(--color-border)] focus-visible:border-[var(--color-accent)]",
-  error:   "border-[var(--color-health-red)]",
+  default:
+    "border-[var(--color-border)] focus-visible:border-[var(--color-accent)]",
+  error: "border-[var(--color-health-red)]",
   warning: "border-[var(--color-health-yellow)]",
 };
 

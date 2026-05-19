@@ -44,7 +44,11 @@ describe("AxiosHttpClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNormalize.mockReturnValue(normalizedError);
-    client = new AxiosHttpClient(mockAxiosInstance, mockErrorAdapter, "internal");
+    client = new AxiosHttpClient(
+      mockAxiosInstance,
+      mockErrorAdapter,
+      "internal",
+    );
   });
 
   describe("GET", () => {
@@ -59,7 +63,10 @@ describe("AxiosHttpClient", () => {
     it("forwards url and config to axios", async () => {
       mockGet.mockResolvedValueOnce(makeAxiosResponse({}));
       await client.get("/tracks", { params: { page: 1 } });
-      expect(mockGet).toHaveBeenCalledWith("/tracks", expect.objectContaining({ params: { page: 1 } }));
+      expect(mockGet).toHaveBeenCalledWith(
+        "/tracks",
+        expect.objectContaining({ params: { page: 1 } }),
+      );
     });
 
     it("throws normalized AppHttpError on failure", async () => {
@@ -79,11 +86,15 @@ describe("AxiosHttpClient", () => {
 
     it("forwards body and config to axios", async () => {
       mockPost.mockResolvedValueOnce(makeAxiosResponse({}));
-      await client.post("/tracks", { title: "Song" }, { headers: { "x-custom": "1" } });
+      await client.post(
+        "/tracks",
+        { title: "Song" },
+        { headers: { "x-custom": "1" } },
+      );
       expect(mockPost).toHaveBeenCalledWith(
         "/tracks",
         { title: "Song" },
-        expect.objectContaining({ headers: { "x-custom": "1" } })
+        expect.objectContaining({ headers: { "x-custom": "1" } }),
       );
     });
 
@@ -132,7 +143,7 @@ describe("AxiosHttpClient", () => {
       await client.delete("/tracks/1", { signal });
       expect(mockDelete).toHaveBeenCalledWith(
         "/tracks/1",
-        expect.objectContaining({ signal })
+        expect.objectContaining({ signal }),
       );
     });
 
@@ -147,7 +158,7 @@ describe("AxiosHttpClient", () => {
       const externalClient = new AxiosHttpClient(
         mockAxiosInstance,
         mockErrorAdapter,
-        "external"
+        "external",
       );
       mockGet.mockRejectedValueOnce(new Error());
       await expect(externalClient.get("/search")).rejects.toBeDefined();

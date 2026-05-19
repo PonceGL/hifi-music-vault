@@ -43,11 +43,7 @@ export function ConfirmDialog({
         </DialogHeader>
 
         <DialogFooter className="flex-row justify-between sm:justify-between">
-          <Button
-            variant="secondary"
-            autoFocus
-            onClick={onCancel}
-          >
+          <Button variant="secondary" autoFocus onClick={onCancel}>
             {cancelLabel}
           </Button>
           <Button

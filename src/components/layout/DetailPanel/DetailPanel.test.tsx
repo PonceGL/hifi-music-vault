@@ -45,15 +45,13 @@ const MOCK_TRACK: Track = {
   },
 };
 
-function renderPanel(overrides: Partial<typeof MOCK_TRACK> = {}, props: Partial<Parameters<typeof DetailPanel>[0]> = {}) {
+function renderPanel(
+  overrides: Partial<typeof MOCK_TRACK> = {},
+  props: Partial<Parameters<typeof DetailPanel>[0]> = {},
+) {
   const track = overrides ? { ...MOCK_TRACK, ...overrides } : MOCK_TRACK;
   return render(
-    <DetailPanel
-      track={track}
-      isOpen
-      onClose={jest.fn()}
-      {...props}
-    />,
+    <DetailPanel track={track} isOpen onClose={jest.fn()} {...props} />,
   );
 }
 
@@ -116,7 +114,9 @@ describe("DetailPanel — close interactions", () => {
   it("calls onClose when the close button is clicked", () => {
     const onClose = jest.fn();
     render(<DetailPanel track={MOCK_TRACK} isOpen onClose={onClose} />);
-    fireEvent.click(screen.getByRole("button", { name: DETAIL_PANEL_CLOSE_LABEL }));
+    fireEvent.click(
+      screen.getByRole("button", { name: DETAIL_PANEL_CLOSE_LABEL }),
+    );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -137,14 +137,18 @@ describe("DetailPanel — action buttons", () => {
   it("renders the edit metadata button", () => {
     renderPanel();
     expect(
-      screen.getByRole("button", { name: new RegExp(ACTION_EDIT_METADATA, "i") }),
+      screen.getByRole("button", {
+        name: new RegExp(ACTION_EDIT_METADATA, "i"),
+      }),
     ).toBeInTheDocument();
   });
 
   it("renders the reveal in finder button", () => {
     renderPanel();
     expect(
-      screen.getByRole("button", { name: new RegExp(ACTION_REVEAL_IN_FINDER, "i") }),
+      screen.getByRole("button", {
+        name: new RegExp(ACTION_REVEAL_IN_FINDER, "i"),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -152,7 +156,9 @@ describe("DetailPanel — action buttons", () => {
     const onEditMetadata = jest.fn();
     renderPanel({}, { onEditMetadata });
     fireEvent.click(
-      screen.getByRole("button", { name: new RegExp(ACTION_EDIT_METADATA, "i") }),
+      screen.getByRole("button", {
+        name: new RegExp(ACTION_EDIT_METADATA, "i"),
+      }),
     );
     expect(onEditMetadata).toHaveBeenCalledTimes(1);
   });
@@ -161,7 +167,9 @@ describe("DetailPanel — action buttons", () => {
     const onRevealInFinder = jest.fn();
     renderPanel({}, { onRevealInFinder });
     fireEvent.click(
-      screen.getByRole("button", { name: new RegExp(ACTION_REVEAL_IN_FINDER, "i") }),
+      screen.getByRole("button", {
+        name: new RegExp(ACTION_REVEAL_IN_FINDER, "i"),
+      }),
     );
     expect(onRevealInFinder).toHaveBeenCalledTimes(1);
   });

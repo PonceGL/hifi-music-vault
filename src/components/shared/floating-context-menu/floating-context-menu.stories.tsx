@@ -1,36 +1,84 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs";
-import {
-  Pencil,
-  ListPlus,
-  Download,
-  Trash2,
-  Tag,
-  ListX,
-} from "lucide-react";
+import { Pencil, ListPlus, Download, Trash2, Tag, ListX } from "lucide-react";
 import { FloatingContextMenu } from "./floating-context-menu";
 import { BottomSheet } from "./bottom-sheet";
 import type { ContextMenuAction } from "./floating-context-menu";
 
 const SINGLE_SELECTION_ACTIONS: ContextMenuAction[] = [
-  { label: "Editar metadatos", icon: Pencil, onClick: () => {}, variant: "default" },
-  { label: "Agregar a playlist", icon: ListPlus, onClick: () => {}, variant: "default" },
+  {
+    label: "Editar metadatos",
+    icon: Pencil,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Agregar a playlist",
+    icon: ListPlus,
+    onClick: () => {},
+    variant: "default",
+  },
   { label: "Exportar", icon: Download, onClick: () => {}, variant: "default" },
-  { label: "Eliminar", icon: Trash2, onClick: () => {}, variant: "destructive" },
+  {
+    label: "Eliminar",
+    icon: Trash2,
+    onClick: () => {},
+    variant: "destructive",
+  },
 ];
 
 const MULTI_SELECTION_ACTIONS: ContextMenuAction[] = [
-  { label: "Editar campo en lote", icon: Tag, onClick: () => {}, variant: "default" },
-  { label: "Agregar a playlist", icon: ListPlus, onClick: () => {}, variant: "default" },
-  { label: "Exportar selección", icon: Download, onClick: () => {}, variant: "default" },
-  { label: "Eliminar selección", icon: Trash2, onClick: () => {}, variant: "destructive" },
+  {
+    label: "Editar campo en lote",
+    icon: Tag,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Agregar a playlist",
+    icon: ListPlus,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Exportar selección",
+    icon: Download,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Eliminar selección",
+    icon: Trash2,
+    onClick: () => {},
+    variant: "destructive",
+  },
 ];
 
 const PLAYLIST_DETAIL_ACTIONS: ContextMenuAction[] = [
-  { label: "Editar metadatos", icon: Pencil, onClick: () => {}, variant: "default" },
-  { label: "Agregar a otra playlist", icon: ListPlus, onClick: () => {}, variant: "default" },
-  { label: "Remover de esta playlist", icon: ListX, onClick: () => {}, variant: "destructive" },
-  { label: "Eliminar", icon: Trash2, onClick: () => {}, variant: "destructive" },
+  {
+    label: "Editar metadatos",
+    icon: Pencil,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Agregar a otra playlist",
+    icon: ListPlus,
+    onClick: () => {},
+    variant: "default",
+  },
+  {
+    label: "Remover de esta playlist",
+    icon: ListX,
+    onClick: () => {},
+    variant: "destructive",
+  },
+  {
+    label: "Eliminar",
+    icon: Trash2,
+    onClick: () => {},
+    variant: "destructive",
+  },
 ];
 
 function TriggerButton(): React.JSX.Element {
@@ -80,7 +128,11 @@ export const Closed: Story = {
   args: { isOpen: false },
 };
 
-function InteractiveDemo({ actions }: { actions: ContextMenuAction[] }): React.JSX.Element {
+function InteractiveDemo({
+  actions,
+}: {
+  actions: ContextMenuAction[];
+}): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="flex items-center justify-center p-12">
@@ -103,15 +155,23 @@ function InteractiveDemo({ actions }: { actions: ContextMenuAction[] }): React.J
 }
 
 export const Interactive: Story = {
-  render: (args) => <InteractiveDemo actions={args.actions ?? SINGLE_SELECTION_ACTIONS} />,
+  render: (args) => (
+    <InteractiveDemo actions={args.actions ?? SINGLE_SELECTION_ACTIONS} />
+  ),
 };
 
 export const InteractiveMultiSelection: Story = {
-  render: (args) => <InteractiveDemo actions={args.actions ?? MULTI_SELECTION_ACTIONS} />,
+  render: (args) => (
+    <InteractiveDemo actions={args.actions ?? MULTI_SELECTION_ACTIONS} />
+  ),
   args: { actions: MULTI_SELECTION_ACTIONS },
 };
 
-function BottomSheetDemo({ actions }: { actions: ContextMenuAction[] }): React.JSX.Element {
+function BottomSheetDemo({
+  actions,
+}: {
+  actions: ContextMenuAction[];
+}): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div
@@ -136,12 +196,16 @@ function BottomSheetDemo({ actions }: { actions: ContextMenuAction[] }): React.J
 }
 
 export const MobileBottomSheet: Story = {
-  render: (args) => <BottomSheetDemo actions={args.actions ?? SINGLE_SELECTION_ACTIONS} />,
+  render: (args) => (
+    <BottomSheetDemo actions={args.actions ?? SINGLE_SELECTION_ACTIONS} />
+  ),
   parameters: { layout: "centered" },
 };
 
 export const MobileBottomSheetInPlaylist: Story = {
-  render: (args) => <BottomSheetDemo actions={args.actions ?? PLAYLIST_DETAIL_ACTIONS} />,
+  render: (args) => (
+    <BottomSheetDemo actions={args.actions ?? PLAYLIST_DETAIL_ACTIONS} />
+  ),
   args: { actions: PLAYLIST_DETAIL_ACTIONS },
   parameters: { layout: "centered" },
 };

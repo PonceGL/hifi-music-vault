@@ -46,7 +46,14 @@ export const LossyFormats: Story = {
 
 export const AllFormats: Story = {
   render: (args) => (
-    <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
       <FormatBadge {...args} format="flac" />
       <FormatBadge {...args} format="alac" />
       <FormatBadge {...args} format="mp3" />
@@ -61,9 +68,14 @@ export const InContext: Story = {
   render: (args) => (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       {(["flac", "alac", "mp3", "wav"] as const).map((fmt) => (
-        <div key={fmt} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div
+          key={fmt}
+          style={{ display: "flex", alignItems: "center", gap: "10px" }}
+        >
           <FormatBadge {...args} format={fmt} />
-          <span style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>
+          <span
+            style={{ fontSize: "13px", color: "var(--color-text-primary)" }}
+          >
             Artist — Track title
           </span>
         </div>

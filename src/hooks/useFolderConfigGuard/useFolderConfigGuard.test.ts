@@ -14,7 +14,9 @@ jest.mock("@/hooks/useFolderConfigStore", () => ({
 
 const mockUseFolderConfigStore = useFolderConfigStore as jest.Mock;
 
-function buildStore(folderConfig: { downloadsPath: string; libraryPath: string } | null) {
+function buildStore(
+  folderConfig: { downloadsPath: string; libraryPath: string } | null,
+) {
   return {
     folderConfig,
     saveFolderConfig: jest.fn(),

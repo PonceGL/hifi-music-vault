@@ -51,13 +51,13 @@ describe("FolderConfigScreen", () => {
   it("renders title and both folder field labels", () => {
     render(<FolderConfigScreen {...defaultProps} />);
     expect(
-      screen.getByText(ONBOARDING_STRINGS.folderConfig.title)
+      screen.getByText(ONBOARDING_STRINGS.folderConfig.title),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(ONBOARDING_STRINGS.folderConfig.downloads.label)
+      screen.getByText(ONBOARDING_STRINGS.folderConfig.downloads.label),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(ONBOARDING_STRINGS.folderConfig.library.label)
+      screen.getByText(ONBOARDING_STRINGS.folderConfig.library.label),
     ).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe("FolderConfigScreen", () => {
     expect(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.folderConfig.submitButton,
-      })
+      }),
     ).toBeDisabled();
   });
 
@@ -76,7 +76,7 @@ describe("FolderConfigScreen", () => {
     expect(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.folderConfig.submitButton,
-      })
+      }),
     ).not.toBeDisabled();
   });
 
@@ -86,7 +86,7 @@ describe("FolderConfigScreen", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.folderConfig.backButton,
-      })
+      }),
     );
     expect(onBack).toHaveBeenCalledTimes(1);
   });
@@ -97,7 +97,7 @@ describe("FolderConfigScreen", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.folderConfig.submitButton,
-      })
+      }),
     );
     expect(mockHandleSubmit).toHaveBeenCalledTimes(1);
   });
@@ -107,7 +107,7 @@ describe("FolderConfigScreen", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: `Elegir ${ONBOARDING_STRINGS.folderConfig.downloads.label}`,
-      })
+      }),
     );
     expect(mockHandleDownloadsSelect).toHaveBeenCalledWith("/test/path");
   });
@@ -117,7 +117,7 @@ describe("FolderConfigScreen", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: `Elegir ${ONBOARDING_STRINGS.folderConfig.library.label}`,
-      })
+      }),
     );
     expect(mockHandleLibrarySelect).toHaveBeenCalledWith("/test/path");
   });

@@ -22,7 +22,10 @@ export const Default = {
 
 export const StaggeredGrid = {
   render: () => (
-    <div className="grid grid-cols-4 gap-3 bg-surface-primary p-4" style={{ width: 720 }}>
+    <div
+      className="grid grid-cols-4 gap-3 bg-surface-primary p-4"
+      style={{ width: 720 }}
+    >
       {Array.from({ length: 8 }).map((_, i) => (
         <TrackCardSkeleton key={i} style={{ animationDelay: `${i * 50}ms` }} />
       ))}

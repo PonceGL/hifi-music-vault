@@ -20,7 +20,9 @@ describe("Input", () => {
 
     it("forwards native HTML attributes", () => {
       render(<Input aria-label="search" />);
-      expect(screen.getByRole("textbox", { name: "search" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("textbox", { name: "search" }),
+      ).toBeInTheDocument();
     });
 
     it("renders with type password", () => {
@@ -38,7 +40,9 @@ describe("Input", () => {
     it("calls onChange when the user types", () => {
       const onChange = jest.fn();
       render(<Input onChange={onChange} />);
-      fireEvent.change(screen.getByRole("textbox"), { target: { value: "new value" } });
+      fireEvent.change(screen.getByRole("textbox"), {
+        target: { value: "new value" },
+      });
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
@@ -67,17 +71,26 @@ describe("Input", () => {
 
     it("sets data-state to error when error prop is present", () => {
       render(<Input error="Campo requerido" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute("data-state", "error");
+      expect(screen.getByRole("textbox")).toHaveAttribute(
+        "data-state",
+        "error",
+      );
     });
 
     it("sets data-state to warning when warning prop is present", () => {
       render(<Input warning="Valor inusual" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute("data-state", "warning");
+      expect(screen.getByRole("textbox")).toHaveAttribute(
+        "data-state",
+        "warning",
+      );
     });
 
     it("sets data-state to default when no validation props", () => {
       render(<Input />);
-      expect(screen.getByRole("textbox")).toHaveAttribute("data-state", "default");
+      expect(screen.getByRole("textbox")).toHaveAttribute(
+        "data-state",
+        "default",
+      );
     });
   });
 });

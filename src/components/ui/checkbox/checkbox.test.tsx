@@ -38,6 +38,8 @@ describe("Checkbox", () => {
 
   it("forwards aria attributes", () => {
     render(<Checkbox aria-label="Accept terms" />);
-    expect(screen.getByRole("checkbox", { name: "Accept terms" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: "Accept terms" }),
+    ).toBeInTheDocument();
   });
 });

@@ -5,10 +5,13 @@ import { cn } from "@/lib/cn";
 import { badgeVariants } from "./badge-variants";
 
 export interface BadgeProps
-  extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, variant, ...props }: BadgeProps): ReactElement {
+export function Badge({
+  className,
+  variant,
+  ...props
+}: BadgeProps): ReactElement {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props} />
   );

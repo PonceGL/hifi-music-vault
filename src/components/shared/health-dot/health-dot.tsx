@@ -15,12 +15,22 @@ interface HealthDotProps {
   size?: HealthDotSize;
 }
 
-const SIZE_STYLES: Record<HealthDotSize, { width: string; height: string; boxShadow?: string }> = {
+const SIZE_STYLES: Record<
+  HealthDotSize,
+  { width: string; height: string; boxShadow?: string }
+> = {
   standard: { width: "8px", height: "8px" },
-  large:    { width: "10px", height: "10px", boxShadow: "0 0 0 2px var(--color-surface-primary)" },
+  large: {
+    width: "10px",
+    height: "10px",
+    boxShadow: "0 0 0 2px var(--color-surface-primary)",
+  },
 };
 
-export function HealthDot({ status, size = "standard" }: HealthDotProps): ReactElement {
+export function HealthDot({
+  status,
+  size = "standard",
+}: HealthDotProps): ReactElement {
   const label = HEALTH_LABEL[status];
   const color = HEALTH_COLOR[status];
   const { width, height, boxShadow } = SIZE_STYLES[size];

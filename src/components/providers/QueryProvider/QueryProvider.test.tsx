@@ -15,7 +15,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <span>child content</span>
-      </QueryProvider>
+      </QueryProvider>,
     );
     expect(screen.getByText("child content")).toBeInTheDocument();
   });
@@ -24,7 +24,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
     expect(screen.getByTestId("defaults")).toBeInTheDocument();
   });
@@ -33,10 +33,10 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
     const defaults = JSON.parse(
-      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}"
+      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}",
     ) as { staleTime?: number };
     expect(defaults.staleTime).toBe(1000 * 60 * 2);
   });
@@ -45,10 +45,10 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
     const defaults = JSON.parse(
-      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}"
+      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}",
     ) as { gcTime?: number };
     expect(defaults.gcTime).toBe(1000 * 60 * 10);
   });
@@ -57,10 +57,10 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
     const defaults = JSON.parse(
-      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}"
+      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}",
     ) as { retry?: number };
     expect(defaults.retry).toBe(1);
   });
@@ -69,10 +69,10 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
     const defaults = JSON.parse(
-      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}"
+      screen.getByTestId("defaults").getAttribute("data-defaults") ?? "{}",
     ) as { refetchOnWindowFocus?: boolean };
     expect(defaults.refetchOnWindowFocus).toBe(false);
   });

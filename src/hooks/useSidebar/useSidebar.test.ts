@@ -56,7 +56,6 @@ describe("useSidebar — toggle", () => {
     act(() => result.current.toggle());
     expect(localStorage.getItem("sidebar-collapsed")).toBe("true");
   });
-
 });
 
 describe("useSidebar — return shape", () => {

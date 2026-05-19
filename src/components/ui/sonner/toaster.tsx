@@ -1,7 +1,13 @@
 "use client";
 
 import type { ComponentProps, ReactElement } from "react";
-import { CircleCheck, Info, LoaderCircle, OctagonX, TriangleAlert } from "lucide-react";
+import {
+  CircleCheck,
+  Info,
+  LoaderCircle,
+  OctagonX,
+  TriangleAlert,
+} from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Toaster as Sonner } from "sonner";
 

@@ -6,7 +6,12 @@ import type { ContextMenuAction } from "./floating-context-menu";
 
 const MOCK_ACTIONS: ContextMenuAction[] = [
   { label: "Exportar", icon: Download, onClick: jest.fn(), variant: "default" },
-  { label: "Eliminar", icon: Trash2, onClick: jest.fn(), variant: "destructive" },
+  {
+    label: "Eliminar",
+    icon: Trash2,
+    onClick: jest.fn(),
+    variant: "destructive",
+  },
 ];
 
 function renderMenu(isOpen = true, actions = MOCK_ACTIONS) {
@@ -37,15 +42,21 @@ describe("FloatingContextMenu — menu visibility", () => {
 
   it("renders the menu when isOpen is true", () => {
     renderMenu(true);
-    expect(screen.getByRole("menu", { name: CONTEXT_MENU_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menu", { name: CONTEXT_MENU_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 });
 
 describe("FloatingContextMenu — actions", () => {
   it("renders all action items when open", () => {
     renderMenu();
-    expect(screen.getByRole("menuitem", { name: "Exportar" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Eliminar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Exportar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Eliminar" }),
+    ).toBeInTheDocument();
   });
 
   it("calls action onClick and onClose when an action is clicked", () => {

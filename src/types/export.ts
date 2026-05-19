@@ -1,10 +1,10 @@
-import type { CollisionStrategy } from './settings';
+import type { CollisionStrategy } from "./settings";
 
 export type { CollisionStrategy };
 
-export type ExportAction = 'copy' | 'move';
-export type ExportStructure = 'preserve' | 'flatten';
-export type ExportFormat = 'original' | 'mp3_320';
+export type ExportAction = "copy" | "move";
+export type ExportStructure = "preserve" | "flatten";
+export type ExportFormat = "original" | "mp3_320";
 
 export interface ExportOptions {
   action: ExportAction;

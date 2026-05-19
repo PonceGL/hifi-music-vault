@@ -11,10 +11,17 @@ import { SheetPortal } from "./sheet-portal";
 import { sheetVariants } from "./sheet-variants";
 
 export interface SheetContentProps
-  extends ComponentPropsWithRef<typeof SheetPrimitive.Content>,
+  extends
+    ComponentPropsWithRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
-export function SheetContent({ side = "right", className, children, ref, ...props }: SheetContentProps): ReactElement {
+export function SheetContent({
+  side = "right",
+  className,
+  children,
+  ref,
+  ...props
+}: SheetContentProps): ReactElement {
   return (
     <SheetPortal>
       <SheetOverlay />

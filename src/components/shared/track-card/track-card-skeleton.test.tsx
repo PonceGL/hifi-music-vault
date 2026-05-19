@@ -33,6 +33,8 @@ describe("TrackCardSkeleton", () => {
     const { container } = render(
       <TrackCardSkeleton style={{ animationDelay: "150ms" }} />,
     );
-    expect((container.firstChild as HTMLElement).style.animationDelay).toBe("150ms");
+    expect((container.firstChild as HTMLElement).style.animationDelay).toBe(
+      "150ms",
+    );
   });
 });

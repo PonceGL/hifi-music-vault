@@ -15,7 +15,9 @@ const meta = {
     (Story: () => React.ReactNode) => (
       <div className="bg-background">
         <div className="flex h-14 items-center border-b border-border bg-topbar-bg px-4">
-          <span className="text-sm font-semibold text-text-primary">HiFi Music Vault</span>
+          <span className="text-sm font-semibold text-text-primary">
+            HiFi Music Vault
+          </span>
         </div>
         <Story />
         <div className="flex h-32 items-center justify-center text-sm text-text-tertiary">
@@ -70,19 +72,40 @@ export const AllVariants: Story = {
   render: (args) => (
     <div className="flex flex-col gap-0 bg-background">
       <div className="flex h-14 items-center border-b border-border bg-topbar-bg px-4">
-        <span className="text-sm font-semibold text-text-primary">HiFi Music Vault</span>
+        <span className="text-sm font-semibold text-text-primary">
+          HiFi Music Vault
+        </span>
       </div>
       <div>
-        <p className="px-4 py-1 text-xs text-text-tertiary">En progreso (60%)</p>
-        <ArtworkOptimizationBanner {...args} progress={60} current={30} total={50} />
+        <p className="px-4 py-1 text-xs text-text-tertiary">
+          En progreso (60%)
+        </p>
+        <ArtworkOptimizationBanner
+          {...args}
+          progress={60}
+          current={30}
+          total={50}
+        />
       </div>
       <div>
-        <p className="px-4 py-1 text-xs text-text-tertiary">Casi completo (95%)</p>
-        <ArtworkOptimizationBanner {...args} progress={95} current={48} total={50} />
+        <p className="px-4 py-1 text-xs text-text-tertiary">
+          Casi completo (95%)
+        </p>
+        <ArtworkOptimizationBanner
+          {...args}
+          progress={95}
+          current={48}
+          total={50}
+        />
       </div>
       <div>
         <p className="px-4 py-1 text-xs text-text-tertiary">Oculto</p>
-        <ArtworkOptimizationBanner {...args} isVisible={false} progress={0} current={0} />
+        <ArtworkOptimizationBanner
+          {...args}
+          isVisible={false}
+          progress={0}
+          current={0}
+        />
       </div>
     </div>
   ),

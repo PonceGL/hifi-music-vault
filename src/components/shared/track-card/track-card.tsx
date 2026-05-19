@@ -52,7 +52,8 @@ export function TrackCard({
       target.closest("[data-checkbox]") ||
       target.closest("[data-more-menu]") ||
       target.closest("a")
-    ) return;
+    )
+      return;
     onClick?.(id);
   };
 
@@ -136,7 +137,9 @@ export function TrackCard({
         <p
           className={cn(
             "truncate text-sm font-medium leading-tight",
-            title === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-primary",
+            title === EMPTY_VALUE
+              ? "font-mono text-text-tertiary"
+              : "text-text-primary",
           )}
         >
           {trackHref && title !== EMPTY_VALUE ? (
@@ -147,12 +150,16 @@ export function TrackCard({
             >
               {title}
             </Link>
-          ) : title}
+          ) : (
+            title
+          )}
         </p>
         <p
           className={cn(
             "truncate text-xs leading-tight",
-            artist === EMPTY_VALUE ? "font-mono text-text-tertiary" : "text-text-secondary",
+            artist === EMPTY_VALUE
+              ? "font-mono text-text-tertiary"
+              : "text-text-secondary",
           )}
         >
           {artistHref && artist !== EMPTY_VALUE ? (
@@ -163,7 +170,9 @@ export function TrackCard({
             >
               {artist}
             </Link>
-          ) : artist}
+          ) : (
+            artist
+          )}
         </p>
       </div>
     </div>

@@ -1,6 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { AppShell } from "./app-shell";
-import { DETAIL_PANEL_ARIA_LABEL, SIDEBAR_ARIA_LABEL, MAIN_CONTENT_LABEL } from "./constants";
+import {
+  DETAIL_PANEL_ARIA_LABEL,
+  SIDEBAR_ARIA_LABEL,
+  MAIN_CONTENT_LABEL,
+} from "./constants";
 
 const DEFAULT_PROPS = {
   sidebar: <nav data-testid="sidebar-slot">Sidebar</nav>,
@@ -45,12 +49,16 @@ describe("AppShell — structure", () => {
 
   it("labels the sidebar region correctly", () => {
     renderShell();
-    expect(screen.getByRole("complementary", { name: SIDEBAR_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("complementary", { name: SIDEBAR_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("labels the main content region correctly", () => {
     renderShell();
-    expect(screen.getByRole("main", { name: MAIN_CONTENT_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("main", { name: MAIN_CONTENT_LABEL }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -96,14 +104,18 @@ describe("AppShell — shell blocking", () => {
 
   it("does not apply blocking classes when isBlocked is false", () => {
     renderShell({ isBlocked: false });
-    const sidebar = screen.getByRole("complementary", { name: SIDEBAR_ARIA_LABEL });
+    const sidebar = screen.getByRole("complementary", {
+      name: SIDEBAR_ARIA_LABEL,
+    });
     expect(sidebar).not.toHaveClass("opacity-40");
     expect(sidebar).not.toHaveClass("pointer-events-none");
   });
 
   it("applies opacity-40 to sidebar and topbar when isBlocked is true", () => {
     renderShell({ isBlocked: true });
-    const sidebar = screen.getByRole("complementary", { name: SIDEBAR_ARIA_LABEL });
+    const sidebar = screen.getByRole("complementary", {
+      name: SIDEBAR_ARIA_LABEL,
+    });
     const topbar = screen.getByRole("banner");
     expect(sidebar).toHaveClass("opacity-40");
     expect(topbar).toHaveClass("opacity-40");
@@ -111,7 +123,9 @@ describe("AppShell — shell blocking", () => {
 
   it("applies pointer-events-none to sidebar and topbar when isBlocked is true", () => {
     renderShell({ isBlocked: true });
-    const sidebar = screen.getByRole("complementary", { name: SIDEBAR_ARIA_LABEL });
+    const sidebar = screen.getByRole("complementary", {
+      name: SIDEBAR_ARIA_LABEL,
+    });
     const topbar = screen.getByRole("banner");
     expect(sidebar).toHaveClass("pointer-events-none");
     expect(topbar).toHaveClass("pointer-events-none");

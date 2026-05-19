@@ -40,7 +40,12 @@ export function Sidebar({ stats }: SidebarProps): ReactElement {
         )}
       >
         {/* Navigation items */}
-        <ul className={cn("flex flex-col gap-0.5 p-2", isCollapsed && "items-center")}>
+        <ul
+          className={cn(
+            "flex flex-col gap-0.5 p-2",
+            isCollapsed && "items-center",
+          )}
+        >
           {NAV_ITEMS.map((item) => (
             <li key={item.href}>
               <SidebarNavItem
@@ -71,14 +76,19 @@ export function Sidebar({ stats }: SidebarProps): ReactElement {
             variant="ghost"
             size={isCollapsed ? "icon" : "md"}
             onClick={toggle}
-            aria-label={isCollapsed ? TOGGLE_EXPAND_LABEL : TOGGLE_COLLAPSE_LABEL}
+            aria-label={
+              isCollapsed ? TOGGLE_EXPAND_LABEL : TOGGLE_COLLAPSE_LABEL
+            }
             className={cn(!isCollapsed && "w-full justify-start gap-3")}
           >
             {isCollapsed ? (
               <PanelLeftOpen aria-hidden="true" className="size-4 shrink-0" />
             ) : (
               <>
-                <PanelLeftClose aria-hidden="true" className="size-4 shrink-0" />
+                <PanelLeftClose
+                  aria-hidden="true"
+                  className="size-4 shrink-0"
+                />
                 <span>{TOGGLE_COLLAPSE_LABEL}</span>
               </>
             )}
