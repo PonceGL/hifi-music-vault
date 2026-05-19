@@ -24,4 +24,9 @@ export const API_ROUTES = {
     validate: (path: string): string =>
       `${PREFIX}${FILESYSTEM_ROUTE}${VALIDATE_ROUTE}?${new URLSearchParams({ path }).toString()}`,
   },
+
+  library: {
+    /** GET — returns audio file counts for downloads and library folders */
+    status: `${PREFIX}/library/status`,
+  },
 } as const;
