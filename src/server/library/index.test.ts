@@ -68,7 +68,7 @@ function mockDirWithFiles(files: string[]): void {
           })),
         );
       }
-      return Promise.resolve(files.map(path.basename));
+      return Promise.resolve(files.map((f) => path.basename(f)));
     }
     return Promise.resolve([]);
   });
