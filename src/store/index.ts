@@ -21,3 +21,5 @@
 
 // Los stores se re-exportan aquí a medida que se crean:
 // export { useShellStore } from "@/store/useShellStore";
+export { useOperationStore } from "@/store/useOperationStore";
+export type { OperationType, OperationState } from "@/store/useOperationStore";
