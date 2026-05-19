@@ -4,6 +4,9 @@ set -e
 echo "[pre-commit] Running lint..."
 pnpm lint
 
+echo "[pre-commit] Running format check..."
+pnpm format:check
+
 echo "[pre-commit] Running test:coverage..."
 pnpm test:coverage
 
