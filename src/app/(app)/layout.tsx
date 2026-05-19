@@ -1,23 +1,30 @@
 "use client";
 
-import type { ReactElement } from "react";
-import type { PropsWithChildren } from "react";
+import { useEffect } from "react";
+import type { PropsWithChildren, ReactElement } from "react";
+import { AppShell } from "@/components/layout/app-shell/app-shell";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/topbar/topbar";
+import { TabBar } from "@/components/layout/TabBar";
 import { useFolderConfigGuard } from "@/hooks/useFolderConfigGuard";
+import { useFolderConfigStore } from "@/hooks/useFolderConfigStore";
+import { validateFolderPath } from "@/lib/validateFolderPath";
 
-/**
- * Layout for all protected routes.
- *
- * Applies the client-side folder config guard so every route inside the
- * `(app)` group is protected automatically. Adding a new protected route
- * only requires placing its `page.tsx` inside this directory — no
- * per-page guard boilerplate needed.
- *
- * The route group `(app)` is transparent to URLs: a page at
- * `(app)/library/page.tsx` is still served at `/library`.
- */
 export default function AppLayout({
   children,
 }: PropsWithChildren): ReactElement {
   useFolderConfigGuard();
-  return <>{children}</>;
+  const { folderConfig } = useFolderConfigStore();
+
+  useEffect(() => {
+    if (!folderConfig) return;
+    void validateFolderPath(folderConfig.downloadsPath!);
+    void validateFolderPath(folderConfig.libraryPath!);
+  }, [folderConfig]);
+
+  return (
+    <AppShell sidebar={<Sidebar />} topbar={<Topbar />} tabBar={<TabBar />}>
+      {children}
+    </AppShell>
+  );
 }
