@@ -26,7 +26,9 @@ describe("SearchInput", () => {
 
   it("forwards additional props to the underlying input", () => {
     render(<SearchInput aria-label="Buscar pistas" />);
-    expect(screen.getByRole("searchbox", { name: "Buscar pistas" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("searchbox", { name: "Buscar pistas" }),
+    ).toBeInTheDocument();
   });
 
   it("is disabled when the disabled prop is passed", () => {

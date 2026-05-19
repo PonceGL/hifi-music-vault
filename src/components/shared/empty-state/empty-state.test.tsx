@@ -52,7 +52,9 @@ describe("EmptyState", () => {
 
     it("calls action.onClick when the button is clicked", () => {
       render(<EmptyState {...BASE_PROPS} action={action} />);
-      fireEvent.click(screen.getByRole("button", { name: /sincronizar ahora/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /sincronizar ahora/i }),
+      );
       expect(action.onClick).toHaveBeenCalledTimes(1);
     });
   });

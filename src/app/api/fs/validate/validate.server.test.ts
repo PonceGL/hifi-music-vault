@@ -200,7 +200,9 @@ describe("ValidateServer", () => {
         mockStat.mockResolvedValueOnce(makeStats(true));
         mockAccess.mockResolvedValueOnce(undefined);
         mockWriteFile.mockResolvedValueOnce(undefined);
-        mockUnlink.mockRejectedValueOnce(new Error("Unexpected cleanup failure"));
+        mockUnlink.mockRejectedValueOnce(
+          new Error("Unexpected cleanup failure"),
+        );
 
         const result = await validateServer.checkPath(DIR_PATH);
 
@@ -212,7 +214,9 @@ describe("ValidateServer", () => {
       it("should throw InternalServerErrorException for unknown FS errors on directory", async () => {
         mockStat.mockResolvedValueOnce(makeStats(true));
         mockAccess.mockResolvedValueOnce(undefined);
-        mockWriteFile.mockRejectedValueOnce(makeErrnoError("EIO", "Disk I/O error"));
+        mockWriteFile.mockRejectedValueOnce(
+          makeErrnoError("EIO", "Disk I/O error"),
+        );
 
         await expect(validateServer.checkPath(DIR_PATH)).rejects.toThrow(
           InternalServerErrorException,
@@ -291,7 +295,9 @@ describe("ValidateServer", () => {
 
       it("should throw InternalServerErrorException for unknown FS errors on file", async () => {
         mockStat.mockResolvedValueOnce(makeStats(false));
-        mockAccess.mockRejectedValueOnce(makeErrnoError("ETIMEDOUT", "Network FS timeout"));
+        mockAccess.mockRejectedValueOnce(
+          makeErrnoError("ETIMEDOUT", "Network FS timeout"),
+        );
 
         await expect(validateServer.checkPath(FILE_PATH)).rejects.toThrow(
           InternalServerErrorException,

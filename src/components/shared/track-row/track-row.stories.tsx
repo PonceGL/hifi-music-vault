@@ -4,7 +4,8 @@ import { TrackRow } from "./track-row";
 
 const SAMPLE_TRACK: Track = {
   id: "story-track-1",
-  filePath: "/music/Boards of Canada/Music Has the Right to Children/01 - Wildlife Analysis.flac",
+  filePath:
+    "/music/Boards of Canada/Music Has the Right to Children/01 - Wildlife Analysis.flac",
   fileName: "01 - Wildlife Analysis.flac",
   format: "flac",
   size: 47_185_920,
@@ -126,11 +127,7 @@ export const AllVariants: Story = {
   render: (args) => (
     <div className="bg-surface-primary divide-y divide-border">
       <TrackRow {...args} track={SAMPLE_TRACK} />
-      <TrackRow
-        {...args}
-        track={{ ...SAMPLE_TRACK, id: "v2" }}
-        isSelected
-      />
+      <TrackRow {...args} track={{ ...SAMPLE_TRACK, id: "v2" }} isSelected />
       <TrackRow
         {...args}
         track={{
@@ -146,7 +143,11 @@ export const AllVariants: Story = {
           ...SAMPLE_TRACK,
           id: "v4",
           format: "mp3",
-          metadata: { ...SAMPLE_TRACK.metadata, title: "Roygbiv", bitrate: 320 },
+          metadata: {
+            ...SAMPLE_TRACK.metadata,
+            title: "Roygbiv",
+            bitrate: 320,
+          },
         }}
       />
       <TrackRow

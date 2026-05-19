@@ -5,9 +5,15 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
 import { cn } from "@/lib/cn";
 
-export type DropdownMenuSeparatorProps = ComponentPropsWithRef<typeof DropdownMenuPrimitive.Separator>;
+export type DropdownMenuSeparatorProps = ComponentPropsWithRef<
+  typeof DropdownMenuPrimitive.Separator
+>;
 
-export function DropdownMenuSeparator({ className, ref, ...props }: DropdownMenuSeparatorProps): ReactElement {
+export function DropdownMenuSeparator({
+  className,
+  ref,
+  ...props
+}: DropdownMenuSeparatorProps): ReactElement {
   return (
     <DropdownMenuPrimitive.Separator
       ref={ref}

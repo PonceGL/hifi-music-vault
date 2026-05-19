@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { Track } from "@/types/track";
 import { TrackRow } from "./track-row";
-import { EMPTY_VALUE, CHECKBOX_ARIA_LABEL, MORE_MENU_ARIA_LABEL } from "./constants";
+import {
+  EMPTY_VALUE,
+  CHECKBOX_ARIA_LABEL,
+  MORE_MENU_ARIA_LABEL,
+} from "./constants";
 
 const MOCK_TRACK: Track = {
   id: "track-1",
@@ -73,12 +77,16 @@ describe("TrackRow", () => {
 
   it("renders the more menu button", () => {
     render(<TrackRow track={MOCK_TRACK} />);
-    expect(screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("renders the more menu button aria label", () => {
     render(<TrackRow track={MOCK_TRACK} />);
-    expect(screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -96,7 +104,9 @@ describe("TrackRow — missing metadata", () => {
 
   it("renders Music icon placeholder when no artwork", () => {
     render(<TrackRow track={MOCK_TRACK_NO_ARTWORK} />);
-    expect(screen.queryByRole("img", { name: /artwork/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("img", { name: /artwork/i }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -113,13 +123,17 @@ describe("TrackRow — selected state", () => {
 
   it("renders checked checkbox when isSelected", () => {
     render(<TrackRow track={MOCK_TRACK} isSelected />);
-    const checkbox = screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL });
+    const checkbox = screen.getByRole("checkbox", {
+      name: CHECKBOX_ARIA_LABEL,
+    });
     expect(checkbox).toHaveAttribute("data-state", "checked");
   });
 
   it("renders unchecked checkbox when not selected", () => {
     render(<TrackRow track={MOCK_TRACK} isSelected={false} />);
-    const checkbox = screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL });
+    const checkbox = screen.getByRole("checkbox", {
+      name: CHECKBOX_ARIA_LABEL,
+    });
     expect(checkbox).toHaveAttribute("data-state", "unchecked");
   });
 });
@@ -128,7 +142,9 @@ describe("TrackRow — callbacks", () => {
   it("calls onSelect with track id when checkbox changes", () => {
     const onSelect = jest.fn();
     render(<TrackRow track={MOCK_TRACK} onSelect={onSelect} />);
-    fireEvent.click(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    );
     expect(onSelect).toHaveBeenCalledWith(MOCK_TRACK.id);
   });
 
@@ -142,7 +158,9 @@ describe("TrackRow — callbacks", () => {
   it("does not call onClick when checkbox is clicked", () => {
     const onClick = jest.fn();
     render(<TrackRow track={MOCK_TRACK} onClick={onClick} />);
-    fireEvent.click(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    );
     expect(onClick).not.toHaveBeenCalled();
   });
 
@@ -202,24 +220,40 @@ describe("TrackRow — navigation links", () => {
 
   it("does not render title as link when trackHref is not provided", () => {
     render(<TrackRow track={MOCK_TRACK} />);
-    expect(screen.queryByRole("link", { name: "Track Title" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Track Title" }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not render title as link when title is missing", () => {
-    render(<TrackRow track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />);
+    render(
+      <TrackRow track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />,
+    );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("does not call onClick when title link is clicked", () => {
     const onClick = jest.fn();
-    render(<TrackRow track={MOCK_TRACK} trackHref="/library/track-1" onClick={onClick} />);
+    render(
+      <TrackRow
+        track={MOCK_TRACK}
+        trackHref="/library/track-1"
+        onClick={onClick}
+      />,
+    );
     fireEvent.click(screen.getByRole("link", { name: "Track Title" }));
     expect(onClick).not.toHaveBeenCalled();
   });
 
   it("does not call onClick when artist link is clicked", () => {
     const onClick = jest.fn();
-    render(<TrackRow track={MOCK_TRACK} artistHref="/artists/artist-name" onClick={onClick} />);
+    render(
+      <TrackRow
+        track={MOCK_TRACK}
+        artistHref="/artists/artist-name"
+        onClick={onClick}
+      />,
+    );
     fireEvent.click(screen.getByRole("link", { name: "Artist Name" }));
     expect(onClick).not.toHaveBeenCalled();
   });

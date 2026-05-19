@@ -45,7 +45,9 @@ describe("Sheet", () => {
   it("renders SheetTitle inside open sheet", () => {
     render(<TestSheet />);
     fireEvent.click(screen.getByText("Open panel"));
-    expect(screen.getByRole("heading", { name: "Panel title" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Panel title" }),
+    ).toBeInTheDocument();
   });
 
   it("renders SheetDescription inside open sheet", () => {

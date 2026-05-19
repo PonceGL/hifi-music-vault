@@ -1,10 +1,10 @@
-export type UIMode = 'simple' | 'advanced';
+export type UIMode = "simple" | "advanced";
 
-export type Theme = 'dark' | 'light' | 'system';
+export type Theme = "dark" | "light" | "system";
 
-export type ViewMode = 'list' | 'grid';
+export type ViewMode = "list" | "grid";
 
-export type CollisionStrategy = 'album' | 'numeric' | 'ask';
+export type CollisionStrategy = "album" | "numeric" | "ask";
 
 export type PageSize = 25 | 50 | 100 | 200;
 

@@ -6,15 +6,23 @@ import { Check } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
-export type DropdownMenuCheckboxItemProps = ComponentPropsWithRef<typeof DropdownMenuPrimitive.CheckboxItem>;
+export type DropdownMenuCheckboxItemProps = ComponentPropsWithRef<
+  typeof DropdownMenuPrimitive.CheckboxItem
+>;
 
-export function DropdownMenuCheckboxItem({ className, children, checked, ref, ...props }: DropdownMenuCheckboxItemProps): ReactElement {
+export function DropdownMenuCheckboxItem({
+  className,
+  children,
+  checked,
+  ref,
+  ...props
+}: DropdownMenuCheckboxItemProps): ReactElement {
   return (
     <DropdownMenuPrimitive.CheckboxItem
       ref={ref}
       className={cn(
         "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-surface-elevated focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        className
+        className,
       )}
       checked={checked}
       {...props}

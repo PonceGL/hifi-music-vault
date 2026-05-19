@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { Track } from "@/types/track";
 import { TrackCard } from "./track-card";
-import { EMPTY_VALUE, CHECKBOX_ARIA_LABEL, MORE_MENU_ARIA_LABEL } from "./constants";
+import {
+  EMPTY_VALUE,
+  CHECKBOX_ARIA_LABEL,
+  MORE_MENU_ARIA_LABEL,
+} from "./constants";
 
 const MOCK_TRACK: Track = {
   id: "card-track-1",
@@ -59,12 +63,16 @@ describe("TrackCard", () => {
 
   it("renders the more menu button", () => {
     render(<TrackCard track={MOCK_TRACK} />);
-    expect(screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: MORE_MENU_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("renders the checkbox", () => {
     render(<TrackCard track={MOCK_TRACK} />);
-    expect(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -76,25 +84,25 @@ describe("TrackCard — missing metadata", () => {
 
   it("renders Music icon placeholder when no artwork", () => {
     render(<TrackCard track={MOCK_TRACK} />);
-    expect(screen.queryByRole("img", { name: /artwork/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("img", { name: /artwork/i }),
+    ).not.toBeInTheDocument();
   });
 });
 
 describe("TrackCard — selected state", () => {
   it("renders checked checkbox when isSelected", () => {
     render(<TrackCard track={MOCK_TRACK} isSelected />);
-    expect(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL })).toHaveAttribute(
-      "data-state",
-      "checked",
-    );
+    expect(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    ).toHaveAttribute("data-state", "checked");
   });
 
   it("renders unchecked checkbox when not selected", () => {
     render(<TrackCard track={MOCK_TRACK} isSelected={false} />);
-    expect(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL })).toHaveAttribute(
-      "data-state",
-      "unchecked",
-    );
+    expect(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    ).toHaveAttribute("data-state", "unchecked");
   });
 
   it("marks container as selected via data-selected", () => {
@@ -112,7 +120,9 @@ describe("TrackCard — callbacks", () => {
   it("calls onSelect with track id when checkbox changes", () => {
     const onSelect = jest.fn();
     render(<TrackCard track={MOCK_TRACK} onSelect={onSelect} />);
-    fireEvent.click(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    );
     expect(onSelect).toHaveBeenCalledWith(MOCK_TRACK.id);
   });
 
@@ -126,7 +136,9 @@ describe("TrackCard — callbacks", () => {
   it("does not call onClick when checkbox is clicked", () => {
     const onClick = jest.fn();
     render(<TrackCard track={MOCK_TRACK} onClick={onClick} />);
-    fireEvent.click(screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: CHECKBOX_ARIA_LABEL }),
+    );
     expect(onClick).not.toHaveBeenCalled();
   });
 
@@ -148,34 +160,42 @@ describe("TrackCard — callbacks", () => {
 describe("TrackCard — navigation links", () => {
   it("renders title as link when trackHref is provided", () => {
     render(<TrackCard track={MOCK_TRACK} trackHref="/library/track-1" />);
-    expect(screen.getByRole("link", { name: "Wildlife Analysis" })).toHaveAttribute(
-      "href",
-      "/library/track-1",
-    );
+    expect(
+      screen.getByRole("link", { name: "Wildlife Analysis" }),
+    ).toHaveAttribute("href", "/library/track-1");
   });
 
   it("renders artist as link when artistHref is provided", () => {
-    render(<TrackCard track={MOCK_TRACK} artistHref="/artists/boards-of-canada" />);
-    expect(screen.getByRole("link", { name: "Boards of Canada" })).toHaveAttribute(
-      "href",
-      "/artists/boards-of-canada",
+    render(
+      <TrackCard track={MOCK_TRACK} artistHref="/artists/boards-of-canada" />,
     );
+    expect(
+      screen.getByRole("link", { name: "Boards of Canada" }),
+    ).toHaveAttribute("href", "/artists/boards-of-canada");
   });
 
   it("does not render title as link when trackHref is not provided", () => {
     render(<TrackCard track={MOCK_TRACK} />);
-    expect(screen.queryByRole("link", { name: "Wildlife Analysis" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Wildlife Analysis" }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not render title as link when title is missing", () => {
-    render(<TrackCard track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />);
+    render(
+      <TrackCard track={MOCK_TRACK_MISSING} trackHref="/library/track-2" />,
+    );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("does not call onClick when title link is clicked", () => {
     const onClick = jest.fn();
     render(
-      <TrackCard track={MOCK_TRACK} trackHref="/library/track-1" onClick={onClick} />,
+      <TrackCard
+        track={MOCK_TRACK}
+        trackHref="/library/track-1"
+        onClick={onClick}
+      />,
     );
     fireEvent.click(screen.getByRole("link", { name: "Wildlife Analysis" }));
     expect(onClick).not.toHaveBeenCalled();
@@ -184,7 +204,11 @@ describe("TrackCard — navigation links", () => {
   it("does not call onClick when artist link is clicked", () => {
     const onClick = jest.fn();
     render(
-      <TrackCard track={MOCK_TRACK} artistHref="/artists/boards-of-canada" onClick={onClick} />,
+      <TrackCard
+        track={MOCK_TRACK}
+        artistHref="/artists/boards-of-canada"
+        onClick={onClick}
+      />,
     );
     fireEvent.click(screen.getByRole("link", { name: "Boards of Canada" }));
     expect(onClick).not.toHaveBeenCalled();

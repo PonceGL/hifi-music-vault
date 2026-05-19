@@ -4,7 +4,8 @@ import { TrackCard } from "./track-card";
 
 const SAMPLE_TRACK: Track = {
   id: "story-card-1",
-  filePath: "/music/Boards of Canada/Music Has the Right to Children/01 - Wildlife Analysis.flac",
+  filePath:
+    "/music/Boards of Canada/Music Has the Right to Children/01 - Wildlife Analysis.flac",
   fileName: "01 - Wildlife Analysis.flac",
   format: "flac",
   size: 47_185_920,
@@ -108,7 +109,10 @@ export const MP3Format: Story = {
 export const AllVariants: Story = {
   decorators: [
     (Story) => (
-      <div className="grid grid-cols-3 gap-3 bg-surface-primary p-4" style={{ width: 560 }}>
+      <div
+        className="grid grid-cols-3 gap-3 bg-surface-primary p-4"
+        style={{ width: 560 }}
+      >
         <Story />
       </div>
     ),
@@ -132,7 +136,11 @@ export const AllVariants: Story = {
           ...SAMPLE_TRACK,
           id: "v4",
           format: "mp3",
-          metadata: { ...SAMPLE_TRACK.metadata, title: "Roygbiv", bitrate: 320 },
+          metadata: {
+            ...SAMPLE_TRACK.metadata,
+            title: "Roygbiv",
+            bitrate: 320,
+          },
         }}
       />
       <TrackCard
@@ -144,7 +152,11 @@ export const AllVariants: Story = {
           metadata: { ...SAMPLE_TRACK.metadata, title: null, artist: null },
         }}
       />
-      <TrackCard {...args} track={{ ...SAMPLE_TRACK, id: "v6" }} isSelectionActive />
+      <TrackCard
+        {...args}
+        track={{ ...SAMPLE_TRACK, id: "v6" }}
+        isSelectionActive
+      />
     </>
   ),
 };

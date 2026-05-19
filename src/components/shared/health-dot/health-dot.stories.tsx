@@ -18,7 +18,8 @@ const meta = {
     size: {
       control: "select",
       options: ["standard", "large"],
-      description: "standard (8px, for lists) | large (10px with border, for cards)",
+      description:
+        "standard (8px, for lists) | large (10px with border, for cards)",
     },
   },
 } satisfies Meta<typeof HealthDot>;
@@ -45,12 +46,34 @@ export const AllStatuses: Story = {
 export const BothSizes: Story = {
   render: (args) => (
     <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center" }}>
-        <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>standard (8px)</span>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}
+        >
+          standard (8px)
+        </span>
         <HealthDot {...args} size="standard" />
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center" }}>
-        <span style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}>large (10px)</span>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{ fontSize: "11px", color: "var(--color-text-secondary)" }}
+        >
+          large (10px)
+        </span>
         <HealthDot {...args} size="large" />
       </div>
     </div>
@@ -62,9 +85,14 @@ export const InContext: Story = {
   render: (args) => (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {(["complete", "warning", "alert", "critical"] as const).map((status) => (
-        <div key={status} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          key={status}
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+        >
           <HealthDot {...args} status={status} />
-          <span style={{ fontSize: "13px", color: "var(--color-text-primary)" }}>
+          <span
+            style={{ fontSize: "13px", color: "var(--color-text-primary)" }}
+          >
             Track title — {status}
           </span>
         </div>

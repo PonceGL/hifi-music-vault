@@ -72,29 +72,29 @@ export interface ErrorAdapter {
 export interface HttpClient {
   get<T = unknown>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>>;
 
   post<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>>;
 
   put<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>>;
 
   patch<T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>>;
 
   delete<T = unknown>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<HttpResponse<T>>;
 }

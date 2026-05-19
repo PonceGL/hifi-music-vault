@@ -1,10 +1,10 @@
-export type HealthStatus = 'complete' | 'warning' | 'alert' | 'critical';
+export type HealthStatus = "complete" | "warning" | "alert" | "critical";
 
-export type LosslessFormat = 'flac' | 'alac';
-export type LossyFormat = 'mp3' | 'wav' | 'aac' | 'ogg';
+export type LosslessFormat = "flac" | "alac";
+export type LossyFormat = "mp3" | "wav" | "aac" | "ogg";
 export type AudioFormat = LosslessFormat | LossyFormat;
 
-export const LOSSLESS_FORMATS: LosslessFormat[] = ['flac', 'alac'];
+export const LOSSLESS_FORMATS: LosslessFormat[] = ["flac", "alac"];
 
 export interface TrackMetadata {
   title: string | null;

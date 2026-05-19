@@ -81,9 +81,7 @@ export function BottomSheet({
                   : "text-[var(--color-text-primary)]",
               )}
             >
-              {Icon && (
-                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-              )}
+              {Icon && <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />}
               {action.label}
             </button>
           );

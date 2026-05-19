@@ -8,24 +8,44 @@ describe("useMenuPosition", () => {
 
   beforeEach(() => {
     triggerElement = document.createElement("div");
-    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1000 });
-    Object.defineProperty(window, "innerHeight", { writable: true, configurable: true, value: 1000 });
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 1000,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      writable: true,
+      configurable: true,
+      value: 1000,
+    });
   });
 
   afterEach(() => {
-    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: originalInnerWidth });
-    Object.defineProperty(window, "innerHeight", { writable: true, configurable: true, value: originalInnerHeight });
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: originalInnerWidth,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      writable: true,
+      configurable: true,
+      value: originalInnerHeight,
+    });
   });
 
   it("should return empty object if not open", () => {
     const triggerRef = { current: triggerElement };
-    const { result } = renderHook(() => useMenuPosition(triggerRef, false, false, 2));
+    const { result } = renderHook(() =>
+      useMenuPosition(triggerRef, false, false, 2),
+    );
     expect(result.current).toEqual({});
   });
 
   it("should return empty object if mobile", () => {
     const triggerRef = { current: triggerElement };
-    const { result } = renderHook(() => useMenuPosition(triggerRef, true, true, 2));
+    const { result } = renderHook(() =>
+      useMenuPosition(triggerRef, true, true, 2),
+    );
     expect(result.current).toEqual({});
   });
 
@@ -43,7 +63,9 @@ describe("useMenuPosition", () => {
     }));
 
     const triggerRef = { current: triggerElement };
-    const { result } = renderHook(() => useMenuPosition(triggerRef, true, false, 2));
+    const { result } = renderHook(() =>
+      useMenuPosition(triggerRef, true, false, 2),
+    );
     expect(result.current).toEqual({
       top: 104, // 100 + 4
       bottom: undefined,
@@ -66,7 +88,9 @@ describe("useMenuPosition", () => {
     }));
 
     const triggerRef = { current: triggerElement };
-    const { result } = renderHook(() => useMenuPosition(triggerRef, true, false, 5)); // 5 items = approx 200px + padding
+    const { result } = renderHook(() =>
+      useMenuPosition(triggerRef, true, false, 5),
+    ); // 5 items = approx 200px + padding
     expect(result.current).toEqual({
       top: undefined,
       bottom: 104, // 1000 - 900 + 4
@@ -89,7 +113,9 @@ describe("useMenuPosition", () => {
     }));
 
     const triggerRef = { current: triggerElement };
-    const { result } = renderHook(() => useMenuPosition(triggerRef, true, false, 2));
+    const { result } = renderHook(() =>
+      useMenuPosition(triggerRef, true, false, 2),
+    );
     expect(result.current).toEqual({
       top: 104,
       bottom: undefined,

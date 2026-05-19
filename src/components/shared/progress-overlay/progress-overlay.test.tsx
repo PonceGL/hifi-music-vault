@@ -23,7 +23,9 @@ function renderWithShell(
 describe("ProgressOverlay — shell blocking", () => {
   it("does not add pointer-events-none when isActive is false", () => {
     renderWithShell({ isActive: false });
-    expect(screen.getByTestId("sidebar")).not.toHaveClass("pointer-events-none");
+    expect(screen.getByTestId("sidebar")).not.toHaveClass(
+      "pointer-events-none",
+    );
     expect(screen.getByTestId("topbar")).not.toHaveClass("pointer-events-none");
   });
 
@@ -48,7 +50,9 @@ describe("ProgressOverlay — shell blocking", () => {
         <ProgressOverlay {...BASE_PROPS} isActive={false} />
       </div>,
     );
-    expect(screen.getByTestId("sidebar")).not.toHaveClass("pointer-events-none");
+    expect(screen.getByTestId("sidebar")).not.toHaveClass(
+      "pointer-events-none",
+    );
     expect(screen.getByTestId("topbar")).not.toHaveClass("pointer-events-none");
   });
 });
@@ -75,7 +79,10 @@ describe("ProgressOverlay — content", () => {
   });
 
   it("renders the sublabel with font-mono when provided", () => {
-    renderWithShell({ isActive: true, sublabel: "Moviendo 14 de 247 archivos" });
+    renderWithShell({
+      isActive: true,
+      sublabel: "Moviendo 14 de 247 archivos",
+    });
     const sublabel = screen.getByText("Moviendo 14 de 247 archivos");
     expect(sublabel).toBeInTheDocument();
     expect(sublabel.className).toContain("font-mono");
@@ -95,7 +102,9 @@ describe("ProgressOverlay — content", () => {
 describe("ProgressOverlay — actions", () => {
   it("renders the cancel button when onCancel is provided", () => {
     renderWithShell({ isActive: true, onCancel: jest.fn() });
-    expect(screen.getByRole("button", { name: CANCEL_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: CANCEL_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("calls onCancel when cancel button is clicked", () => {
@@ -107,12 +116,16 @@ describe("ProgressOverlay — actions", () => {
 
   it("does not render cancel button when onCancel is not provided", () => {
     renderWithShell({ isActive: true });
-    expect(screen.queryByRole("button", { name: CANCEL_LABEL })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: CANCEL_LABEL }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders pause button when onPause is provided", () => {
     renderWithShell({ isActive: true, onPause: jest.fn() });
-    expect(screen.getByRole("button", { name: PAUSE_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: PAUSE_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("calls onPause when pause button is clicked", () => {
@@ -124,6 +137,8 @@ describe("ProgressOverlay — actions", () => {
 
   it("does not render pause button when onPause is not provided", () => {
     renderWithShell({ isActive: true });
-    expect(screen.queryByRole("button", { name: PAUSE_LABEL })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: PAUSE_LABEL }),
+    ).not.toBeInTheDocument();
   });
 });

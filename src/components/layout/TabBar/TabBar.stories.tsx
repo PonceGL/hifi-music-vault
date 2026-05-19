@@ -39,7 +39,9 @@ export const AllVariants: Story = {
   render: (args) => (
     <div className="flex flex-col gap-4 bg-background p-4">
       <div>
-        <p className="mb-1 px-1 text-xs text-text-tertiary">Activo: Biblioteca</p>
+        <p className="mb-1 px-1 text-xs text-text-tertiary">
+          Activo: Biblioteca
+        </p>
         <TabBar {...args} />
       </div>
     </div>

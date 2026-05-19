@@ -42,12 +42,29 @@ export const Default: Story = {
 
 export const AllVariants: Story = {
   render: (args) => (
-    <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-      <Button {...args} variant="primary">Primary</Button>
-      <Button {...args} variant="secondary">Secondary</Button>
-      <Button {...args} variant="destructive">Destructive</Button>
-      <Button {...args} variant="ghost">Ghost</Button>
-      <Button {...args} variant="link">Link</Button>
+    <div
+      style={{
+        display: "flex",
+        gap: "12px",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
+      <Button {...args} variant="primary">
+        Primary
+      </Button>
+      <Button {...args} variant="secondary">
+        Secondary
+      </Button>
+      <Button {...args} variant="destructive">
+        Destructive
+      </Button>
+      <Button {...args} variant="ghost">
+        Ghost
+      </Button>
+      <Button {...args} variant="link">
+        Link
+      </Button>
     </div>
   ),
 };
@@ -55,10 +72,18 @@ export const AllVariants: Story = {
 export const AllSizes: Story = {
   render: (args) => (
     <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-      <Button {...args} size="sm">Small</Button>
-      <Button {...args} size="md">Medium</Button>
-      <Button {...args} size="lg">Large</Button>
-      <Button {...args} size="icon">✕</Button>
+      <Button {...args} size="sm">
+        Small
+      </Button>
+      <Button {...args} size="md">
+        Medium
+      </Button>
+      <Button {...args} size="lg">
+        Large
+      </Button>
+      <Button {...args} size="icon">
+        ✕
+      </Button>
     </div>
   ),
 };
@@ -82,9 +107,15 @@ export const Loading: Story = {
 export const DestructiveVariants: Story = {
   render: (args) => (
     <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-      <Button {...args} variant="destructive" size="sm">Delete</Button>
-      <Button {...args} variant="destructive" size="md">Delete track</Button>
-      <Button {...args} variant="destructive" size="lg">Delete library</Button>
+      <Button {...args} variant="destructive" size="sm">
+        Delete
+      </Button>
+      <Button {...args} variant="destructive" size="md">
+        Delete track
+      </Button>
+      <Button {...args} variant="destructive" size="lg">
+        Delete library
+      </Button>
     </div>
   ),
 };

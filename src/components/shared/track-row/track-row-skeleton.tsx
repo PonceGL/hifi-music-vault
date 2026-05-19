@@ -6,13 +6,12 @@ export interface TrackRowSkeletonProps {
   style?: CSSProperties;
 }
 
-export function TrackRowSkeleton({ className, style }: TrackRowSkeletonProps = {}): ReactElement {
+export function TrackRowSkeleton({
+  className,
+  style,
+}: TrackRowSkeletonProps = {}): ReactElement {
   return (
-    <div
-      aria-hidden="true"
-      style={style}
-      className={className}
-    >
+    <div aria-hidden="true" style={style} className={className}>
       <div className="flex h-16 items-center gap-3 px-4">
         {/* Checkbox placeholder — desktop only */}
         <Skeleton className="hidden h-4 w-4 shrink-0 rounded-sm xl:block" />

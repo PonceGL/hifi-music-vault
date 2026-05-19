@@ -50,7 +50,9 @@ export function ActionBar({
         return (
           <Button
             key={action.label}
-            variant={action.variant === "destructive" ? "destructive" : "secondary"}
+            variant={
+              action.variant === "destructive" ? "destructive" : "secondary"
+            }
             size="sm"
             onClick={action.onClick}
           >

@@ -1,16 +1,22 @@
 import { toast as sonnerToast } from "sonner";
-import { DISMISS_DURATION, MAX_VISIBLE_TOASTS } from "@/components/ui/toast/constants";
+import {
+  DISMISS_DURATION,
+  MAX_VISIBLE_TOASTS,
+} from "@/components/ui/toast/constants";
 
 interface ToastOptions {
   description?: string;
 }
 interface ToastReturn {
-    success: (title: string, options?: ToastOptions | undefined) => string | number;
-    info: (title: string, options?: ToastOptions) => string | number;
-    warning: (title: string, options?: ToastOptions) => string | number;
-    error: (title: string, options?: ToastOptions) => string | number;
-    dismiss: (id?: string | number) => void;
-    MAX_VISIBLE_TOASTS: number;
+  success: (
+    title: string,
+    options?: ToastOptions | undefined,
+  ) => string | number;
+  info: (title: string, options?: ToastOptions) => string | number;
+  warning: (title: string, options?: ToastOptions) => string | number;
+  error: (title: string, options?: ToastOptions) => string | number;
+  dismiss: (id?: string | number) => void;
+  MAX_VISIBLE_TOASTS: number;
 }
 
 function success(title: string, options?: ToastOptions): string | number {

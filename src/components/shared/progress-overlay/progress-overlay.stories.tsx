@@ -21,7 +21,11 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function MockShell({ children }: { children: React.ReactNode }): React.JSX.Element {
+function MockShell({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element {
   return (
     <div className="flex h-screen bg-bg">
       <aside
@@ -30,14 +34,16 @@ function MockShell({ children }: { children: React.ReactNode }): React.JSX.Eleme
         aria-label="Sidebar"
       >
         <div className="p-4 space-y-2">
-          {["Biblioteca", "Artistas", "Álbumes", "Playlists", "Health"].map((item) => (
-            <div
-              key={item}
-              className="h-8 rounded-md bg-surface-secondary px-3 flex items-center text-sm text-text-secondary"
-            >
-              {item}
-            </div>
-          ))}
+          {["Biblioteca", "Artistas", "Álbumes", "Playlists", "Health"].map(
+            (item) => (
+              <div
+                key={item}
+                className="h-8 rounded-md bg-surface-secondary px-3 flex items-center text-sm text-text-secondary"
+              >
+                {item}
+              </div>
+            ),
+          )}
         </div>
       </aside>
 
@@ -50,9 +56,7 @@ function MockShell({ children }: { children: React.ReactNode }): React.JSX.Eleme
           <div className="h-6 w-48 rounded bg-surface-secondary" />
         </header>
 
-        <main className="flex flex-1 overflow-hidden">
-          {children}
-        </main>
+        <main className="flex flex-1 overflow-hidden">{children}</main>
       </div>
     </div>
   );
@@ -142,7 +146,10 @@ function AnimatedDemo(): React.JSX.Element {
   useEffect(() => {
     if (!isActive) return;
     if (progress >= 100) return;
-    const interval = setInterval(() => setProgress((p) => Math.min(100, p + 2)), 100);
+    const interval = setInterval(
+      () => setProgress((p) => Math.min(100, p + 2)),
+      100,
+    );
     return () => clearInterval(interval);
   }, [isActive, progress]);
 

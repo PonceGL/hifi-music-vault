@@ -6,7 +6,12 @@ import type { ContextMenuAction } from "./floating-context-menu";
 
 const MOCK_ACTIONS: ContextMenuAction[] = [
   { label: "Exportar", icon: Download, onClick: jest.fn(), variant: "default" },
-  { label: "Eliminar", icon: Trash2, onClick: jest.fn(), variant: "destructive" },
+  {
+    label: "Eliminar",
+    icon: Trash2,
+    onClick: jest.fn(),
+    variant: "destructive",
+  },
 ];
 
 function renderBottomSheet(isOpen = true, actions = MOCK_ACTIONS) {
@@ -37,8 +42,12 @@ describe("BottomSheet — visibility", () => {
 describe("BottomSheet — actions", () => {
   it("renders all action items", () => {
     renderBottomSheet();
-    expect(screen.getByRole("menuitem", { name: "Exportar" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Eliminar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Exportar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Eliminar" }),
+    ).toBeInTheDocument();
   });
 
   it("calls action onClick and onClose when an action is clicked", () => {
@@ -58,7 +67,9 @@ describe("BottomSheet — actions", () => {
 
   it("renders the cancel button", () => {
     renderBottomSheet();
-    expect(screen.getByRole("button", { name: CANCEL_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: CANCEL_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("calls onClose when cancel button is clicked", () => {
@@ -106,7 +117,9 @@ describe("BottomSheet — keyboard", () => {
 describe("BottomSheet — overlay click", () => {
   it("calls onClose when overlay is clicked", () => {
     const { onClose } = renderBottomSheet(true);
-    const overlay = document.querySelector('[aria-hidden="true"].absolute.inset-0');
+    const overlay = document.querySelector(
+      '[aria-hidden="true"].absolute.inset-0',
+    );
     if (overlay) fireEvent.mouseDown(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
   });

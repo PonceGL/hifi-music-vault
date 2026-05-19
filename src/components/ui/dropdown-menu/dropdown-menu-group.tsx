@@ -3,4 +3,5 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
-export type DropdownMenuGroupProps = DropdownMenuPrimitive.DropdownMenuGroupProps;
+export type DropdownMenuGroupProps =
+  DropdownMenuPrimitive.DropdownMenuGroupProps;

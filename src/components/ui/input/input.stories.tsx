@@ -10,8 +10,14 @@ const meta = {
     placeholder: "Escribe aquí...",
   },
   argTypes: {
-    error: { control: "text", description: "Error message shown below the input" },
-    warning: { control: "text", description: "Warning message shown below the input" },
+    error: {
+      control: "text",
+      description: "Error message shown below the input",
+    },
+    warning: {
+      control: "text",
+      description: "Warning message shown below the input",
+    },
     disabled: { control: "boolean" },
   },
 } satisfies Meta<typeof Input>;
@@ -48,7 +54,14 @@ export const Disabled: Story = {
 
 export const AllStates: Story = {
   render: (args) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "320px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+        width: "320px",
+      }}
+    >
       <Input {...args} placeholder="Default" />
       <Input {...args} placeholder="Con error" error="Campo requerido" />
       <Input {...args} placeholder="Con advertencia" warning="Valor inusual" />

@@ -6,7 +6,10 @@ export interface TrackCardSkeletonProps {
   style?: CSSProperties;
 }
 
-export function TrackCardSkeleton({ className, style }: TrackCardSkeletonProps = {}): ReactElement {
+export function TrackCardSkeleton({
+  className,
+  style,
+}: TrackCardSkeletonProps = {}): ReactElement {
   return (
     <div aria-hidden="true" className={className} style={style}>
       {/* Artwork placeholder — matches aspect-square artwork container */}

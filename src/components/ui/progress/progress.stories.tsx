@@ -38,27 +38,58 @@ export const Indeterminate: Story = {
 
 export const AllStates: Story = {
   render: (args) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "360px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+        width: "360px",
+      }}
+    >
       <div>
-        <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "6px" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--color-text-secondary)",
+            marginBottom: "6px",
+          }}
+        >
           Determinate — 25%
         </p>
         <Progress {...args} value={25} />
       </div>
       <div>
-        <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "6px" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--color-text-secondary)",
+            marginBottom: "6px",
+          }}
+        >
           Determinate — 60%
         </p>
         <Progress {...args} value={60} />
       </div>
       <div>
-        <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "6px" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--color-text-secondary)",
+            marginBottom: "6px",
+          }}
+        >
           Determinate — 100%
         </p>
         <Progress {...args} value={100} />
       </div>
       <div>
-        <p style={{ fontSize: "11px", color: "var(--color-text-secondary)", marginBottom: "6px" }}>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--color-text-secondary)",
+            marginBottom: "6px",
+          }}
+        >
           Indeterminate
         </p>
         <Progress {...args} value={undefined} />

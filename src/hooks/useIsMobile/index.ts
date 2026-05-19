@@ -7,10 +7,10 @@ export function useIsMobile(breakpoint = MOBILE_BREAKPOINT): boolean {
 
   useEffect(() => {
     const check = (): void => setIsMobile(window.innerWidth < breakpoint);
-    
+
     // Initial check
     check();
-    
+
     window.addEventListener("resize", check);
     return (): void => window.removeEventListener("resize", check);
   }, [breakpoint]);

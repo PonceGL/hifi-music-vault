@@ -5,9 +5,15 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 
 import { cn } from "@/lib/cn";
 
-export type SheetDescriptionProps = ComponentPropsWithRef<typeof SheetPrimitive.Description>;
+export type SheetDescriptionProps = ComponentPropsWithRef<
+  typeof SheetPrimitive.Description
+>;
 
-export function SheetDescription({ className, ref, ...props }: SheetDescriptionProps): ReactElement {
+export function SheetDescription({
+  className,
+  ref,
+  ...props
+}: SheetDescriptionProps): ReactElement {
   return (
     <SheetPrimitive.Description
       ref={ref}

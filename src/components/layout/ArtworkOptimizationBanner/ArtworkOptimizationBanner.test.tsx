@@ -17,7 +17,9 @@ describe("ArtworkOptimizationBanner — visibility", () => {
 
   it("is present in the DOM when isVisible=true", () => {
     render(<ArtworkOptimizationBanner {...BASE_PROPS} isVisible />);
-    expect(screen.getByRole("status", { name: BANNER_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: BANNER_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("is present in the DOM when isVisible=false (hidden via CSS, not removed)", () => {
@@ -44,12 +46,16 @@ describe("ArtworkOptimizationBanner — visibility", () => {
 
 describe("ArtworkOptimizationBanner — content", () => {
   it("shows the current file number", () => {
-    render(<ArtworkOptimizationBanner {...BASE_PROPS} current={30} total={50} />);
+    render(
+      <ArtworkOptimizationBanner {...BASE_PROPS} current={30} total={50} />,
+    );
     expect(screen.getByText("(30/50)")).toBeInTheDocument();
   });
 
   it("shows the correct current and total when values change", () => {
-    render(<ArtworkOptimizationBanner {...BASE_PROPS} current={48} total={50} />);
+    render(
+      <ArtworkOptimizationBanner {...BASE_PROPS} current={48} total={50} />,
+    );
     expect(screen.getByText("(48/50)")).toBeInTheDocument();
   });
 
@@ -80,12 +86,18 @@ describe("ArtworkOptimizationBanner — completed state", () => {
     render(
       <ArtworkOptimizationBanner {...BASE_PROPS} progress={100} isVisible />,
     );
-    expect(screen.getByRole("status", { name: BANNER_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("status", { name: BANNER_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("applies aria-hidden when isVisible=false at progress=100", () => {
     const { container } = render(
-      <ArtworkOptimizationBanner {...BASE_PROPS} progress={100} isVisible={false} />,
+      <ArtworkOptimizationBanner
+        {...BASE_PROPS}
+        progress={100}
+        isVisible={false}
+      />,
     );
     expect(container.firstChild).toHaveAttribute("aria-hidden", "true");
   });

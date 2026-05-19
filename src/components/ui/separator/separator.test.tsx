@@ -19,11 +19,17 @@ describe("Separator", () => {
 
   it("has horizontal orientation by default", () => {
     render(<Separator decorative={false} />);
-    expect(screen.getByRole("separator")).toHaveAttribute("data-orientation", "horizontal");
+    expect(screen.getByRole("separator")).toHaveAttribute(
+      "data-orientation",
+      "horizontal",
+    );
   });
 
   it("renders with vertical orientation", () => {
     render(<Separator orientation="vertical" decorative={false} />);
-    expect(screen.getByRole("separator")).toHaveAttribute("data-orientation", "vertical");
+    expect(screen.getByRole("separator")).toHaveAttribute(
+      "data-orientation",
+      "vertical",
+    );
   });
 });

@@ -9,7 +9,7 @@ describe("useLocalStorage", () => {
 
   it("returns initialValue when the key does not exist", () => {
     const { result } = renderHook(() =>
-      useLocalStorage("missing-key", "default")
+      useLocalStorage("missing-key", "default"),
     );
     expect(result.current[0]).toBe("default");
   });
@@ -37,9 +37,7 @@ describe("useLocalStorage", () => {
   });
 
   it("setValue persists the new value to localStorage", () => {
-    const { result } = renderHook(() =>
-      useLocalStorage("name", "default")
-    );
+    const { result } = renderHook(() => useLocalStorage("name", "default"));
 
     act(() => {
       result.current[1]("updated");
@@ -82,7 +80,9 @@ describe("useLocalStorage", () => {
       libraryPath: "/music",
     };
 
-    const { result } = renderHook(() => useLocalStorage<Config>("config", initial));
+    const { result } = renderHook(() =>
+      useLocalStorage<Config>("config", initial),
+    );
 
     act(() => {
       result.current[1](updated);

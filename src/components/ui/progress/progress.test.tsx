@@ -27,17 +27,26 @@ describe("Progress", () => {
   describe("aria attributes", () => {
     it("sets aria-valuenow for determinate mode", () => {
       render(<Progress value={50} />);
-      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50");
+      expect(screen.getByRole("progressbar")).toHaveAttribute(
+        "aria-valuenow",
+        "50",
+      );
     });
 
     it("sets aria-valuemin to 0", () => {
       render(<Progress value={50} />);
-      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuemin", "0");
+      expect(screen.getByRole("progressbar")).toHaveAttribute(
+        "aria-valuemin",
+        "0",
+      );
     });
 
     it("sets aria-valuemax to 100", () => {
       render(<Progress value={50} />);
-      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "100");
+      expect(screen.getByRole("progressbar")).toHaveAttribute(
+        "aria-valuemax",
+        "100",
+      );
     });
 
     it("forwards aria-label for accessibility", () => {

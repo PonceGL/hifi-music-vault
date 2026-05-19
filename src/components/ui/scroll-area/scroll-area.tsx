@@ -6,9 +6,16 @@ import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { cn } from "@/lib/cn";
 import { ScrollBar } from "./scroll-bar";
 
-export type ScrollAreaProps = ComponentPropsWithRef<typeof ScrollAreaPrimitive.Root>;
+export type ScrollAreaProps = ComponentPropsWithRef<
+  typeof ScrollAreaPrimitive.Root
+>;
 
-export function ScrollArea({ className, children, ref, ...props }: ScrollAreaProps): ReactElement {
+export function ScrollArea({
+  className,
+  children,
+  ref,
+  ...props
+}: ScrollAreaProps): ReactElement {
   return (
     <ScrollAreaPrimitive.Root
       ref={ref}

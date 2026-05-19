@@ -33,7 +33,9 @@ describe("Sidebar — structure", () => {
 
   it("renders the nav landmark with correct label", () => {
     render(<Sidebar />);
-    expect(screen.getByRole("navigation", { name: SIDEBAR_NAV_ARIA_LABEL })).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: SIDEBAR_NAV_ARIA_LABEL }),
+    ).toBeInTheDocument();
   });
 
   it("renders all nav items", () => {
@@ -87,7 +89,9 @@ describe("Sidebar — collapsed state", () => {
     const toggle = jest.fn();
     mockUseSidebar.mockReturnValue({ isCollapsed: false, toggle });
     render(<Sidebar />);
-    fireEvent.click(screen.getByRole("button", { name: TOGGLE_COLLAPSE_LABEL }));
+    fireEvent.click(
+      screen.getByRole("button", { name: TOGGLE_COLLAPSE_LABEL }),
+    );
     expect(toggle).toHaveBeenCalledTimes(1);
   });
 });

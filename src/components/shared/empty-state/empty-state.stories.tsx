@@ -9,7 +9,8 @@ const meta = {
   args: {
     icon: Music,
     title: "Biblioteca vacía",
-    description: "Agrega archivos de audio para comenzar a organizar tu colección",
+    description:
+      "Agrega archivos de audio para comenzar a organizar tu colección",
   },
   argTypes: {
     title: { control: "text" },
@@ -26,7 +27,8 @@ export const WithAction: Story = {
   args: {
     icon: Music,
     title: "Sin archivos en biblioteca",
-    description: "Sincroniza tu carpeta de Downloads para importar archivos de audio",
+    description:
+      "Sincroniza tu carpeta de Downloads para importar archivos de audio",
     action: { label: "Sincronizar ahora", onClick: () => {} },
   },
 };
@@ -53,7 +55,8 @@ export const AllHealthy: Story = {
   args: {
     icon: CheckCircle,
     title: "Todo en orden",
-    description: "Todos tus archivos tienen metadatos completos y están en buen estado",
+    description:
+      "Todos tus archivos tienen metadatos completos y están en buen estado",
   },
 };
 
@@ -61,7 +64,8 @@ export const WithError: Story = {
   args: {
     icon: AlertCircle,
     title: "No se pudo cargar la biblioteca",
-    description: "Verifica que la ruta de la biblioteca sea correcta en Configuración",
+    description:
+      "Verifica que la ruta de la biblioteca sea correcta en Configuración",
     action: { label: "Abrir configuración", onClick: () => {} },
   },
 };

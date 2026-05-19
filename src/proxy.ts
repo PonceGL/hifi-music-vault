@@ -25,7 +25,10 @@ function isFolderConfigured(request: NextRequest): boolean {
   const raw = request.cookies.get(COOKIE_KEYS.folderConfigured)?.value;
   if (!raw) return false;
   try {
-    const config = JSON.parse(decodeURIComponent(raw)) as Record<string, unknown>;
+    const config = JSON.parse(decodeURIComponent(raw)) as Record<
+      string,
+      unknown
+    >;
     return (
       typeof config.downloadsPath === "string" &&
       config.downloadsPath.length > 0 &&

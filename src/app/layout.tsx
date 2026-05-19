@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import { QueryProvider } from '@/components/providers/QueryProvider';
-import './globals.css';
+import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Music Files Manager',
-  description: 'Local music library management for audiophiles and collectors.',
+  title: "Music Files Manager",
+  description: "Local music library management for audiophiles and collectors.",
 };
 
 export default function RootLayout({

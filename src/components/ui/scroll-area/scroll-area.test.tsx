@@ -12,7 +12,7 @@ describe("ScrollArea", () => {
     render(
       <ScrollArea>
         <p>Scrollable content</p>
-      </ScrollArea>
+      </ScrollArea>,
     );
     expect(screen.getByText("Scrollable content")).toBeInTheDocument();
   });
@@ -23,7 +23,7 @@ describe("ScrollArea", () => {
         <p>Item 1</p>
         <p>Item 2</p>
         <p>Item 3</p>
-      </ScrollArea>
+      </ScrollArea>,
     );
     expect(screen.getByText("Item 1")).toBeInTheDocument();
     expect(screen.getByText("Item 2")).toBeInTheDocument();
@@ -37,8 +37,8 @@ describe("ScrollBar", () => {
       render(
         <ScrollArea>
           <ScrollBar />
-        </ScrollArea>
-      )
+        </ScrollArea>,
+      ),
     ).not.toThrow();
   });
 
@@ -47,8 +47,8 @@ describe("ScrollBar", () => {
       render(
         <ScrollArea>
           <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      )
+        </ScrollArea>,
+      ),
     ).not.toThrow();
   });
 });

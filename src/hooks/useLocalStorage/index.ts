@@ -28,10 +28,10 @@ type UseLocalStorageReturn<T> = [
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): UseLocalStorageReturn<T> {
   const [storedValue, setStoredValue] = useState<T>(
-    () => storage.get<T>(key) ?? initialValue
+    () => storage.get<T>(key) ?? initialValue,
   );
 
   function setValue(value: T): void {

@@ -7,10 +7,10 @@ describe("WelcomeScreen", () => {
   it("renders app name and tagline", () => {
     render(<WelcomeScreen onNext={jest.fn()} />);
     expect(
-      screen.getByText(ONBOARDING_STRINGS.welcome.appName)
+      screen.getByText(ONBOARDING_STRINGS.welcome.appName),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(ONBOARDING_STRINGS.welcome.tagline)
+      screen.getByText(ONBOARDING_STRINGS.welcome.tagline),
     ).toBeInTheDocument();
   });
 
@@ -27,7 +27,7 @@ describe("WelcomeScreen", () => {
     expect(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.welcome.startButton,
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -38,7 +38,7 @@ describe("WelcomeScreen", () => {
     await userEvent.click(
       screen.getByRole("button", {
         name: ONBOARDING_STRINGS.welcome.startButton,
-      })
+      }),
     );
 
     expect(onNext).toHaveBeenCalledTimes(1);

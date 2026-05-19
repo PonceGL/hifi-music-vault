@@ -53,9 +53,14 @@ export function Topbar({
       )}
     >
       {/* Logo / App name */}
-      <div className="flex shrink-0 items-center gap-2" aria-label={APP_LOGO_ARIA_LABEL}>
+      <div
+        className="flex shrink-0 items-center gap-2"
+        aria-label={APP_LOGO_ARIA_LABEL}
+      >
         <Music aria-hidden="true" className="size-5 text-accent" />
-        <span className="text-sm font-semibold text-text-primary">{APP_NAME}</span>
+        <span className="text-sm font-semibold text-text-primary">
+          {APP_NAME}
+        </span>
       </div>
 
       {/* Search trigger — opens search modal, not a real input */}
@@ -91,7 +96,11 @@ export function Topbar({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label={SETTINGS_MENU_ARIA_LABEL}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={SETTINGS_MENU_ARIA_LABEL}
+            >
               <Settings aria-hidden="true" className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -100,7 +109,9 @@ export function Topbar({
               <a href={APP_ROUTES.settings}>{SETTINGS_LABEL}</a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
+            <DropdownMenuItem
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+            >
               {isDark ? (
                 <Sun aria-hidden="true" className="size-4" />
               ) : (

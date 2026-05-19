@@ -1,13 +1,16 @@
 import { renderHook } from "@testing-library/react";
 import { useToast } from "./use-toast";
-import { DISMISS_DURATION, MAX_VISIBLE_TOASTS } from "@/components/ui/toast/constants";
+import {
+  DISMISS_DURATION,
+  MAX_VISIBLE_TOASTS,
+} from "@/components/ui/toast/constants";
 
 jest.mock("sonner", () => ({
   toast: {
     success: jest.fn(),
-    info:    jest.fn(),
+    info: jest.fn(),
     warning: jest.fn(),
-    error:   jest.fn(),
+    error: jest.fn(),
     dismiss: jest.fn(),
   },
 }));

@@ -17,7 +17,9 @@ function getInitialIsCollapsed(): boolean {
 }
 
 export function useSidebar(): UseSidebarReturn {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(getInitialIsCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(
+    getInitialIsCollapsed,
+  );
 
   useEffect(() => {
     const mq = window.matchMedia(DESKTOP_QUERY);

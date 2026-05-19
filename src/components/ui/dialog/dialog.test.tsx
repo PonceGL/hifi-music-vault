@@ -63,13 +63,17 @@ describe("Dialog", () => {
   it("renders DialogTitle inside open dialog", () => {
     render(<TestDialog />);
     fireEvent.click(screen.getByText("Open dialog"));
-    expect(screen.getByRole("heading", { name: "Confirm action" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Confirm action" }),
+    ).toBeInTheDocument();
   });
 
   it("renders DialogDescription inside open dialog", () => {
     render(<TestDialog />);
     fireEvent.click(screen.getByText("Open dialog"));
-    expect(screen.getByText("This action cannot be undone.")).toBeInTheDocument();
+    expect(
+      screen.getByText("This action cannot be undone."),
+    ).toBeInTheDocument();
   });
 
   it("renders DialogFooter with a cancel button", () => {
@@ -131,12 +135,16 @@ describe("DialogContent — close button visibility", () => {
 
   it("hides close button for critical variant", () => {
     render(<ControlledDialog variant="critical" />);
-    expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Close" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides close button for in-progress variant", () => {
     render(<ControlledDialog variant="in-progress" />);
-    expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Close" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides close button when hideCloseButton is true on informative variant", () => {
@@ -146,9 +154,11 @@ describe("DialogContent — close button visibility", () => {
           <DialogTitle>Test</DialogTitle>
           <DialogDescription>Test description</DialogDescription>
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
-    expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Close" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows close button when hideCloseButton is false on critical variant", () => {
@@ -158,7 +168,7 @@ describe("DialogContent — close button visibility", () => {
           <DialogTitle>Test</DialogTitle>
           <DialogDescription>Test description</DialogDescription>
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
     expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
   });
@@ -167,14 +177,18 @@ describe("DialogContent — close button visibility", () => {
 describe("DialogContent — Escape key behavior", () => {
   it("calls onOpenChange(false) on Escape for informative variant", () => {
     const onOpenChange = jest.fn();
-    render(<ControlledDialog variant="informative" onOpenChange={onOpenChange} />);
+    render(
+      <ControlledDialog variant="informative" onOpenChange={onOpenChange} />,
+    );
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it("calls onOpenChange(false) on Escape for confirmation variant", () => {
     const onOpenChange = jest.fn();
-    render(<ControlledDialog variant="confirmation" onOpenChange={onOpenChange} />);
+    render(
+      <ControlledDialog variant="confirmation" onOpenChange={onOpenChange} />,
+    );
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -188,7 +202,9 @@ describe("DialogContent — Escape key behavior", () => {
 
   it("does not call onOpenChange on Escape for in-progress variant", () => {
     const onOpenChange = jest.fn();
-    render(<ControlledDialog variant="in-progress" onOpenChange={onOpenChange} />);
+    render(
+      <ControlledDialog variant="in-progress" onOpenChange={onOpenChange} />,
+    );
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(onOpenChange).not.toHaveBeenCalled();
   });
@@ -201,7 +217,7 @@ describe("DialogContent — Escape key behavior", () => {
           <DialogTitle>Test</DialogTitle>
           <DialogDescription>Test description</DialogDescription>
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(onEscapeKeyDown).toHaveBeenCalled();

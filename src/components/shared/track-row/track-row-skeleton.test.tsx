@@ -27,6 +27,8 @@ describe("TrackRowSkeleton", () => {
     const { container } = render(
       <TrackRowSkeleton style={{ animationDelay: "100ms" }} />,
     );
-    expect((container.firstChild as HTMLElement).style.animationDelay).toBe("100ms");
+    expect((container.firstChild as HTMLElement).style.animationDelay).toBe(
+      "100ms",
+    );
   });
 });
