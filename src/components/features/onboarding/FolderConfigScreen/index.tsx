@@ -29,7 +29,7 @@ export function FolderConfigScreen({
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center overflow-y-auto bg-background px-6 py-12">
-      <div className="flex w-full max-w-sm flex-col gap-8">
+      <div className="flex w-full max-w-2xl flex-col gap-8">
         <h1 className="text-2xl font-bold text-text-primary">
           {folderConfig.title}
         </h1>
