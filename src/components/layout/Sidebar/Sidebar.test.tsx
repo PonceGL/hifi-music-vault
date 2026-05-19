@@ -6,6 +6,7 @@ import {
   TOGGLE_COLLAPSE_LABEL,
   TOGGLE_EXPAND_LABEL,
 } from "@/constants/navigation";
+import { APP_ROUTES } from "@/constants/appRoutes";
 
 jest.mock("@/hooks/useSidebar", () => ({
   useSidebar: jest.fn(() => ({ isCollapsed: false, toggle: jest.fn() })),
@@ -112,4 +113,68 @@ describe("Sidebar — stats footer", () => {
   it("renders without stats when not provided", () => {
     render(<Sidebar />);
   });
+});
+
+describe("Sidebar — navigation routes (MFM-398)", () => {
+  it("Biblioteca link points to APP_ROUTES.library", () => {
+    render(<Sidebar />);
+    expect(screen.getByRole("link", { name: /Biblioteca/i })).toHaveAttribute(
+      "href",
+      APP_ROUTES.library,
+    );
+  });
+
+  it("Artistas link points to APP_ROUTES.artists", () => {
+    render(<Sidebar />);
+    expect(screen.getByRole("link", { name: /Artistas/i })).toHaveAttribute(
+      "href",
+      APP_ROUTES.artists,
+    );
+  });
+
+  it("Álbumes link points to APP_ROUTES.albums", () => {
+    render(<Sidebar />);
+    expect(screen.getByRole("link", { name: /Álbumes/i })).toHaveAttribute(
+      "href",
+      APP_ROUTES.albums,
+    );
+  });
+
+  it("Playlists link points to APP_ROUTES.playlists", () => {
+    render(<Sidebar />);
+    expect(screen.getByRole("link", { name: /Playlists/i })).toHaveAttribute(
+      "href",
+      APP_ROUTES.playlists,
+    );
+  });
+
+  it("Health link points to APP_ROUTES.health", () => {
+    render(<Sidebar />);
+    expect(screen.getByRole("link", { name: /Health/i })).toHaveAttribute(
+      "href",
+      APP_ROUTES.health,
+    );
+  });
+
+  it.each(NAV_ITEMS)(
+    "activates $label when pathname matches $href",
+    ({ href, label }) => {
+      mockUsePathname.mockReturnValue(href);
+      render(<Sidebar />);
+      expect(
+        screen.getByRole("link", { name: new RegExp(label, "i") }),
+      ).toHaveAttribute("aria-current", "page");
+    },
+  );
+
+  it.each(NAV_ITEMS)(
+    "does not activate $label when pathname is a different route",
+    ({ label }) => {
+      mockUsePathname.mockReturnValue("/nonexistent-route");
+      render(<Sidebar />);
+      expect(
+        screen.getByRole("link", { name: new RegExp(label, "i") }),
+      ).not.toHaveAttribute("aria-current");
+    },
+  );
 });
