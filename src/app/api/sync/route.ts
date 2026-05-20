@@ -27,7 +27,7 @@ export async function GET(
   }
 
   const stream = new ReadableStream({
-    async start(controller) {
+    async start(controller): Promise<void> {
       try {
         const result = await runSync({
           downloadsPath,
