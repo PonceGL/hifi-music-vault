@@ -4,6 +4,7 @@ const DIALOG_ROUTE = "/dialog";
 const VALIDATE_ROUTE = "/validate";
 const LIBRARY_ROUTE = "/library";
 const STATUS_ROUTE = "/status";
+const WATCH_ROUTE = "/watch";
 const SYNC_ROUTE = "/sync";
 const PRESCAN_ROUTE = "/prescan";
 /**
@@ -34,6 +35,8 @@ export const API_ROUTES = {
     index: `${PREFIX}${LIBRARY_ROUTE}`,
     /** GET — returns audio file counts for downloads and library folders */
     status: `${PREFIX}${LIBRARY_ROUTE}${STATUS_ROUTE}`,
+    /** GET — SSE stream: emits file-added / file-removed events from the library watcher */
+    watch: `${PREFIX}${LIBRARY_ROUTE}${WATCH_ROUTE}`,
   },
 
   sync: {
