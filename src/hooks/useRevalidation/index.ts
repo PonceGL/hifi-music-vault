@@ -26,6 +26,8 @@ export function useRevalidation(): UseRevalidationReturn {
     try {
       await internalHttpClient.get(API_ROUTES.library.index);
       await queryClient.invalidateQueries({ queryKey: ["library"] });
+    } catch {
+      // revalidation errors are non-fatal — UI recovers on next trigger
     } finally {
       isRevalidatingRef.current = false;
       clearOperation();
