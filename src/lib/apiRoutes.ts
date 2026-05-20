@@ -4,6 +4,8 @@ const DIALOG_ROUTE = "/dialog";
 const VALIDATE_ROUTE = "/validate";
 const LIBRARY_ROUTE = "/library";
 const STATUS_ROUTE = "/status";
+const SYNC_ROUTE = "/sync";
+const PRESCAN_ROUTE = "/prescan";
 /**
  * API route constants — single source of truth for every endpoint the
  * frontend calls. The frontend ONLY calls our own Next.js API (`/api/*`).
@@ -36,8 +38,8 @@ export const API_ROUTES = {
 
   sync: {
     /** POST — runs pre-scan and returns summary before confirming sync */
-    prescan: `${PREFIX}/sync/prescan`,
+    prescan: `${PREFIX}${SYNC_ROUTE}${PRESCAN_ROUTE}`,
     /** GET — SSE stream: emits progress events then complete/error */
-    stream: `${PREFIX}/sync`,
+    stream: `${PREFIX}${SYNC_ROUTE}`,
   },
 } as const;
