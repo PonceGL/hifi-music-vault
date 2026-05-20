@@ -12,16 +12,7 @@ import {
   type FolderStatus,
   type StatusResponseDto,
 } from "@/app/api/library/status/dtos/status.dto";
-import type { AudioFormat } from "@/types/track";
-
-const EXT_TO_FORMAT: Record<string, AudioFormat> = {
-  ".flac": "flac",
-  ".mp3": "mp3",
-  ".wav": "wav",
-  ".ogg": "ogg",
-  ".aac": "aac",
-  ".m4a": "aac",
-};
+import { EXT_TO_FORMAT } from "@/lib/audioFormats";
 
 class StatusServer {
   public async getStatus(
