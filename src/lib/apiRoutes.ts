@@ -33,4 +33,11 @@ export const API_ROUTES = {
     /** GET — returns audio file counts for downloads and library folders */
     status: `${PREFIX}${LIBRARY_ROUTE}${STATUS_ROUTE}`,
   },
+
+  sync: {
+    /** POST — runs pre-scan and returns summary before confirming sync */
+    prescan: `${PREFIX}/sync/prescan`,
+    /** GET — SSE stream: emits progress events then complete/error */
+    stream: `${PREFIX}/sync`,
+  },
 } as const;
