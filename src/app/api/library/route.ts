@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { COOKIE_KEYS } from "@/constants/cookieKeys";
 import { handleHttpError } from "@/lib/errorResponse";
-import { BadRequestError } from "@/lib/httpErrors";
+import { parseFolderConfigCookie } from "@/lib/parseFolderConfig";
 import { libraryQueryDto } from "@/app/api/library/dtos/library.dto";
 import { libraryServer } from "@/app/api/library/library.server";
-import type { FolderConfig } from "@/types/settings";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const raw = request.cookies.get(COOKIE_KEYS.folderConfigured)?.value;
-
-    if (!raw) {
-      throw new BadRequestError("Configuración de carpetas no encontrada.");
-    }
-
-    const config = JSON.parse(decodeURIComponent(raw)) as FolderConfig;
-
-    if (!config.libraryPath) {
-      throw new BadRequestError("La ruta de la biblioteca es inválida.");
-    }
+    const { libraryPath } = parseFolderConfigCookie(request);
 
     const sp = new URL(request.url).searchParams;
 
@@ -31,7 +19,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       health: sp.get("health") ?? undefined,
     });
 
-    const data = await libraryServer.getLibrary(config.libraryPath, query);
+    const data = await libraryServer.getLibrary(libraryPath, query);
 
     return NextResponse.json(
       { success: true, message: "Biblioteca obtenida.", data },
