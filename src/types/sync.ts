@@ -6,6 +6,7 @@ export type SyncPhase =
 
 export type SyncStatus =
   | "idle"
+  | "prescanning"
   | "confirming"
   | "running"
   | "completed"
