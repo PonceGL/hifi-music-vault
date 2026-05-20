@@ -2,6 +2,8 @@ const PREFIX = "/api";
 const FILESYSTEM_ROUTE = "/fs";
 const DIALOG_ROUTE = "/dialog";
 const VALIDATE_ROUTE = "/validate";
+const LIBRARY_ROUTE = "/library";
+const STATUS_ROUTE = "/status";
 /**
  * API route constants — single source of truth for every endpoint the
  * frontend calls. The frontend ONLY calls our own Next.js API (`/api/*`).
@@ -27,6 +29,6 @@ export const API_ROUTES = {
 
   library: {
     /** GET — returns audio file counts for downloads and library folders */
-    status: `${PREFIX}/library/status`,
+    status: `${PREFIX}${LIBRARY_ROUTE}${STATUS_ROUTE}`,
   },
 } as const;
