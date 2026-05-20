@@ -4,18 +4,10 @@ import { promises as fs } from "fs";
 import path from "path";
 import { promisify } from "util";
 import type { AudioFormat, Track, TrackMetadata } from "@/types/track";
+import { AUDIO_EXTENSIONS, EXT_TO_FORMAT } from "@/lib/audioFormats";
 import { computeHealthStatus } from "@/server/library/health";
 
 const execFileAsync = promisify(execFile);
-
-const AUDIO_EXTENSIONS = new Set([
-  ".flac",
-  ".mp3",
-  ".wav",
-  ".ogg",
-  ".aac",
-  ".m4a",
-]);
 
 interface FfprobeStream {
   codec_type: string;
@@ -46,23 +38,14 @@ function resolveFormat(
   ext: string,
   streams: FfprobeStream[],
 ): AudioFormat | null {
-  const audioStream = streams.find((s) => s.codec_type === "audio");
-  switch (ext) {
-    case ".flac":
-      return "flac";
-    case ".mp3":
-      return "mp3";
-    case ".wav":
-      return "wav";
-    case ".ogg":
-      return "ogg";
-    case ".aac":
-      return "aac";
-    case ".m4a":
-      return audioStream?.codec_name === "alac" ? "alac" : "aac";
-    default:
-      return null;
+  const base = EXT_TO_FORMAT[ext];
+  if (!base) return null;
+  // .m4a can contain ALAC — override the default "aac" when ffprobe confirms it
+  if (ext === ".m4a") {
+    const audioStream = streams.find((s) => s.codec_type === "audio");
+    return audioStream?.codec_name === "alac" ? "alac" : "aac";
   }
+  return base;
 }
 
 function parseTrackNumber(raw: string | undefined): number | null {

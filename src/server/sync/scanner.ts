@@ -1,14 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-
-const AUDIO_EXTENSIONS = new Set([
-  ".flac",
-  ".mp3",
-  ".wav",
-  ".ogg",
-  ".aac",
-  ".m4a",
-]);
+import { AUDIO_EXTENSIONS } from "@/lib/audioFormats";
 
 const MAX_DEPTH = 5;
 const TAG_FOLDER_RE = /^\[(.+)\]$/;
