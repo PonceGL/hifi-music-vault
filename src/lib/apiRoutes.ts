@@ -28,6 +28,8 @@ export const API_ROUTES = {
   },
 
   library: {
+    /** GET — paginated, filterable track index */
+    index: `${PREFIX}${LIBRARY_ROUTE}`,
     /** GET — returns audio file counts for downloads and library folders */
     status: `${PREFIX}${LIBRARY_ROUTE}${STATUS_ROUTE}`,
   },
