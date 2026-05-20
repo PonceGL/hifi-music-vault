@@ -43,16 +43,15 @@ export async function organize(options: OrganizerOptions): Promise<SyncResult> {
   const { files } = scanResult;
   const total = files.length;
 
-  for (let i = 0; i < files.length; i++) {
-    const scannedFile = files[i];
+  for (const [index, scannedFile] of files.entries()) {
     const ext = path.extname(scannedFile.path).toLowerCase();
 
     emit(onProgress, {
       phase: "organizing",
-      current: i,
+      current: index,
       total,
       currentFile: scannedFile.path,
-      percentage: Math.round((i / total) * 100),
+      percentage: Math.round((index / total) * 100),
     });
 
     const validation = await validateMinimalMetadata(scannedFile.path);
@@ -71,10 +70,10 @@ export async function organize(options: OrganizerOptions): Promise<SyncResult> {
 
     emit(onProgress, {
       phase: "moving",
-      current: i,
+      current: index,
       total,
       currentFile: scannedFile.path,
-      percentage: Math.round((i / total) * 100),
+      percentage: Math.round((index / total) * 100),
     });
 
     try {
