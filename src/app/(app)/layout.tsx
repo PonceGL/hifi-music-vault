@@ -9,12 +9,14 @@ import { TabBar } from "@/components/layout/TabBar";
 import { useFolderConfigGuard } from "@/hooks/useFolderConfigGuard";
 import { useFolderConfigStore } from "@/hooks/useFolderConfigStore";
 import { validateFolderPath } from "@/lib/validateFolderPath";
+import { useOperationStore } from "@/store/useOperationStore";
 
 export default function AppLayout({
   children,
 }: PropsWithChildren): ReactElement {
   useFolderConfigGuard();
   const { folderConfig } = useFolderConfigStore();
+  const { operationInProgress } = useOperationStore();
 
   useEffect(() => {
     if (!folderConfig) return;
@@ -23,7 +25,12 @@ export default function AppLayout({
   }, [folderConfig]);
 
   return (
-    <AppShell sidebar={<Sidebar />} topbar={<Topbar />} tabBar={<TabBar />}>
+    <AppShell
+      sidebar={<Sidebar />}
+      topbar={<Topbar />}
+      tabBar={<TabBar />}
+      isBlocked={operationInProgress !== null}
+    >
       {children}
     </AppShell>
   );

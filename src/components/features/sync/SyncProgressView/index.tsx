@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { HardDriveDownload } from "lucide-react";
 import { Progress } from "@/components/ui/progress/progress";
 import { Button } from "@/components/ui/button";
-import { SHELL_BLOCKABLE_SELECTOR } from "@/components/shared/progress-overlay/constants";
+import { useOperationStore } from "@/store/useOperationStore";
 import { SYNC_PROGRESS_STRINGS as S } from "./constants";
 
 interface SyncProgressViewProps {
@@ -19,17 +19,12 @@ export function SyncProgressView({
   isExternalDrive = false,
   onCancel,
 }: SyncProgressViewProps): ReactElement {
+  const { startSync, clearOperation } = useOperationStore();
+
   useEffect(() => {
-    const elements = document.querySelectorAll(SHELL_BLOCKABLE_SELECTOR);
-    elements.forEach((el) => {
-      el.classList.add("opacity-40", "pointer-events-none");
-    });
-    return () => {
-      elements.forEach((el) => {
-        el.classList.remove("opacity-40", "pointer-events-none");
-      });
-    };
-  }, []);
+    startSync();
+    return () => clearOperation();
+  }, [startSync, clearOperation]);
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent): void => {

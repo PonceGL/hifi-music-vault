@@ -1,6 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SyncProgressView } from "./index";
 
+const startSync = jest.fn();
+const clearOperation = jest.fn();
+
+jest.mock("@/store/useOperationStore", () => ({
+  useOperationStore: jest.fn(() => ({ startSync, clearOperation })),
+}));
+
 const onCancel = jest.fn();
 
 beforeEach(() => {
@@ -30,6 +37,19 @@ describe("SyncProgressView — renderizado", () => {
   it("renders a status region accessible to screen readers", () => {
     render(<SyncProgressView progress={50} />);
     expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+});
+
+describe("SyncProgressView — store", () => {
+  it("calls startSync on mount", () => {
+    render(<SyncProgressView progress={50} />);
+    expect(startSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls clearOperation on unmount", () => {
+    const { unmount } = render(<SyncProgressView progress={50} />);
+    unmount();
+    expect(clearOperation).toHaveBeenCalledTimes(1);
   });
 });
 

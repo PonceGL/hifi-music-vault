@@ -16,6 +16,10 @@ jest.mock("@/hooks/useFolderConfigStore", () => ({
   useFolderConfigStore: jest.fn(() => ({ folderConfig: VALID_CONFIG })),
 }));
 
+jest.mock("@/store/useOperationStore", () => ({
+  useOperationStore: jest.fn(() => ({ operationInProgress: null })),
+}));
+
 jest.mock("@/lib/validateFolderPath", () => ({
   validateFolderPath: (path: string) => mockValidate(path),
 }));
@@ -26,13 +30,15 @@ jest.mock("@/components/layout/app-shell/app-shell", () => ({
     sidebar,
     topbar,
     tabBar,
+    isBlocked,
   }: {
     children: React.ReactNode;
     sidebar: React.ReactNode;
     topbar: React.ReactNode;
     tabBar: React.ReactNode;
+    isBlocked?: boolean;
   }) => (
-    <div data-testid="app-shell">
+    <div data-testid="app-shell" data-blocked={String(isBlocked ?? false)}>
       <div data-testid="sidebar-slot">{sidebar}</div>
       <div data-testid="topbar-slot">{topbar}</div>
       <div data-testid="tabbar-slot">{tabBar}</div>
@@ -54,12 +60,15 @@ jest.mock("@/components/layout/TabBar", () => ({
 }));
 
 import { useFolderConfigStore } from "@/hooks/useFolderConfigStore";
+import { useOperationStore } from "@/store/useOperationStore";
 
 const mockStore = useFolderConfigStore as jest.Mock;
+const mockOperationStore = useOperationStore as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockStore.mockReturnValue({ folderConfig: VALID_CONFIG });
+  mockOperationStore.mockReturnValue({ operationInProgress: null });
 });
 
 describe("AppLayout — structure (MFM-397)", () => {
@@ -123,6 +132,34 @@ describe("AppLayout — structure (MFM-397)", () => {
       </AppLayout>,
     );
     expect(mockGuard).toHaveBeenCalled();
+  });
+});
+
+describe("AppLayout — shell blocking (MFM-382)", () => {
+  it("passes isBlocked=false to AppShell when no operation is in progress", () => {
+    mockOperationStore.mockReturnValue({ operationInProgress: null });
+    render(
+      <AppLayout>
+        <p>content</p>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("app-shell")).toHaveAttribute(
+      "data-blocked",
+      "false",
+    );
+  });
+
+  it("passes isBlocked=true to AppShell when an operation is in progress", () => {
+    mockOperationStore.mockReturnValue({ operationInProgress: "sync" });
+    render(
+      <AppLayout>
+        <p>content</p>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("app-shell")).toHaveAttribute(
+      "data-blocked",
+      "true",
+    );
   });
 });
 
