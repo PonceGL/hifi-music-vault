@@ -26,6 +26,7 @@ export async function organize(options: OrganizerOptions): Promise<SyncResult> {
   const result: SyncResult = {
     moved: 0,
     duplicatesSkipped: 0,
+    missingMetadataSkipped: 0,
     withWarnings: 0,
     errors: 0,
     playlistsUpdated: [],
@@ -57,7 +58,7 @@ export async function organize(options: OrganizerOptions): Promise<SyncResult> {
     const validation = await validateMinimalMetadata(scannedFile.path);
 
     if (!validation.valid || !validation.metadata) {
-      result.withWarnings += 1;
+      result.missingMetadataSkipped += 1;
       continue;
     }
 

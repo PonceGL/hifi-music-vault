@@ -24,6 +24,7 @@ export interface SyncProgress {
 export interface SyncResult {
   moved: number;
   duplicatesSkipped: number;
+  missingMetadataSkipped: number;
   withWarnings: number;
   errors: number;
   playlistsUpdated: string[];

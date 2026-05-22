@@ -106,7 +106,7 @@ describe("organize — happy path (MFM-435)", () => {
 });
 
 describe("organize — ignored files (MFM-435)", () => {
-  it("skips file with invalid metadata and increments withWarnings", async () => {
+  it("skips file with invalid metadata and increments missingMetadataSkipped", async () => {
     const file = makeScanned(`${DL}/track.flac`);
     mockScan.mockResolvedValue(scanWith([file]));
     mockValidate.mockResolvedValue({
@@ -117,7 +117,8 @@ describe("organize — ignored files (MFM-435)", () => {
 
     const result = await organize({ downloadsPath: DL, libraryPath: LIB });
 
-    expect(result.withWarnings).toBe(1);
+    expect(result.missingMetadataSkipped).toBe(1);
+    expect(result.withWarnings).toBe(0);
     expect(result.moved).toBe(0);
     expect(mockRename).not.toHaveBeenCalled();
   });
