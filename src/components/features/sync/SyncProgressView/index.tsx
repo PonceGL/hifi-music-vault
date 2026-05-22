@@ -23,7 +23,7 @@ export function SyncProgressView({
 
   useEffect(() => {
     startSync();
-    return () => clearOperation();
+    return (): void => clearOperation();
   }, [startSync, clearOperation]);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function SyncProgressView({
       e.preventDefault();
     };
     window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+    return (): void => window.removeEventListener("beforeunload", handler);
   }, []);
 
   return (
