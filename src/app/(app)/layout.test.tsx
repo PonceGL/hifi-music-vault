@@ -63,7 +63,7 @@ import { useFolderConfigStore } from "@/hooks/useFolderConfigStore";
 import { useOperationStore } from "@/store/useOperationStore";
 
 const mockStore = useFolderConfigStore as jest.Mock;
-const mockOperationStore = useOperationStore as jest.Mock;
+const mockOperationStore = useOperationStore as unknown as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
