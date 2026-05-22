@@ -52,6 +52,7 @@ const PRESCAN_DATA = {
 const SYNC_RESULT = {
   moved: 8,
   duplicatesSkipped: 2,
+  missingMetadataSkipped: 0,
   withWarnings: 0,
   errors: 0,
   playlistsUpdated: [],
