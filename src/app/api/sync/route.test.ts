@@ -21,6 +21,7 @@ const SYNC_RESULT: SyncResult = {
   withWarnings: 1,
   errors: 0,
   playlistsUpdated: ["Rock"],
+  missingMetadataSkipped: 0,
 };
 
 function makeRequest(cookie?: string): NextRequest {
