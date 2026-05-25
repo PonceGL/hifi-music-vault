@@ -35,3 +35,17 @@ export interface SyncError {
   errorCode: string;
   message: string;
 }
+
+export type SyncCriticalErrorKind =
+  | "disk_full"
+  | "disk_disconnected"
+  | "permission_denied";
+
+export interface SyncCriticalError {
+  kind: SyncCriticalErrorKind;
+  message: string;
+  affectedPath: string;
+  moved: number;
+  pending: number;
+  inProcess: number;
+}
