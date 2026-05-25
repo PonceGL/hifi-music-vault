@@ -20,6 +20,25 @@ jest.mock("@/store/useOperationStore", () => ({
   useOperationStore: jest.fn(() => ({ operationInProgress: null })),
 }));
 
+jest.mock("@/hooks/useLibraryStatus", () => ({
+  useLibraryStatus: jest.fn(() => ({ data: null })),
+}));
+
+jest.mock("@/hooks/useSync", () => ({
+  useSync: jest.fn(() => ({ startPrescan: jest.fn() })),
+}));
+
+jest.mock("@/hooks/useRevalidation", () => ({
+  useRevalidation: jest.fn(() => ({
+    revalidate: jest.fn(),
+    isRevalidating: false,
+  })),
+}));
+
+jest.mock("@/hooks/use-toast", () => ({
+  useToast: jest.fn(() => ({ info: jest.fn() })),
+}));
+
 jest.mock("@/lib/validateFolderPath", () => ({
   validateFolderPath: (path: string) => mockValidate(path),
 }));
@@ -30,18 +49,23 @@ jest.mock("@/components/layout/app-shell/app-shell", () => ({
     sidebar,
     topbar,
     tabBar,
+    artworkBanner,
     isBlocked,
   }: {
     children: React.ReactNode;
     sidebar: React.ReactNode;
     topbar: React.ReactNode;
     tabBar: React.ReactNode;
+    artworkBanner?: React.ReactNode;
     isBlocked?: boolean;
   }) => (
     <div data-testid="app-shell" data-blocked={String(isBlocked ?? false)}>
       <div data-testid="sidebar-slot">{sidebar}</div>
       <div data-testid="topbar-slot">{topbar}</div>
       <div data-testid="tabbar-slot">{tabBar}</div>
+      {artworkBanner && (
+        <div data-testid="artwork-banner-slot">{artworkBanner}</div>
+      )}
       <div data-testid="content-slot">{children}</div>
     </div>
   ),
@@ -57,6 +81,10 @@ jest.mock("@/components/layout/topbar/topbar", () => ({
 
 jest.mock("@/components/layout/TabBar", () => ({
   TabBar: () => <div data-testid="tab-bar" />,
+}));
+
+jest.mock("@/components/features/sync/RevalidationProgressBar", () => ({
+  RevalidationProgressBar: () => <div data-testid="revalidation-bar" />,
 }));
 
 import { useFolderConfigStore } from "@/hooks/useFolderConfigStore";
@@ -133,9 +161,18 @@ describe("AppLayout — structure (MFM-397)", () => {
     );
     expect(mockGuard).toHaveBeenCalled();
   });
+
+  it("renders the RevalidationProgressBar in the artworkBanner slot", () => {
+    render(
+      <AppLayout>
+        <p>content</p>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("revalidation-bar")).toBeInTheDocument();
+  });
 });
 
-describe("AppLayout — shell blocking (MFM-382)", () => {
+describe("AppLayout — shell blocking (MFM-382, MFM-501)", () => {
   it("passes isBlocked=false to AppShell when no operation is in progress", () => {
     mockOperationStore.mockReturnValue({ operationInProgress: null });
     render(
@@ -149,7 +186,7 @@ describe("AppLayout — shell blocking (MFM-382)", () => {
     );
   });
 
-  it("passes isBlocked=true to AppShell when an operation is in progress", () => {
+  it("passes isBlocked=true to AppShell when sync is in progress", () => {
     mockOperationStore.mockReturnValue({ operationInProgress: "sync" });
     render(
       <AppLayout>
@@ -159,6 +196,19 @@ describe("AppLayout — shell blocking (MFM-382)", () => {
     expect(screen.getByTestId("app-shell")).toHaveAttribute(
       "data-blocked",
       "true",
+    );
+  });
+
+  it("passes isBlocked=false to AppShell when revalidation is in progress", () => {
+    mockOperationStore.mockReturnValue({ operationInProgress: "revalidation" });
+    render(
+      <AppLayout>
+        <p>content</p>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("app-shell")).toHaveAttribute(
+      "data-blocked",
+      "false",
     );
   });
 });
