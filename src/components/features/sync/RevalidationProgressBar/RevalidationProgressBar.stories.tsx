@@ -1,14 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { RevalidationProgressBar } from "./index";
-
-jest.mock("@/store/useOperationStore", () => ({
-  useOperationStore: () => ({ operationInProgress: "revalidation" }),
-}));
+import { useOperationStore } from "@/store/useOperationStore";
 
 const meta = {
   title: "Features/Sync/RevalidationProgressBar",
   component: RevalidationProgressBar,
   tags: ["autodocs"],
+  decorators: [
+    (Story) => {
+      useOperationStore.setState({ operationInProgress: "revalidation" });
+      return <Story />;
+    },
+  ],
 } satisfies Meta<typeof RevalidationProgressBar>;
 
 export default meta;
