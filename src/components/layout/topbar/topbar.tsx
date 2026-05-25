@@ -1,7 +1,15 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { Music, Search, Settings, RefreshCw, Sun, Moon } from "lucide-react";
+import {
+  ChevronDown,
+  Music,
+  Search,
+  Settings,
+  RefreshCw,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { APP_ROUTES } from "@/constants/appRoutes";
 import { Button } from "@/components/ui/button";
@@ -21,7 +29,9 @@ import {
   SEARCH_SHORTCUT_HINT,
   SEARCH_TRIGGER_ARIA_LABEL,
   SYNC_LABEL,
-  SYNC_ARIA_LABEL,
+  SYNC_MENU_ARIA_LABEL,
+  SYNC_NOW_LABEL,
+  REVALIDATE_LABEL,
   SETTINGS_MENU_ARIA_LABEL,
   SETTINGS_LABEL,
   TOGGLE_THEME_LABEL_DARK,
@@ -30,14 +40,18 @@ import {
 
 export interface TopbarProps {
   isBlocked?: boolean;
+  hasLibrary?: boolean;
   onSearchOpen?: () => void;
   onSyncStart?: () => void;
+  onRevalidate?: () => void;
 }
 
 export function Topbar({
   isBlocked = false,
+  hasLibrary = false,
   onSearchOpen,
   onSyncStart,
+  onRevalidate,
 }: TopbarProps): ReactElement {
   const { theme, setTheme } = useTheme();
 
@@ -82,17 +96,31 @@ export function Topbar({
         </button>
       </div>
 
-      {/* Right section: sync + settings */}
+      {/* Right section: sync dropdown + settings */}
       <div className="flex shrink-0 items-center gap-2">
-        <Button
-          variant="primary"
-          size="sm"
-          aria-label={SYNC_ARIA_LABEL}
-          onClick={onSyncStart}
-        >
-          <RefreshCw aria-hidden="true" className="size-4" />
-          {SYNC_LABEL}
-        </Button>
+        {hasLibrary && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="primary"
+                size="sm"
+                aria-label={SYNC_MENU_ARIA_LABEL}
+              >
+                <RefreshCw aria-hidden="true" className="size-4" />
+                {SYNC_LABEL}
+                <ChevronDown aria-hidden="true" className="size-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onSyncStart}>
+                {SYNC_NOW_LABEL}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRevalidate}>
+                {REVALIDATE_LABEL}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

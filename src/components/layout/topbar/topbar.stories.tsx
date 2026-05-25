@@ -10,8 +10,10 @@ const meta = {
   },
   args: {
     isBlocked: false,
+    hasLibrary: true,
     onSearchOpen: () => {},
     onSyncStart: () => {},
+    onRevalidate: () => {},
   },
   decorators: [
     (Story) => (
@@ -27,6 +29,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const NoLibrary: Story = {
+  args: {
+    hasLibrary: false,
+  },
+};
+
 export const Blocked: Story = {
   args: {
     isBlocked: true,
@@ -38,8 +46,16 @@ export const AllVariants: Story = {
   render: (args) => (
     <div className="flex flex-col gap-4 bg-background p-4">
       <div>
-        <p className="mb-2 text-xs text-text-tertiary">Default</p>
-        <Topbar {...args} />
+        <p className="mb-2 text-xs text-text-tertiary">
+          Con biblioteca (sync disponible)
+        </p>
+        <Topbar {...args} hasLibrary />
+      </div>
+      <div>
+        <p className="mb-2 text-xs text-text-tertiary">
+          Sin biblioteca (oculta sync)
+        </p>
+        <Topbar {...args} hasLibrary={false} />
       </div>
       <div>
         <p className="mb-2 text-xs text-text-tertiary">

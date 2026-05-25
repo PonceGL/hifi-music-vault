@@ -6,7 +6,10 @@ export const SEARCH_SHORTCUT_HINT = "⌘K";
 export const SEARCH_TRIGGER_ARIA_LABEL = "Abrir búsqueda";
 
 export const SYNC_LABEL = "Sincronizar";
-export const SYNC_ARIA_LABEL = "Iniciar sincronización";
+export const SYNC_MENU_ARIA_LABEL = "Abrir menú de sincronización";
+export const SYNC_NOW_LABEL = "Sincronizar ahora";
+export const REVALIDATE_LABEL = "Forzar re-validación completa de biblioteca";
+export const OPERATION_BUSY_TOAST = "Ya hay una operación en curso";
 
 export const SETTINGS_MENU_ARIA_LABEL = "Abrir menú de configuración";
 export const SETTINGS_LABEL = "Configuración";
