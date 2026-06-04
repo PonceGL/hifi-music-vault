@@ -4,3 +4,5 @@ allowBuilds:
   esbuild: true
   sharp: false
   unrs-resolver: true
+overrides:
+  '@poncegl/material-design-3': file:../Material-Design-3-React/packages/material-design-3
